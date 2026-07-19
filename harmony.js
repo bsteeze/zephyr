@@ -69,14 +69,11 @@
     air:'rgba(91,190,255,.18)', water:'rgba(157,112,255,.20)'
   };
   const DEFAULTS = [
-    {name:'May 15', date:'1976-05-15', role:'root'},
-    {name:'April 27', date:'1980-04-27', role:'member'},
-    {name:'April 7', date:'2000-04-07', role:'member'},
-    {name:'October 12', date:'2002-10-12', role:'member'},
-    {name:'October 24', date:'2004-10-24', role:'member'}
+    {name:'Orion', date:'1976-05-15', role:'root', archetype:'Boy'},
+    {name:'Aurora', date:'1987-12-14', role:'member', archetype:'Girl'}
   ];
 
-  const state = { people: [], mode: 'continuous', astroOpacity: .82, layers: {stars:true,zodiac:true,months:true,elements:true,notes:true,aspects:true} };
+  const state = { people: [], mode: 'continuous', privacyMode: true, demoMode: true, astroOpacity: .82, layers: {stars:true,zodiac:true,months:true,elements:true,notes:true,aspects:true} };
   let audioCtx = null;
   let activeVoice = null;
   const $ = s => document.querySelector(s);
@@ -191,12 +188,20 @@
   }
 
   function init() {
-    const saved = localStorage.getItem('harmonyOfYear');
-    try { state.people = saved ? JSON.parse(saved).people : structuredClone(DEFAULTS); }
-    catch { state.people = structuredClone(DEFAULTS); }
+    const saved = localStorage.getItem('zephyrObservatoryV1');
+    try {
+      const parsed = saved ? JSON.parse(saved) : null;
+      state.people = parsed?.people?.length ? parsed.people : structuredClone(DEFAULTS);
+      state.privacyMode = parsed?.privacyMode ?? true;
+      state.demoMode = parsed?.demoMode ?? !parsed;
+      if (parsed?.title) $('#titleInput').value = parsed.title;
+    } catch { state.people = structuredClone(DEFAULTS); }
     if (!Array.isArray(state.people) || !state.people.length) state.people = structuredClone(DEFAULTS);
+    document.body.classList.toggle('privacy-mode', state.privacyMode);
+    document.body.classList.toggle('custom-mode', !state.demoMode);
     renderPeople();
     bind();
+    syncPrivacyButton();
     update();
     track('zephyr_loaded', {measurement_id: GA_MEASUREMENT_ID, participant_count: state.people.length});
   }
@@ -210,6 +215,7 @@
       node.querySelector('.person-name').value = p.name;
       node.querySelector('.person-date').value = p.date;
       node.querySelector('.person-role').value = p.role;
+      node.dataset.archetype = p.archetype || (idx===0?'Boy':'Girl');
       node.querySelector('.remove-person').disabled = state.people.length <= 1;
       list.appendChild(node);
     });
@@ -242,10 +248,26 @@
       track('participant_added', {participant_count: state.people.length});
       renderPeople(); update();
     });
-    $('#resetBtn').addEventListener('click', () => { track('harmony_reset'); state.people = structuredClone(DEFAULTS); state.mode='continuous'; $('#titleInput').value='Family Chord'; renderPeople(); syncSegments(); update(); });
-    $('#saveBtn').addEventListener('click', () => { track('harmony_saved', {participant_count: state.people.length}); localStorage.setItem('harmonyOfYear', JSON.stringify({people:state.people,title:$('#titleInput').value})); toast('Saved in this browser.'); });
+    $('#resetBtn').addEventListener('click', () => { track('harmony_reset'); state.people = structuredClone(DEFAULTS); state.mode='continuous'; state.privacyMode=true; state.demoMode=true; $('#titleInput').value='Perfect Pair'; document.body.classList.add('privacy-mode'); document.body.classList.remove('custom-mode'); syncPrivacyButton(); renderPeople(); syncSegments(); update(); });
+    $('#saveBtn').addEventListener('click', () => { track('harmony_saved', {participant_count: state.people.length}); localStorage.setItem('zephyrObservatoryV1', JSON.stringify({people:state.people,title:$('#titleInput').value,privacyMode:state.privacyMode,demoMode:state.demoMode})); toast('Saved in this browser.'); });
     $('#shareBtn').addEventListener('click', copySummary);
+    $('#privacyToggle').addEventListener('click', () => {
+      state.privacyMode=!state.privacyMode;
+      document.body.classList.toggle('privacy-mode', state.privacyMode);
+      syncPrivacyButton(); update();
+      track('privacy_mode_toggled',{enabled:state.privacyMode});
+    });
+    $('#createOwnBtn').addEventListener('click', () => {
+      state.demoMode=false; state.privacyMode=false;
+      state.people=[{name:'You',date:'1990-01-01',role:'root'},{name:'Someone special',date:'1990-07-01',role:'member'}];
+      $('#titleInput').value='Our Harmony';
+      document.body.classList.add('custom-mode'); document.body.classList.remove('privacy-mode');
+      syncPrivacyButton(); renderPeople(); update();
+      document.querySelector('.layout').scrollIntoView({behavior:'smooth',block:'start'});
+      track('create_own_harmony_clicked');
+    });
     const playBtn = $('#playBtn');
+    const demoPlayBtn = $('#demoPlayBtn');
     const startHeldChord = e => {
       e.preventDefault();
       if (playBtn.setPointerCapture && e.pointerId != null) {
@@ -261,6 +283,10 @@
     playBtn.addEventListener('pointerup', stopHeldChord);
     playBtn.addEventListener('pointercancel', stopHeldChord);
     playBtn.addEventListener('lostpointercapture', stopHeldChord);
+    demoPlayBtn.addEventListener('pointerdown', startHeldChord);
+    demoPlayBtn.addEventListener('pointerup', stopHeldChord);
+    demoPlayBtn.addEventListener('pointercancel', stopHeldChord);
+    demoPlayBtn.addEventListener('pointerleave', stopHeldChord);
     playBtn.addEventListener('keydown', e => {
       if ((e.key === ' ' || e.key === 'Enter') && !e.repeat) startHeldChord(e);
     });
@@ -282,6 +308,13 @@
     });
   }
 
+  function syncPrivacyButton() {
+    const btn=$('#privacyToggle'); if(!btn)return;
+    btn.classList.toggle('active',state.privacyMode);
+    btn.setAttribute('aria-pressed',String(state.privacyMode));
+    btn.innerHTML=`<span>${state.privacyMode?'◉':'○'}</span> Privacy ${state.privacyMode?'on':'off'}`;
+  }
+
   function syncSegments() { $$('.segment').forEach(b => b.classList.toggle('active', b.dataset.mode === state.mode)); }
 
   function update() {
@@ -289,7 +322,7 @@
     const data = enrich();
     $('#groupTitle').textContent = $('#titleInput').value || 'Untitled Chord';
     const root = data.find(p => p.role === 'root') || data[0];
-    $('#rootDateLabel').textContent = dateLabel(root.date);
+    $('#rootDateLabel').textContent = state.privacyMode ? root.name : dateLabel(root.date);
     $('#rootNoteLabel').textContent = `C4 · ${ROOT_HZ.toFixed(2)} Hz`;
 
     data.forEach((p,i) => {
@@ -297,7 +330,8 @@
       card.dataset.role=p.role;
       card.querySelector('.role-text').textContent=p.role==='root'?'ROOT':'MEMBER';
       card.querySelector('.person-note').textContent = state.mode === 'snap' ? `${p.note}${p.octave}` : `${p.note}${p.deviation >= 0 ? '+' : ''}${p.deviation.toFixed(0)}¢`;
-      card.querySelector('.person-sign').textContent = `${p.sign} · ${dateLabel(p.date)}`;
+      card.querySelector('.person-sign').textContent = state.privacyMode ? `${p.sign} · ${SIGN_META[p.sign].element}` : `${p.sign} · ${dateLabel(p.date)}`;
+      card.querySelector('.person-position').textContent = `Solar position ${(((p.ord-1)/YEAR)*360).toFixed(0)}° · Day ${p.ord}`;
       card.querySelector('.person-interval').textContent = p.role === 'root' ? 'Tonic / root' : `${p.dayDiff >= 0 ? '+' : ''}${p.dayDiff.toFixed(0)} days · ${p.exactCents >= 0 ? '+' : ''}${p.exactCents.toFixed(0)} cents`;
       const harmonic=harmonicInterval(p.exactCents);
       card.querySelector('.person-solar-name').textContent=harmonic.solar;
@@ -478,7 +512,7 @@
     $('#tensionMetric').textContent=avg<.3?'Low':avg<.55?'Moderate':'High';
 
     const root=data.find(p=>p.role==='root')||data[0];
-    $('#intervalTable').innerHTML=`<table><thead><tr><th>Person</th><th>Date</th><th>Sign</th><th>Solar interval</th><th>Nearest note</th><th>Frequency</th></tr></thead><tbody>${data.map(p=>`<tr><td><strong>${escapeHtml(p.name)}</strong>${p.role==='root'?' · Root':''}</td><td>${dateLabel(p.date)}</td><td>${p.sign}</td><td>${p.role==='root'?'Unison':intervalName(Math.abs(p.exactCents))} · ${p.exactCents>=0?'+':''}${p.exactCents.toFixed(1)}¢</td><td>${p.note}${p.octave} (${p.deviation>=0?'+':''}${p.deviation.toFixed(1)}¢)</td><td>${p.freq.toFixed(2)} Hz</td></tr>`).join('')}</tbody></table>`;
+    $('#intervalTable').innerHTML=`<table><thead><tr><th>Person</th><th>Date</th><th>Sign</th><th>Solar interval</th><th>Nearest note</th><th>Frequency</th></tr></thead><tbody>${data.map(p=>`<tr><td><strong>${escapeHtml(p.name)}</strong>${p.role==='root'?' · Root':''}</td><td>${state.privacyMode?'Private':dateLabel(p.date)}</td><td>${p.sign}</td><td>${p.role==='root'?'Unison':intervalName(Math.abs(p.exactCents))} · ${p.exactCents>=0?'+':''}${p.exactCents.toFixed(1)}¢</td><td>${p.note}${p.octave} (${p.deviation>=0?'+':''}${p.deviation.toFixed(1)}¢)</td><td>${p.freq.toFixed(2)} Hz</td></tr>`).join('')}</tbody></table>`;
   }
 
   function detectChord(pcs) {
