@@ -1,15 +1,12 @@
-ZEPHYR MOBILE CONTAINMENT + LOWER PLAY BUTTON
+ZEPHYR ZODIAC GLYPH FIX
 
-Upload these files to the repository root:
+Upload these two files to the repository root:
 - index.html
-- mobile-fixes.css
-- mobile-actions.js
-- ios-audio-unlock.js
+- zodiac-glyph-fixes.js
 
-Fixes:
-- Prevents the page from horizontally drifting/panning off the iPhone viewport.
-- Contains long birthday/interval text and wide analysis tables within their panels.
-- Adds a hold-to-play button directly beneath Save and Copy Summary.
-- Preserves the iPhone speaker audio-route bridge.
-
-After Vercel deploys, close the Safari tab and reopen zephyr.guru so iOS does not reuse the old CSS.
+This update:
+- Replaces the malformed zodiac line drawings with cleaner custom SVG paths.
+- Uses no emoji or font-dependent zodiac characters.
+- Reduces each glyph from roughly 42px to 30px.
+- Pulls the glyph inward so it no longer collides with the sign name or date range.
+- Slightly tightens sign/date typography for mobile screens.
