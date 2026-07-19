@@ -1,0 +1,219 @@
+
+/* Zephyr mobile layout stabilization */
+html, body {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+.app-shell,
+.welcome-stage,
+.site-header,
+.layout,
+.left-column,
+.right-column,
+.panel {
+  min-width: 0;
+  max-width: 100%;
+}
+
+img, svg {
+  max-width: 100%;
+}
+
+@media (max-width: 1180px), (hover: none) and (pointer: coarse) {
+  .welcome-stage {
+    display: block;
+    width: 100%;
+    min-height: auto;
+    margin: 8px 0 20px;
+    padding: clamp(24px, 6vw, 48px) clamp(18px, 5vw, 38px) 30px;
+  }
+
+  .welcome-copy {
+    width: 100%;
+    max-width: 760px;
+  }
+
+  .welcome-copy h1 {
+    max-width: 100%;
+    font-size: clamp(2.65rem, 11vw, 5.4rem);
+    line-height: .94;
+  }
+
+  .welcome-copy > p:not(.welcome-eyebrow):not(.privacy-note) {
+    max-width: 42rem;
+    font-size: clamp(1rem, 3.7vw, 1.25rem);
+    line-height: 1.55;
+  }
+
+  .welcome-orbit {
+    position: relative;
+    width: min(74vw, 340px);
+    height: min(74vw, 340px);
+    right: auto;
+    bottom: auto;
+    margin: 28px auto 0;
+    transform: none;
+  }
+
+  .welcome-watermark {
+    top: 46%;
+    right: -34%;
+    width: min(115vw, 720px);
+    height: min(115vw, 720px);
+    opacity: .038;
+  }
+
+  .pair-lockup {
+    width: 100%;
+    grid-template-columns: minmax(0,1fr) auto minmax(0,1fr);
+  }
+
+  .welcome-actions {
+    width: 100%;
+  }
+
+  .welcome-actions .btn {
+    min-height: 52px;
+  }
+}
+
+@media (max-width: 620px) {
+  .app-shell {
+    width: 100%;
+    padding: 8px;
+  }
+
+  .welcome-stage {
+    border-radius: 20px;
+    padding: 24px 16px 26px;
+  }
+
+  .welcome-brand {
+    gap: 10px;
+    margin-bottom: 22px;
+  }
+
+  .welcome-brand img {
+    width: 42px;
+    height: 42px;
+  }
+
+  .welcome-brand b {
+    font-size: 1.28rem;
+    letter-spacing: .18em;
+  }
+
+  .welcome-brand small {
+    font-size: .48rem;
+    letter-spacing: .13em;
+  }
+
+  .welcome-copy h1 {
+    font-size: clamp(2.55rem, 13vw, 4.2rem);
+    line-height: .92;
+  }
+
+  .pair-lockup {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+    padding: 16px;
+  }
+
+  .pair-lockup > span {
+    text-align: center;
+  }
+
+  .pair-harmony {
+    order: 2;
+    width: 100%;
+    min-width: 0;
+  }
+
+  .pair-lockup > span:last-child {
+    order: 3;
+  }
+
+  .welcome-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+
+  .welcome-actions .btn {
+    width: 100%;
+    white-space: normal;
+  }
+
+  .welcome-orbit {
+    width: min(78vw, 300px);
+    height: min(78vw, 300px);
+  }
+
+  .site-header {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .site-header .brand {
+    justify-self: center;
+  }
+
+  .header-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .header-actions .privacy-switch {
+    grid-column: 1 / -1;
+  }
+
+  .layout {
+    width: 100%;
+  }
+
+  .panel {
+    width: 100%;
+    overflow: hidden;
+  }
+
+  .wheel-panel .panel-heading {
+    flex-direction: column;
+  }
+
+  .segmented {
+    align-self: stretch;
+  }
+
+  .segment {
+    flex: 1;
+  }
+
+  .wheel-toolbar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0,1fr));
+  }
+
+  .layer-toggle {
+    text-align: center;
+  }
+
+  .opacity-control {
+    grid-column: 1 / -1;
+  }
+
+  .legend-row {
+    gap: 12px;
+    flex-wrap: wrap;
+    font-size: .78rem;
+  }
+
+  .mobile-nav {
+    left: 8px;
+    right: 8px;
+    width: auto;
+  }
+}
