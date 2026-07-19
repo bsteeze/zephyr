@@ -1,1 +1,2 @@
-Upload all four site files to the root of the Vercel project and deploy to Production. index.html must remain at the top level.
+Zephyr Harmony V3 — deploy all files to the Vercel project root.
+This version includes the new Zephyr layout, full Interpretation panel, and doubled bell decay/release sustain.

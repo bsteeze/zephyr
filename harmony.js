@@ -267,6 +267,8 @@
 
     data.forEach((p,i) => {
       const card = list.children[i]; if (!card) return;
+      card.dataset.role=p.role;
+      card.querySelector('.role-text').textContent=p.role==='root'?'ROOT':'MEMBER';
       card.querySelector('.person-note').textContent = state.mode === 'snap' ? `${p.note}${p.octave}` : `${p.note}${p.deviation >= 0 ? '+' : ''}${p.deviation.toFixed(0)}¢`;
       card.querySelector('.person-sign').textContent = `${p.sign} · ${dateLabel(p.date)}`;
       card.querySelector('.person-interval').textContent = p.role === 'root' ? 'Tonic / root' : `${p.dayDiff >= 0 ? '+' : ''}${p.dayDiff.toFixed(0)} days · ${p.exactCents >= 0 ? '+' : ''}${p.exactCents.toFixed(0)} cents`;
@@ -407,10 +409,22 @@
     $('#solarIntervalName').textContent=h.solar;
     $('#solarIntervalTagline').textContent=h.tagline;
     $('#theoryIntervalName').textContent=h.theory;
-    $('#theoryIntervalDetail').textContent=`${Math.abs(member.exactCents).toFixed(0)} cents · ${h.tuning}`;
+    $('#theoryIntervalCents').textContent=`${member.exactCents>=0?'+':''}${member.exactCents.toFixed(0)}¢`;
+    $('#theoryIntervalDetail').textContent=`${(Math.abs(member.exactCents)/100).toFixed(2)} semitones · ${h.tuning}`;
     $('#solarDaysApart').textContent=`${Math.abs(member.dayDiff).toFixed(0)} ${Math.abs(member.dayDiff).toFixed(0)==='1'?'day':'days'}`;
-    $('#solarDirection').textContent=member===root?'Same solar position':`${member.dayDiff<0?'Backward':'Forward'} in the solar year · ${h.direction}`;
+    $('#solarDirection').textContent=member===root?'Same solar position':`${member.dayDiff<0?'Backward':'Forward'} in the solar year`;
     $('#intervalMeaning').textContent=h.meaning;
+    $('#interpSolarName').textContent=h.solar;
+    $('#interpSolarTagline').textContent=h.tagline;
+    $('#interpTheoryName').textContent=`${h.theory} (${member.exactCents>=0?'+':''}${member.exactCents.toFixed(0)}¢)`;
+    $('#interpTheoryDetail').textContent=`${(Math.abs(member.exactCents)/100).toFixed(2)} semitones · ${h.tuning}`;
+    const meaningTitle={0:'Complete alignment',1:'Charged closeness',2:'Forward motion',3:'Emotional depth',4:'Warm clarity',5:'Stable support',6:'Transformative tension',7:'Natural stability',8:'Expressive distance',9:'Open warmth',10:'Soulful momentum',11:'Anticipation',12:'Renewal'}[h.semitones]||'Harmonic character';
+    const musicTitle={0:'The same tone',1:'Maximum friction',2:'A melodic step',3:'The minor color',4:'The major color',5:'A structural pillar',6:'The dividing axis',7:'A harmonic foundation',8:'A poignant leap',9:'A lyrical consonance',10:'A modern color',11:'A leading pull',12:'The returning note'}[h.semitones]||'Musical color';
+    const musicText={0:'Both dates resolve to the same pitch center.',1:'Common in suspense and close dissonance.',2:'Common in scales and melodies; it creates movement.',3:'A defining color of minor chords and expressive melody.',4:'The interval that gives major chords their brightness.',5:'Used in suspended harmony and strong melodic frameworks.',6:'A dramatic interval that strongly seeks resolution.',7:'Common in open strings, power chords, and natural overtones.',8:'A wide emotional interval used for yearning and drama.',9:'A warm, singable interval common in melody and harmony.',10:'Frequent in blues, jazz, and open modern harmony.',11:'Sits just below the octave and pulls strongly upward.',12:'The same note at twice the frequency.'}[h.semitones]||h.meaning;
+    $('#interpMeaningTitle').textContent=meaningTitle;
+    $('#interpMeaning').textContent=h.meaning;
+    $('#interpMusicTitle').textContent=musicTitle;
+    $('#interpMusic').textContent=musicText;
   }
 
   function renderAnalysis(data) {
@@ -494,11 +508,11 @@
       // Inharmonic partials create a bell rather than an organ/synth tone.
       // The fundamental is held quietly while brighter overtones decay away.
       const partials=[
-        {ratio:1.000, level:.78, decay:7.2, type:'sine'},
-        {ratio:2.010, level:.34, decay:4.8, type:'sine'},
-        {ratio:2.710, level:.22, decay:3.3, type:'sine'},
-        {ratio:4.060, level:.13, decay:2.35, type:'sine'},
-        {ratio:5.430, level:.075,decay:1.65, type:'sine'}
+        {ratio:1.000, level:.78, decay:14.4, type:'sine'},
+        {ratio:2.010, level:.34, decay:9.6, type:'sine'},
+        {ratio:2.710, level:.22, decay:6.6, type:'sine'},
+        {ratio:4.060, level:.13, decay:4.7, type:'sine'},
+        {ratio:5.430, level:.075,decay:3.3, type:'sine'}
       ];
 
       partials.forEach((part,pi)=>{
@@ -525,6 +539,7 @@
     activeVoice={master,warmth,compressor,sources,gains};
     $('#playBtn').classList.add('playing');
     $('#playBtn').textContent='■ Release bells';
+    document.body.classList.add('sound-active');
   }
 
   function stopChord() {
@@ -534,7 +549,7 @@
     const now=audioCtx.currentTime;
 
     // Let the bells ring naturally after release, then guarantee silence.
-    const tail=2.8;
+    const tail=5.6;
     try {
       voice.gains.forEach(gain=>{
         gain.gain.cancelScheduledValues(now);
@@ -560,6 +575,7 @@
     const btn=$('#playBtn');
     btn.classList.remove('playing');
     btn.textContent='▶ Hold to ring';
+    document.body.classList.remove('sound-active');
   }
 
   async function copySummary() {
