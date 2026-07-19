@@ -4,16 +4,21 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#090b12">
-  <title>Harmony of the Year</title>
-  <link rel="stylesheet" href="harmony.css?v=20260719-vercel1">
+  <title>Zephyr · Harmony of the Year</title>
+  <meta name="description" content="Turn birthdays into solar harmonic intervals, chords, and playable celestial harmony.">
+  <link rel="stylesheet" href="harmony.css?v=20260719-zephyr1">
 </head>
 <body>
 <div class="app-shell">
   <header class="topbar">
-    <div>
+    <div class="brand-block">
+      <a class="brand" href="/" aria-label="Zephyr home">
+        <img src="zephyr-logo.svg" alt="" width="42" height="42">
+        <span>ZEPHYR</span>
+      </a>
       <p class="eyebrow">Music × Calendar × Zodiac</p>
       <h1>Harmony of the Year</h1>
-      <p class="subtitle">Turn birthdays into intervals, chords, and a playable solar harmony.</p>
+      <p class="subtitle">Turn birthdays into solar harmonic intervals, chords, and a playable celestial harmony.</p>
     </div>
     <div class="header-actions">
       <button class="btn ghost" id="resetBtn" type="button">Reset</button>
@@ -79,6 +84,30 @@
         <button class="btn ghost" id="shareBtn" type="button">Copy summary</button>
       </div>
     </aside>
+
+    <section class="panel solar-interval-panel" id="solarIntervalPanel">
+      <div class="panel-heading compact">
+        <div>
+          <p class="kicker">Solar Harmonic Interval</p>
+          <h2 id="solarIntervalName">Solar Unison</h2>
+          <p class="interval-tagline" id="solarIntervalTagline">A shared point in the solar year.</p>
+        </div>
+        <div class="solar-mark" aria-hidden="true">☼</div>
+      </div>
+      <div class="solar-interval-grid">
+        <div class="theory-readout">
+          <span>Music theory</span>
+          <strong id="theoryIntervalName">Perfect unison</strong>
+          <small id="theoryIntervalDetail">0 cents · exact</small>
+        </div>
+        <div class="solar-distance-readout">
+          <span>Solar distance</span>
+          <strong id="solarDaysApart">0 days</strong>
+          <small id="solarDirection">Same solar position</small>
+        </div>
+      </div>
+      <p class="interval-meaning" id="intervalMeaning">The two dates occupy the same point in the annual cycle, creating the strongest possible tonal alignment.</p>
+    </section>
 
     <section class="panel analysis-panel">
       <div class="panel-heading compact">
@@ -151,9 +180,13 @@
       <span class="person-sign">—</span>
       <span class="person-interval">—</span>
     </div>
+    <div class="person-harmonic-readout">
+      <span class="person-solar-name">Solar Unison</span>
+      <small class="person-theory-name">Perfect unison · exact</small>
+    </div>
   </article>
 </template>
 
-<script src="harmony.js?v=20260719-vercel1"></script>
+<script src="harmony.js?v=20260719-zephyr1"></script>
 </body>
 </html>

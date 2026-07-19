@@ -131,6 +131,34 @@
     return ['unison','minor 2nd','major 2nd','minor 3rd','major 3rd','perfect 4th','tritone','perfect 5th','minor 6th','major 6th','minor 7th','major 7th'][pc];
   }
 
+
+  const INTERVAL_GUIDE = [
+    {solar:'Solar Unison', theory:'Perfect unison', tagline:'One point, one tone.', meaning:'The dates occupy the same point in the annual cycle, creating the strongest possible tonal alignment.'},
+    {solar:'Dawn Friction', theory:'Minor second', tagline:'Close, vivid, and electrically near.', meaning:'A tightly spaced interval with audible tension—often heard as urgency, attraction, or restless movement.'},
+    {solar:'Vernal Resonance', theory:'Major second', tagline:'Growing together in motion.', meaning:'A bright step that suggests curiosity, optimism, and forward movement without complete resolution.'},
+    {solar:'Twilight Third', theory:'Minor third', tagline:'Reflective depth and emotional color.', meaning:'A familiar minor color associated with introspection, tenderness, and expressive emotional weight.'},
+    {solar:'Radiant Third', theory:'Major third', tagline:'Warmth, clarity, and open light.', meaning:'A strongly consonant interval that gives major harmony its bright, settled, and optimistic character.'},
+    {solar:'Foundation Arc', theory:'Perfect fourth', tagline:'Supportive, spacious, and suspended.', meaning:'A stable structural interval that feels grounded yet open, often creating anticipation before resolution.'},
+    {solar:'Axis of Tension', theory:'Tritone', tagline:'Maximum contrast and transformation.', meaning:'The most unstable traditional interval—dramatic, catalytic, and strongly inclined toward movement.'},
+    {solar:'Golden Resonance', theory:'Perfect fifth', tagline:'Strength, balance, and natural accord.', meaning:'One of music’s purest consonances, heard as powerful, stable, and harmonically unified.'},
+    {solar:'Ember Sixth', theory:'Minor sixth', tagline:'Yearning across a wide horizon.', meaning:'A broad, expressive interval with a poignant mixture of distance, warmth, and unresolved longing.'},
+    {solar:'Luminous Sixth', theory:'Major sixth', tagline:'Open-hearted and expansive.', meaning:'A warm consonance often associated with generosity, lyricism, and a broad sense of emotional space.'},
+    {solar:'Twilight Seventh', theory:'Minor seventh', tagline:'Soulful distance with momentum.', meaning:'A colorful, open interval common in blues and modern harmony, carrying both ease and unresolved motion.'},
+    {solar:'Horizon Seventh', theory:'Major seventh', tagline:'Near reunion, charged with anticipation.', meaning:'A luminous but tense interval sitting just below the octave, creating intimacy and powerful forward pull.'},
+    {solar:'Solar Octave', theory:'Perfect octave', tagline:'The cycle returns at a higher light.', meaning:'The same note class at twice the frequency—the clearest musical image of recurrence and renewal.'}
+  ];
+
+  function harmonicInterval(cents) {
+    const abs=Math.abs(cents);
+    const semitones=Math.min(12,Math.round(abs/100));
+    const guide=INTERVAL_GUIDE[semitones];
+    const target=semitones*100;
+    const deviation=abs-target;
+    const direction=cents<0?'descending':cents>0?'ascending':'same position';
+    const tuning=Math.abs(deviation)<.5?'exact':`${deviation>=0?'+':''}${deviation.toFixed(0)}¢ from equal temperament`;
+    return {...guide,semitones,deviation,direction,tuning};
+  }
+
   function consonance(absCents) {
     const pc = Math.round(absCents / 100) % 12;
     const scores = [1,.18,.45,.72,.86,.9,.12,.96,.66,.82,.52,.35];
@@ -242,8 +270,12 @@
       card.querySelector('.person-note').textContent = state.mode === 'snap' ? `${p.note}${p.octave}` : `${p.note}${p.deviation >= 0 ? '+' : ''}${p.deviation.toFixed(0)}¢`;
       card.querySelector('.person-sign').textContent = `${p.sign} · ${dateLabel(p.date)}`;
       card.querySelector('.person-interval').textContent = p.role === 'root' ? 'Tonic / root' : `${p.dayDiff >= 0 ? '+' : ''}${p.dayDiff.toFixed(0)} days · ${p.exactCents >= 0 ? '+' : ''}${p.exactCents.toFixed(0)} cents`;
+      const harmonic=harmonicInterval(p.exactCents);
+      card.querySelector('.person-solar-name').textContent=harmonic.solar;
+      card.querySelector('.person-theory-name').textContent=`${harmonic.theory} · ${harmonic.tuning}`;
     });
     drawWheel(data);
+    renderSolarInterval(data);
     renderAnalysis(data);
   }
 
@@ -366,6 +398,19 @@
       const t=document.createElementNS(NS,'text');t.setAttribute('x',x);t.setAttribute('y',y-17);t.setAttribute('fill','#fff');t.setAttribute('font-size','12');t.setAttribute('font-weight','900');t.setAttribute('text-anchor','middle');t.textContent=p.name;g.appendChild(t);
       wheel.appendChild(g);
     });
+  }
+
+  function renderSolarInterval(data) {
+    const root=data.find(p=>p.role==='root')||data[0];
+    const member=data.find(p=>p!==root)||root;
+    const h=harmonicInterval(member.exactCents);
+    $('#solarIntervalName').textContent=h.solar;
+    $('#solarIntervalTagline').textContent=h.tagline;
+    $('#theoryIntervalName').textContent=h.theory;
+    $('#theoryIntervalDetail').textContent=`${Math.abs(member.exactCents).toFixed(0)} cents · ${h.tuning}`;
+    $('#solarDaysApart').textContent=`${Math.abs(member.dayDiff).toFixed(0)} ${Math.abs(member.dayDiff).toFixed(0)==='1'?'day':'days'}`;
+    $('#solarDirection').textContent=member===root?'Same solar position':`${member.dayDiff<0?'Backward':'Forward'} in the solar year · ${h.direction}`;
+    $('#intervalMeaning').textContent=h.meaning;
   }
 
   function renderAnalysis(data) {
@@ -519,7 +564,7 @@
 
   async function copySummary() {
     const data=enrich(); const root=data.find(p=>p.role==='root')||data[0];
-    const text=`${$('#titleInput').value || 'Harmony chord'}\nRoot: ${root.name} — ${dateLabel(root.date)} (C4)\n`+data.map(p=>`${p.name}: ${dateLabel(p.date)}, ${p.sign}, ${p.exactCents>=0?'+':''}${p.exactCents.toFixed(1)} cents, ${p.note}${p.octave}`).join('\n');
+    const text=`${$('#titleInput').value || 'Harmony chord'}\nRoot: ${root.name} — ${dateLabel(root.date)} (C4)\n`+data.map(p=>`${p.name}: ${dateLabel(p.date)}, ${p.sign}, ${harmonicInterval(p.exactCents).solar} / ${harmonicInterval(p.exactCents).theory}, ${p.exactCents>=0?'+':''}${p.exactCents.toFixed(1)} cents, ${p.note}${p.octave}`).join('\n');
     try{await navigator.clipboard.writeText(text);toast('Summary copied.');}catch{toast('Could not copy automatically.');}
   }
   function escapeHtml(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}

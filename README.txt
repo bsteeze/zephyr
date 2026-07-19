@@ -1,0 +1,1 @@
+Upload all four site files to the root of the Vercel project and deploy to Production. index.html must remain at the top level.
