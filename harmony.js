@@ -1,6 +1,14 @@
 (() => {
   'use strict';
 
+  const GA_MEASUREMENT_ID = 'G-0JSD84W2V2';
+  function track(eventName, params={}) {
+    try {
+      if (typeof window.gtag === 'function') window.gtag('event', eventName, params);
+    } catch {}
+  }
+  let playStartedAt = 0;
+
   const YEAR = 365.2422;
   const ROOT_HZ = 261.625565; // C4
   const NOTE_NAMES = ['C','C♯','D','E♭','E','F','F♯','G','A♭','A','B♭','B'];
@@ -148,6 +156,23 @@
     {solar:'Solar Octave', theory:'Perfect octave', tagline:'The cycle returns at a higher light.', meaning:'The same note class at twice the frequency—the clearest musical image of recurrence and renewal.'}
   ];
 
+
+  const INTERPRETATION_META = [
+    {score:100, character:['Unified','Centered','Still','Complete'], musicTitle:'The same tone', music:'Both dates resolve to the same pitch center. The ear hears one unified identity rather than separation.', listenTitle:'A single center', listen:'Listen for the absence of friction. The tones fuse so completely that they can feel like one larger bell.', geometryTitle:'Same solar position'},
+    {score:18, character:['Electric','Urgent','Restless','Intimate'], musicTitle:'Maximum close friction', music:'A minor second is the smallest chromatic step. Its beating frequencies create vivid tension and immediate motion.', listenTitle:'Audible beating', listen:'Listen for the rapid shimmer between the tones—the sound seems to pulse because the frequencies sit so close together.', geometryTitle:'Near-neighbor solar positions'},
+    {score:45, character:['Curious','Bright','Moving','Open'], musicTitle:'A melodic step', music:'A major second is common in scales and melodies. It feels active and unfinished, inviting the ear to continue.', listenTitle:'Forward movement', listen:'Notice that the tones do not fully settle; they feel like the beginning of a path rather than a destination.', geometryTitle:'A small arc of the year'},
+    {score:72, character:['Reflective','Tender','Intimate','Soulful'], musicTitle:'The minor color', music:'The minor third defines minor harmony and carries a familiar expressive depth without becoming harsh.', listenTitle:'Emotional shading', listen:'Listen for warmth mixed with inwardness—the interval sounds cohesive, but its color is more reflective than bright.', geometryTitle:'A compact expressive arc'},
+    {score:86, character:['Warm','Clear','Optimistic','Radiant'], musicTitle:'The major color', music:'The major third gives major chords their brightness. It is consonant, recognizable, and naturally affirmative.', listenTitle:'Bright agreement', listen:'Notice the sense of openness and clarity. The upper tone seems to illuminate the root rather than challenge it.', geometryTitle:'A bright harmonic arc'},
+    {score:90, character:['Supportive','Grounded','Spacious','Protective'], musicTitle:'A structural pillar', music:'The perfect fourth is a strong structural interval heard in suspended chords, fanfares, and melodic frameworks.', listenTitle:'Stable suspension', listen:'Listen for strength with a hint of incompletion—the tones support one another while leaving space for resolution.', geometryTitle:'A quarter-cycle relationship'},
+    {score:12, character:['Polarized','Transformative','Mysterious','Catalytic'], musicTitle:'The dividing axis', music:'The tritone divides the octave exactly in half. Its symmetry produces maximum tonal ambiguity and dramatic pull.', listenTitle:'Competing centers', listen:'Notice how neither tone fully wins. The interval feels balanced on an edge and strongly suggests transformation.', geometryTitle:'Opposite harmonic poles'},
+    {score:96, character:['Stable','Confident','Grounding','Open'], musicTitle:'A harmonic foundation', music:'The perfect fifth appears prominently in the overtone series and underlies open strings, power chords, bells, and orchestral tuning.', listenTitle:'Mutual reinforcement', listen:'Listen for the sensation that both notes strengthen each other. Neither competes; together they form a larger, steadier sound.', geometryTitle:'A naturally reinforcing arc'},
+    {score:66, character:['Yearning','Tender','Distant','Poignant'], musicTitle:'A poignant leap', music:'The minor sixth is wide and expressive, often used for longing, tenderness, and cinematic emotional distance.', listenTitle:'Warm distance', listen:'Notice the wide space between the tones and the emotional pull created by that distance.', geometryTitle:'A broad autumnal arc'},
+    {score:82, character:['Joyful','Generous','Lyrical','Expansive'], musicTitle:'A lyrical consonance', music:'The major sixth is warm and singable. It appears frequently in melodies and harmonies that feel spacious and affectionate.', listenTitle:'Open-hearted lift', listen:'Listen for a broad, buoyant quality—the tones remain distinct while still sounding naturally companionable.', geometryTitle:'A broad luminous arc'},
+    {score:52, character:['Soulful','Expectant','Loose','Dynamic'], musicTitle:'A modern open color', music:'The minor seventh is central to blues, jazz, and dominant harmony. It feels relaxed yet unresolved.', listenTitle:'Comfort with motion', listen:'Notice the unusual mix of openness and tension. The interval can groove comfortably while still pointing elsewhere.', geometryTitle:'A near-complete cycle'},
+    {score:35, character:['Luminous','Anticipatory','Intimate','Charged'], musicTitle:'The leading pull', music:'The major seventh sits just below the octave. Its closeness to completion creates a refined but unmistakable tension.', listenTitle:'Almost home', listen:'Listen for the upper tone leaning toward the octave. The interval feels close to reunion but not yet resolved.', geometryTitle:'The edge of return'},
+    {score:100, character:['Renewed','Complete','Elevated','Unified'], musicTitle:'The returning note', music:'The octave is the same note class at twice the frequency—the clearest musical image of recurrence at a higher level.', listenTitle:'Identity across height', listen:'Listen for sameness and expansion at once. The tones are clearly related, but one opens above the other.', geometryTitle:'A completed solar cycle'}
+  ];
+
   function harmonicInterval(cents) {
     const abs=Math.abs(cents);
     const semitones=Math.min(12,Math.round(abs/100));
@@ -173,6 +198,7 @@
     renderPeople();
     bind();
     update();
+    track('zephyr_loaded', {measurement_id: GA_MEASUREMENT_ID, participant_count: state.people.length});
   }
 
   function renderPeople() {
@@ -213,10 +239,11 @@
     $('#addPersonBtn').addEventListener('click', () => {
       if (state.people.length >= 12) return toast('Maximum 12 people in this prototype.');
       state.people.push({name:`Person ${state.people.length+1}`, date:'1990-01-01', role:'member'});
+      track('participant_added', {participant_count: state.people.length});
       renderPeople(); update();
     });
-    $('#resetBtn').addEventListener('click', () => { state.people = structuredClone(DEFAULTS); state.mode='continuous'; $('#titleInput').value='Family Chord'; renderPeople(); syncSegments(); update(); });
-    $('#saveBtn').addEventListener('click', () => { localStorage.setItem('harmonyOfYear', JSON.stringify({people:state.people,title:$('#titleInput').value})); toast('Saved in this browser.'); });
+    $('#resetBtn').addEventListener('click', () => { track('harmony_reset'); state.people = structuredClone(DEFAULTS); state.mode='continuous'; $('#titleInput').value='Family Chord'; renderPeople(); syncSegments(); update(); });
+    $('#saveBtn').addEventListener('click', () => { track('harmony_saved', {participant_count: state.people.length}); localStorage.setItem('harmonyOfYear', JSON.stringify({people:state.people,title:$('#titleInput').value})); toast('Saved in this browser.'); });
     $('#shareBtn').addEventListener('click', copySummary);
     const playBtn = $('#playBtn');
     const startHeldChord = e => {
@@ -406,6 +433,7 @@
     const root=data.find(p=>p.role==='root')||data[0];
     const member=data.find(p=>p!==root)||root;
     const h=harmonicInterval(member.exactCents);
+    const meta=INTERPRETATION_META[h.semitones] || INTERPRETATION_META[0];
     $('#solarIntervalName').textContent=h.solar;
     $('#solarIntervalTagline').textContent=h.tagline;
     $('#theoryIntervalName').textContent=h.theory;
@@ -418,13 +446,21 @@
     $('#interpSolarTagline').textContent=h.tagline;
     $('#interpTheoryName').textContent=`${h.theory} (${member.exactCents>=0?'+':''}${member.exactCents.toFixed(0)}¢)`;
     $('#interpTheoryDetail').textContent=`${(Math.abs(member.exactCents)/100).toFixed(2)} semitones · ${h.tuning}`;
-    const meaningTitle={0:'Complete alignment',1:'Charged closeness',2:'Forward motion',3:'Emotional depth',4:'Warm clarity',5:'Stable support',6:'Transformative tension',7:'Natural stability',8:'Expressive distance',9:'Open warmth',10:'Soulful momentum',11:'Anticipation',12:'Renewal'}[h.semitones]||'Harmonic character';
-    const musicTitle={0:'The same tone',1:'Maximum friction',2:'A melodic step',3:'The minor color',4:'The major color',5:'A structural pillar',6:'The dividing axis',7:'A harmonic foundation',8:'A poignant leap',9:'A lyrical consonance',10:'A modern color',11:'A leading pull',12:'The returning note'}[h.semitones]||'Musical color';
-    const musicText={0:'Both dates resolve to the same pitch center.',1:'Common in suspense and close dissonance.',2:'Common in scales and melodies; it creates movement.',3:'A defining color of minor chords and expressive melody.',4:'The interval that gives major chords their brightness.',5:'Used in suspended harmony and strong melodic frameworks.',6:'A dramatic interval that strongly seeks resolution.',7:'Common in open strings, power chords, and natural overtones.',8:'A wide emotional interval used for yearning and drama.',9:'A warm, singable interval common in melody and harmony.',10:'Frequent in blues, jazz, and open modern harmony.',11:'Sits just below the octave and pulls strongly upward.',12:'The same note at twice the frequency.'}[h.semitones]||h.meaning;
+    const meaningTitle=meta.character[0] + ' · ' + meta.character[1];
     $('#interpMeaningTitle').textContent=meaningTitle;
     $('#interpMeaning').textContent=h.meaning;
-    $('#interpMusicTitle').textContent=musicTitle;
-    $('#interpMusic').textContent=musicText;
+    $('#interpMusicTitle').textContent=meta.musicTitle;
+    $('#interpMusic').textContent=meta.music;
+    $('#interpGeometryTitle').textContent=meta.geometryTitle;
+    const orbitPct=Math.abs(member.dayDiff)/YEAR*100;
+    $('#interpGeometry').textContent=member===root
+      ? 'Both birthdays occupy the same point in the annual cycle.'
+      : `${Math.abs(member.dayDiff).toFixed(0)} solar days apart · ${orbitPct.toFixed(1)}% of Earth’s yearly orbit · ${member.dayDiff<0?'backward':'forward'} from the root.`;
+    $('#interpListenTitle').textContent=meta.listenTitle;
+    $('#interpListen').textContent=meta.listen;
+    $('#harmonyScore').textContent=meta.score;
+    $('#scoreFill').style.width=`${meta.score}%`;
+    $('#characterTags').innerHTML=meta.character.map(x=>`<span>${escapeHtml(x)}</span>`).join('');
   }
 
   function renderAnalysis(data) {
@@ -537,6 +573,9 @@
     });
 
     activeVoice={master,warmth,compressor,sources,gains};
+    playStartedAt=performance.now();
+    const played=enrich(); const playedRoot=played.find(p=>p.role==='root')||played[0]; const playedMember=played.find(p=>p!==playedRoot)||playedRoot; const playedInterval=harmonicInterval(playedMember.exactCents);
+    track('harmony_played', {participant_count: played.length, solar_interval: playedInterval.solar, music_interval: playedInterval.theory, solar_days: Math.round(Math.abs(playedMember.dayDiff))});
     $('#playBtn').classList.add('playing');
     $('#playBtn').textContent='■ Release bells';
     document.body.classList.add('sound-active');
@@ -547,6 +586,9 @@
     const voice=activeVoice;
     activeVoice=null;
     const now=audioCtx.currentTime;
+    const heldMs=playStartedAt ? Math.round(performance.now()-playStartedAt) : 0;
+    track('bell_hold', {duration_ms: heldMs, duration_seconds: +(heldMs/1000).toFixed(2), participant_count: state.people.length});
+    playStartedAt=0;
 
     // Let the bells ring naturally after release, then guarantee silence.
     const tail=5.6;
@@ -581,7 +623,7 @@
   async function copySummary() {
     const data=enrich(); const root=data.find(p=>p.role==='root')||data[0];
     const text=`${$('#titleInput').value || 'Harmony chord'}\nRoot: ${root.name} — ${dateLabel(root.date)} (C4)\n`+data.map(p=>`${p.name}: ${dateLabel(p.date)}, ${p.sign}, ${harmonicInterval(p.exactCents).solar} / ${harmonicInterval(p.exactCents).theory}, ${p.exactCents>=0?'+':''}${p.exactCents.toFixed(1)} cents, ${p.note}${p.octave}`).join('\n');
-    try{await navigator.clipboard.writeText(text);toast('Summary copied.');}catch{toast('Could not copy automatically.');}
+    try{await navigator.clipboard.writeText(text);track('harmony_shared',{method:'copy_summary',participant_count:data.length});toast('Summary copied.');}catch{toast('Could not copy automatically.');}
   }
   function escapeHtml(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}
   function toast(msg){const d=document.createElement('div');d.className='toast';d.textContent=msg;document.body.appendChild(d);setTimeout(()=>d.remove(),2200);}
