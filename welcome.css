@@ -1,0 +1,19 @@
+/* Zephyr Observatory intro branding */
+.welcome-stage{isolation:isolate}
+.welcome-brand{display:inline-flex;align-items:center;gap:14px;margin-bottom:28px;color:var(--gold)}
+.welcome-brand img{width:58px;height:58px;filter:drop-shadow(0 0 18px rgba(231,183,84,.18))}
+.welcome-brand span{display:flex;flex-direction:column}
+.welcome-brand b{font:700 clamp(1.45rem,2.4vw,2.25rem) Georgia,serif;letter-spacing:.24em;line-height:1}
+.welcome-brand small{margin-top:7px;font-size:.62rem;font-weight:800;letter-spacing:.18em;color:#f0c86e}
+.welcome-watermark{position:absolute;right:-5%;top:50%;width:min(56vw,760px);height:min(56vw,760px);transform:translateY(-50%);opacity:.045;filter:sepia(1) saturate(1.6) drop-shadow(0 0 70px rgba(231,183,84,.35));z-index:0;pointer-events:none;animation:zephyr-watermark-drift 24s ease-in-out infinite alternate}
+.welcome-copy{position:relative;z-index:2}
+.welcome-copy h1{max-width:900px}
+.pair-lockup{position:relative;backdrop-filter:blur(10px)}
+.pair-harmony{display:flex;min-width:126px;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--gold);font-style:normal;text-align:center}
+.pair-harmony:before,.pair-harmony:after{content:"";width:42px;height:1px;background:linear-gradient(90deg,transparent,rgba(231,183,84,.75),transparent)}
+.pair-harmony b{font-size:.69rem;letter-spacing:.12em;text-transform:uppercase}
+.pair-harmony small{font-size:.62rem;color:#aab2c7;white-space:nowrap}
+@keyframes zephyr-watermark-drift{from{transform:translateY(-50%) rotate(-2deg) scale(1)}to{transform:translateY(-52%) rotate(2deg) scale(1.025)}}
+@media(max-width:980px){.welcome-watermark{right:-22%;width:760px;height:760px;opacity:.035}.welcome-brand{margin-bottom:20px}.pair-harmony{min-width:100px}}
+@media(max-width:620px){.welcome-brand img{width:46px;height:46px}.welcome-brand b{font-size:1.35rem}.welcome-brand small{font-size:.52rem}.welcome-watermark{right:-75%;top:64%;width:680px;height:680px}.pair-lockup{grid-template-columns:1fr!important}.pair-harmony{order:2;margin:2px auto 8px}.pair-lockup span:last-child{order:3}}
+@media(prefers-reduced-motion:reduce){.welcome-watermark{animation:none}}
