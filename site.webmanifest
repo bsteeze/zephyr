@@ -1,0 +1,17 @@
+{
+  "name": "Zephyr \u00b7 Celestial Harmony Instrument",
+  "short_name": "Zephyr",
+  "description": "Turn birthdays into playable musical intervals using the solar year.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#050914",
+  "theme_color": "#050914",
+  "icons": [
+    {
+      "src": "/zephyr-logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
