@@ -1,8 +1,19 @@
-# Zephyr Observatory — Root-Relative Harmony Wheel
+# Zephyr V5 — Harmony and Natal Observatory
 
 This package is ready for a static Vercel deployment.
 
 ## What changed
+- Dedicated Natal Observatory with a modern SVG birth chart
+- Local calculations for Sun, Moon, Mercury through Pluto, Ascendant, Midheaven, houses, retrogrades, and major aspects
+- Placidus, Whole Sign, Equal House, Koch, Campanus, Regiomontanus, and Topocentric house systems
+- Tropical and sidereal zodiac options
+- Birth profile with exact date, local time, city, coordinates, and historical time-zone resolution
+- Optional city search with manual coordinate fallback
+- Big Three cards, original Zephyr interpretations, and a complete planet/house table
+- Natal profiles stay in the visitor's browser; no birth data is sent to an astrology API
+- Separate Harmony and Natal navigation on desktop and mobile
+- Removed the self-triggering zodiac glyph observer that pulled symbols toward the center
+- Birth dates remain editable while shared-date privacy is enabled
 - New Solar map / Harmony map view switch
 - Twelve pitch sectors now rotate with the selected root instead of being anchored to January 1
 - Root-relative chord-wheel colors for strong resonance, warm harmony, creative motion, charged contrast, and transformative tension
@@ -21,4 +32,4 @@ This package is ready for a static Vercel deployment.
 Replace the matching files in the repository root, commit, and Vercel will deploy automatically.
 
 Recommended commit message:
-`feat: add root-relative harmony wheel`
+`feat: ship Zephyr V5 natal observatory`

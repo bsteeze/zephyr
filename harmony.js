@@ -338,7 +338,7 @@
     const btn=$('#privacyToggle'); if(!btn)return;
     btn.classList.toggle('active',state.privacyMode);
     btn.setAttribute('aria-pressed',String(state.privacyMode));
-    btn.innerHTML=`<span>${state.privacyMode?'◉':'○'}</span> Privacy ${state.privacyMode?'on':'off'}`;
+    btn.innerHTML=`<span>${state.privacyMode?'◉':'○'}</span> Shared dates ${state.privacyMode?'hidden':'visible'}`;
   }
 
   function syncSegments() { $$('.segment').forEach(b => b.classList.toggle('active', b.dataset.mode === state.mode)); }
@@ -762,7 +762,8 @@
 
   async function copySummary() {
     const data=enrich(); const root=data.find(p=>p.role==='root')||data[0];
-    const text=`${$('#titleInput').value || 'Harmony chord'}\nRoot: ${root.name} — ${dateLabel(root.date)} (C4)\n`+data.map(p=>`${p.name}: ${dateLabel(p.date)}, ${p.sign}, ${harmonicInterval(p.exactCents).solar} / ${harmonicInterval(p.exactCents).theory}, ${p.exactCents>=0?'+':''}${p.exactCents.toFixed(1)} cents, ${p.note}${p.octave}`).join('\n');
+    const sharedDate=p=>state.privacyMode?'Date hidden':dateLabel(p.date);
+    const text=`${$('#titleInput').value || 'Harmony chord'}\nRoot: ${root.name} — ${sharedDate(root)} (C4)\n`+data.map(p=>`${p.name}: ${sharedDate(p)}, ${p.sign}, ${harmonicInterval(p.exactCents).solar} / ${harmonicInterval(p.exactCents).theory}, ${p.exactCents>=0?'+':''}${p.exactCents.toFixed(1)} cents, ${p.note}${p.octave}`).join('\n');
     try{await navigator.clipboard.writeText(text);track('harmony_shared',{method:'copy_summary',participant_count:data.length});toast('Summary copied.');}catch{toast('Could not copy automatically.');}
   }
   function escapeHtml(s){return String(s).replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));}

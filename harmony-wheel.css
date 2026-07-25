@@ -52,6 +52,17 @@
   color: #77d8aa;
   cursor: default;
 }
+.privacy-hint {
+  display: block;
+  margin-top: 7px;
+  color: #7485a7;
+  font-size: .68rem;
+  font-style: normal;
+  line-height: 1.35;
+}
+body.privacy-mode .date-field .person-date {
+  display: block !important;
+}
 .person-marker { cursor: pointer; outline: none; }
 .person-marker:focus circle { stroke: #4ed6ff; stroke-width: 4; }
 .compatibility-summary {

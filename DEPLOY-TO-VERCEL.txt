@@ -5,6 +5,9 @@ Files in this package:
 - harmony.css
 - harmony-wheel.css
 - harmony.js
+- natal.css
+- natal.js
+- natal-engine.bundle.js
 
 Deploy:
 1. In Vercel, open the zephyr project.
