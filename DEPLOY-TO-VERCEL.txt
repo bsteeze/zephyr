@@ -3,11 +3,12 @@ Harmony of the Year — Vercel package
 Files in this package:
 - index.html
 - harmony.css
+- harmony-wheel.css
 - harmony.js
 
 Deploy:
 1. In Vercel, open the zephyr project.
-2. Create a new deployment by uploading these three files together, or upload this extracted folder.
+2. Create a new deployment by uploading the entire extracted folder.
 3. Confirm index.html is at the top level—not inside another nested folder.
 4. Deploy to Production.
 5. Under Project Settings > Domains, attach zephyr.guru and www.zephyr.guru.

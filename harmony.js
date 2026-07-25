@@ -12,6 +12,20 @@
   const YEAR = 365.2422;
   const ROOT_HZ = 261.625565; // C4
   const NOTE_NAMES = ['C','C♯','D','E♭','E','F','F♯','G','A♭','A','B♭','B'];
+  const HARMONY_CLASSES = [
+    {key:'root', label:'Root', short:'Root', color:'#4ed6ff', fill:'rgba(78,214,255,.28)'},
+    {key:'contrast', label:'Charged contrast', short:'m2', color:'#ff806f', fill:'rgba(255,115,95,.24)'},
+    {key:'motion', label:'Creative motion', short:'M2', color:'#e7b754', fill:'rgba(231,183,84,.22)'},
+    {key:'warm', label:'Warm harmony', short:'m3', color:'#9dde91', fill:'rgba(157,222,145,.24)'},
+    {key:'warm', label:'Warm harmony', short:'M3', color:'#9dde91', fill:'rgba(157,222,145,.24)'},
+    {key:'strong', label:'Strong resonance', short:'P4', color:'#62d59d', fill:'rgba(98,213,157,.30)'},
+    {key:'tension', label:'Transformative tension', short:'TT', color:'#f35c82', fill:'rgba(243,92,130,.28)'},
+    {key:'strong', label:'Strong resonance', short:'P5', color:'#62d59d', fill:'rgba(98,213,157,.30)'},
+    {key:'warm', label:'Warm harmony', short:'m6', color:'#9dde91', fill:'rgba(157,222,145,.24)'},
+    {key:'warm', label:'Warm harmony', short:'M6', color:'#9dde91', fill:'rgba(157,222,145,.24)'},
+    {key:'motion', label:'Creative motion', short:'m7', color:'#e7b754', fill:'rgba(231,183,84,.22)'},
+    {key:'contrast', label:'Charged contrast', short:'M7', color:'#ff806f', fill:'rgba(255,115,95,.24)'}
+  ];
   const SIGNS = [
     ['Capricorn', 1, 1], ['Aquarius', 1, 20], ['Pisces', 2, 19], ['Aries', 3, 21],
     ['Taurus', 4, 20], ['Gemini', 5, 21], ['Cancer', 6, 21], ['Leo', 7, 23],
@@ -73,7 +87,7 @@
     {name:'Aurora', date:'1987-12-14', role:'member', archetype:'Girl'}
   ];
 
-  const state = { people: [], mode: 'continuous', privacyMode: true, demoMode: true, astroOpacity: .82, layers: {stars:true,zodiac:true,months:true,elements:true,notes:true,aspects:true} };
+  const state = { people: [], mode: 'continuous', view: 'solar', privacyMode: true, demoMode: true, astroOpacity: .82, layers: {stars:true,zodiac:true,months:true,elements:true,notes:true,aspects:true} };
   let audioCtx = null;
   let activeVoice = null;
   const $ = s => document.querySelector(s);
@@ -194,6 +208,7 @@
       state.people = parsed?.people?.length ? parsed.people : structuredClone(DEFAULTS);
       state.privacyMode = parsed?.privacyMode ?? true;
       state.demoMode = parsed?.demoMode ?? !parsed;
+      state.view = parsed?.view === 'harmony' ? 'harmony' : 'solar';
       if (parsed?.title) $('#titleInput').value = parsed.title;
     } catch { state.people = structuredClone(DEFAULTS); }
     if (!Array.isArray(state.people) || !state.people.length) state.people = structuredClone(DEFAULTS);
@@ -202,6 +217,7 @@
     renderPeople();
     bind();
     syncPrivacyButton();
+    syncViews();
     update();
     track('zephyr_loaded', {measurement_id: GA_MEASUREMENT_ID, participant_count: state.people.length});
   }
@@ -235,8 +251,12 @@
       update();
     });
     list.addEventListener('click', e => {
-      if (!e.target.classList.contains('remove-person')) return;
       const i = Number(e.target.closest('.person-card').dataset.index);
+      if (e.target.closest('.set-root') || e.target.closest('.make-root')) {
+        setRoot(i);
+        return;
+      }
+      if (!e.target.classList.contains('remove-person')) return;
       const wasRoot = state.people[i].role === 'root';
       state.people.splice(i,1);
       if (wasRoot && state.people[0]) state.people[0].role = 'root';
@@ -248,8 +268,8 @@
       track('participant_added', {participant_count: state.people.length});
       renderPeople(); update();
     });
-    $('#resetBtn').addEventListener('click', () => { track('harmony_reset'); state.people = structuredClone(DEFAULTS); state.mode='continuous'; state.privacyMode=true; state.demoMode=true; $('#titleInput').value='Perfect Pair'; document.body.classList.add('privacy-mode'); document.body.classList.remove('custom-mode'); syncPrivacyButton(); renderPeople(); syncSegments(); update(); });
-    $('#saveBtn').addEventListener('click', () => { track('harmony_saved', {participant_count: state.people.length}); localStorage.setItem('zephyrObservatoryV1', JSON.stringify({people:state.people,title:$('#titleInput').value,privacyMode:state.privacyMode,demoMode:state.demoMode})); toast('Saved in this browser.'); });
+    $('#resetBtn').addEventListener('click', () => { track('harmony_reset'); state.people = structuredClone(DEFAULTS); state.mode='continuous'; state.view='solar'; state.privacyMode=true; state.demoMode=true; $('#titleInput').value='Perfect Pair'; document.body.classList.add('privacy-mode'); document.body.classList.remove('custom-mode'); syncPrivacyButton(); renderPeople(); syncSegments(); syncViews(); update(); });
+    $('#saveBtn').addEventListener('click', () => { track('harmony_saved', {participant_count: state.people.length}); localStorage.setItem('zephyrObservatoryV1', JSON.stringify({people:state.people,title:$('#titleInput').value,privacyMode:state.privacyMode,demoMode:state.demoMode,view:state.view})); toast('Saved in this browser.'); });
     $('#shareBtn').addEventListener('click', copySummary);
     $('#privacyToggle').addEventListener('click', () => {
       state.privacyMode=!state.privacyMode;
@@ -296,6 +316,12 @@
     window.addEventListener('blur', stopChord);
     $('#titleInput').addEventListener('input', update);
     $$('.segment').forEach(btn => btn.addEventListener('click', () => { state.mode=btn.dataset.mode; syncSegments(); update(); }));
+    $$('.view-option').forEach(btn => btn.addEventListener('click', () => {
+      state.view=btn.dataset.view;
+      syncViews();
+      update();
+      track('wheel_view_changed',{view:state.view});
+    }));
     $$('[data-layer]').forEach(input => input.addEventListener('change', () => {
       state.layers[input.dataset.layer] = input.checked;
       update();
@@ -316,6 +342,27 @@
   }
 
   function syncSegments() { $$('.segment').forEach(b => b.classList.toggle('active', b.dataset.mode === state.mode)); }
+  function syncViews() {
+    $$('.view-option').forEach(b => {
+      const active=b.dataset.view===state.view;
+      b.classList.toggle('active',active);
+      b.setAttribute('aria-pressed',String(active));
+    });
+    document.body.classList.toggle('harmony-view',state.view==='harmony');
+  }
+
+  function setRoot(index) {
+    if (!state.people[index] || state.people[index].role === 'root') return;
+    state.people.forEach((p,i)=>p.role=i===index?'root':'member');
+    renderPeople();
+    update();
+    track('harmony_root_changed',{root_index:index,participant_count:state.people.length});
+    if (state.view !== 'harmony') {
+      state.view='harmony';
+      syncViews();
+      update();
+    }
+  }
 
   function update() {
     if (!state.people.some(p => p.role === 'root')) state.people[0].role = 'root';
@@ -329,6 +376,8 @@
       const card = list.children[i]; if (!card) return;
       card.dataset.role=p.role;
       card.querySelector('.role-text').textContent=p.role==='root'?'ROOT':'MEMBER';
+      card.querySelector('.make-root').textContent=p.role==='root'?'Current root':'Make root';
+      card.querySelector('.make-root').disabled=p.role==='root';
       card.querySelector('.person-note').textContent = state.mode === 'snap' ? `${p.note}${p.octave}` : `${p.note}${p.deviation >= 0 ? '+' : ''}${p.deviation.toFixed(0)}¢`;
       card.querySelector('.person-sign').textContent = state.privacyMode ? `${p.sign} · ${SIGN_META[p.sign].element}` : `${p.sign} · ${dateLabel(p.date)}`;
       card.querySelector('.person-position').textContent = `Solar position ${(((p.ord-1)/YEAR)*360).toFixed(0)}° · Day ${p.ord}`;
@@ -338,6 +387,7 @@
       card.querySelector('.person-theory-name').textContent=`${harmonic.theory} · ${harmonic.tuning}`;
     });
     drawWheel(data);
+    renderCompatibilitySummary(data);
     renderSolarInterval(data);
     renderAnalysis(data);
   }
@@ -350,6 +400,8 @@
   }
 
   function layerOn(name) { return state.layers[name] !== false; }
+  function pitchClass(cents) { return ((Math.round(cents/100)%12)+12)%12; }
+  function harmonyClass(cents) { return HARMONY_CLASSES[pitchClass(cents)]; }
 
   function drawWheel(data) {
     const NS='http://www.w3.org/2000/svg'; wheel.innerHTML='';
@@ -437,30 +489,84 @@
       mt.setAttribute('x',mx);mt.setAttribute('y',my);mt.setAttribute('fill','rgba(244,210,139,.82)');mt.setAttribute('opacity',layerOn('months')?state.astroOpacity:0);mt.setAttribute('font-size','8');mt.setAttribute('font-weight','800');mt.setAttribute('text-anchor','middle');mt.setAttribute('dominant-baseline','middle');mt.textContent=monthNames[i];wheel.appendChild(mt);
     });
 
-    // Chromatic note ring.
+    // The musical ring is always relative to the selected root. In Harmony
+    // view each pitch sector becomes a compatibility compass; Solar view keeps
+    // the same accurate alignment but presents the ring quietly.
+    const root=data.find(p=>p.role==='root')||data[0];
+    const rootDeg=((root.ord-1)/YEAR*360);
     for(let i=0;i<12;i++){
-      const [x1,y1]=polar(380,380,220,i*30), [x2,y2]=polar(380,380,270,i*30);
-      const l=document.createElementNS(NS,'line'); l.setAttribute('x1',x1);l.setAttribute('y1',y1);l.setAttribute('x2',x2);l.setAttribute('y2',y2);l.setAttribute('stroke','rgba(174,207,255,.16)');l.setAttribute('opacity',layerOn('notes')?1:0);wheel.appendChild(l);
-      const [nx,ny]=polar(380,380,245,i*30+15); const n=document.createElementNS(NS,'text');
-      n.setAttribute('x',nx);n.setAttribute('y',ny);n.setAttribute('fill','#eef2ff');n.setAttribute('opacity',layerOn('notes')?1:0);n.setAttribute('font-size','17');n.setAttribute('font-family','Georgia, Times New Roman, serif');n.setAttribute('font-weight','700');n.setAttribute('text-anchor','middle');n.setAttribute('dominant-baseline','middle');n.textContent=NOTE_NAMES[i];wheel.appendChild(n);
+      const center=rootDeg+i*30;
+      const quality=HARMONY_CLASSES[i];
+      if(state.view==='harmony' && layerOn('notes')){
+        const sector=document.createElementNS(NS,'path');
+        sector.setAttribute('d',arcPath(380,380,220,270,center-15,center+15));
+        sector.setAttribute('fill',quality.fill);
+        sector.setAttribute('stroke',quality.color);
+        sector.setAttribute('stroke-opacity','.35');
+        sector.setAttribute('stroke-width','1');
+        sector.setAttribute('class',`harmony-sector harmony-${quality.key}`);
+        wheel.appendChild(sector);
+      }
+      const [x1,y1]=polar(380,380,220,center-15), [x2,y2]=polar(380,380,270,center-15);
+      const l=document.createElementNS(NS,'line'); l.setAttribute('x1',x1);l.setAttribute('y1',y1);l.setAttribute('x2',x2);l.setAttribute('y2',y2);l.setAttribute('stroke',state.view==='harmony'?quality.color:'rgba(174,207,255,.16)');l.setAttribute('stroke-opacity',state.view==='harmony'?'.42':'1');l.setAttribute('opacity',layerOn('notes')?1:0);wheel.appendChild(l);
+      const [nx,ny]=polar(380,380,244,center); const n=document.createElementNS(NS,'text');
+      n.setAttribute('x',nx);n.setAttribute('y',ny);n.setAttribute('fill',state.view==='harmony'?quality.color:'#eef2ff');n.setAttribute('opacity',layerOn('notes')?1:0);n.setAttribute('font-size',state.view==='harmony'?'16':'17');n.setAttribute('font-family','Georgia, Times New Roman, serif');n.setAttribute('font-weight','700');n.setAttribute('text-anchor','middle');n.setAttribute('dominant-baseline','middle');n.textContent=NOTE_NAMES[i];wheel.appendChild(n);
+      if(state.view==='harmony' && layerOn('notes')){
+        const [qx,qy]=polar(380,380,260,center);
+        const q=document.createElementNS(NS,'text');
+        q.setAttribute('x',qx);q.setAttribute('y',qy+13);q.setAttribute('fill',quality.color);q.setAttribute('opacity','.9');q.setAttribute('font-size','7');q.setAttribute('font-weight','900');q.setAttribute('letter-spacing','.7');q.setAttribute('text-anchor','middle');q.textContent=quality.short.toUpperCase();wheel.appendChild(q);
+      }
     }
     [220,270,349].forEach((r,i)=>{const c=document.createElementNS(NS,'circle');c.setAttribute('cx',380);c.setAttribute('cy',380);c.setAttribute('r',r);c.setAttribute('fill','none');c.setAttribute('stroke',i===2?'rgba(238,193,101,.64)':'rgba(170,207,255,.18)');c.setAttribute('stroke-width',i===2?'2':'1');wheel.appendChild(c);});
 
-    const root=data.find(p=>p.role==='root')||data[0];
     if (layerOn('aspects')) data.filter(p=>p!==root).forEach(p=>{
       const deg=((p.ord-1)/YEAR*360), rdeg=((root.ord-1)/YEAR*360);
       const [x1,y1]=polar(380,380,195,rdeg), [x2,y2]=polar(380,380,195,deg);
       const line=document.createElementNS(NS,'line'); line.setAttribute('x1',x1);line.setAttribute('y1',y1);line.setAttribute('x2',x2);line.setAttribute('y2',y2);
-      const con=consonance(Math.abs(p.exactCents)); line.setAttribute('stroke',con>.7?'rgba(101,224,178,.68)':'rgba(255,111,145,.62)');line.setAttribute('stroke-width',Math.max(1.5,con*4));wheel.appendChild(line);
+      const quality=harmonyClass(p.exactCents);
+      const con=consonance(Math.abs(p.exactCents)); line.setAttribute('stroke',state.view==='harmony'?quality.color:(con>.7?'rgba(101,224,178,.68)':'rgba(255,111,145,.62)'));line.setAttribute('stroke-width',Math.max(1.5,con*4));wheel.appendChild(line);
     });
 
     data.forEach(p=>{
       const deg=((p.ord-1)/YEAR*360), [x,y]=polar(380,380,195,deg);
-      const g=document.createElementNS(NS,'g');g.setAttribute('filter','url(#glow)');
-      const c=document.createElementNS(NS,'circle');c.setAttribute('cx',x);c.setAttribute('cy',y);c.setAttribute('r',p.role==='root'?12:9);c.setAttribute('fill',p.role==='root'?'#ffd36f':'#8f7cff');c.setAttribute('stroke','#fff');c.setAttribute('stroke-width','2');g.appendChild(c);
+      const quality=harmonyClass(p.exactCents);
+      const g=document.createElementNS(NS,'g');g.setAttribute('filter','url(#glow)');g.setAttribute('class','person-marker');g.setAttribute('role','button');g.setAttribute('tabindex','0');g.setAttribute('aria-label',`${p.name}: ${quality.label}. Make root`);
+      const makeThisRoot=()=>setRoot(p.i);
+      g.addEventListener('click',makeThisRoot);
+      g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();makeThisRoot();}});
+      const c=document.createElementNS(NS,'circle');c.setAttribute('cx',x);c.setAttribute('cy',y);c.setAttribute('r',p.role==='root'?12:9);c.setAttribute('fill',p.role==='root'?'#ffd36f':(state.view==='harmony'?quality.color:'#8f7cff'));c.setAttribute('stroke','#fff');c.setAttribute('stroke-width','2');g.appendChild(c);
       const t=document.createElementNS(NS,'text');t.setAttribute('x',x);t.setAttribute('y',y-17);t.setAttribute('fill','#fff');t.setAttribute('font-size','12');t.setAttribute('font-weight','900');t.setAttribute('text-anchor','middle');t.textContent=p.name;g.appendChild(t);
       wheel.appendChild(g);
     });
+  }
+
+  function renderCompatibilitySummary(data) {
+    const panel=$('#compatibilitySummary');
+    const legend=$('#wheelLegend');
+    if(state.view!=='harmony'){
+      panel.hidden=true;
+      panel.innerHTML='';
+      legend.innerHTML='<span><i class="legend-dot root"></i>Root</span><span><i class="legend-dot consonant"></i>Consonant</span><span><i class="legend-dot tension"></i>Tension</span>';
+      return;
+    }
+    legend.innerHTML=[
+      ['#4ed6ff','Root'],
+      ['#62d59d','Strong'],
+      ['#9dde91','Warm'],
+      ['#e7b754','Motion'],
+      ['#f35c82','Tension']
+    ].map(([color,label])=>`<span><i class="legend-dot" style="background:${color}"></i>${label}</span>`).join('');
+    const root=data.find(p=>p.role==='root')||data[0];
+    const members=data.filter(p=>p!==root);
+    panel.hidden=false;
+    panel.innerHTML=`<div class="compatibility-heading"><span>COMPATIBILITY TO ROOT</span><strong>${escapeHtml(root.name)}</strong><small>Tap any person or marker to recenter the harmony.</small></div><div class="compatibility-chips">${
+      (members.length?members:[root]).map(p=>{
+        const quality=harmonyClass(p.exactCents);
+        const interval=harmonicInterval(p.exactCents);
+        return `<button class="compatibility-chip harmony-${quality.key}" type="button" data-person-index="${p.i}" style="--quality:${quality.color}"><i></i><span><b>${escapeHtml(p.name)}</b><small>${interval.theory} · ${quality.label}</small></span></button>`;
+      }).join('')
+    }</div>`;
+    panel.querySelectorAll('[data-person-index]').forEach(btn=>btn.addEventListener('click',()=>setRoot(Number(btn.dataset.personIndex))));
   }
 
   function renderSolarInterval(data) {

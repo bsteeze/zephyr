@@ -1,0 +1,144 @@
+/* Root-relative Harmony Wheel */
+.view-switch {
+  display: grid;
+  grid-template-columns: auto 1fr 1fr;
+  align-items: center;
+  gap: 5px;
+  margin: 16px 0 2px;
+  padding: 5px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(3, 8, 20, .55);
+}
+.view-switch > span {
+  padding: 0 10px;
+  color: #7f8ba8;
+  font-size: .64rem;
+  font-weight: 900;
+  letter-spacing: .15em;
+}
+.view-option {
+  min-height: 42px;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: #aeb8d0;
+  font-weight: 850;
+  cursor: pointer;
+  transition: .2s ease;
+}
+.view-option b { margin-right: 7px; color: #e7b754; }
+.view-option.active {
+  color: #fff;
+  background: linear-gradient(135deg, rgba(76, 67, 142, .88), rgba(65, 57, 128, .72));
+  box-shadow: 0 8px 24px rgba(72, 60, 154, .24);
+}
+.person-head { align-items: center; gap: 8px; }
+.person-index { border: 0; color: #fff; cursor: pointer; }
+.make-root {
+  margin-left: auto;
+  border: 1px solid rgba(231, 183, 84, .3);
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: rgba(231, 183, 84, .06);
+  color: #e8c36f;
+  font-size: .68rem;
+  font-weight: 850;
+  cursor: pointer;
+}
+.make-root:disabled {
+  border-color: rgba(98, 213, 157, .25);
+  background: rgba(98, 213, 157, .08);
+  color: #77d8aa;
+  cursor: default;
+}
+.person-marker { cursor: pointer; outline: none; }
+.person-marker:focus circle { stroke: #4ed6ff; stroke-width: 4; }
+.compatibility-summary {
+  margin-top: 14px;
+  border: 1px solid rgba(117, 153, 219, .18);
+  border-radius: 14px;
+  padding: 13px;
+  background: linear-gradient(135deg, rgba(11, 23, 48, .92), rgba(12, 18, 38, .82));
+}
+.compatibility-heading {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: end;
+  gap: 3px 12px;
+  margin-bottom: 10px;
+}
+.compatibility-heading > span {
+  color: #e7b754;
+  font-size: .64rem;
+  font-weight: 900;
+  letter-spacing: .14em;
+}
+.compatibility-heading > strong { color: #fff; }
+.compatibility-heading > small {
+  grid-column: 1 / -1;
+  color: #8997b4;
+  font-size: .7rem;
+}
+.compatibility-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.compatibility-chip {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  min-width: 180px;
+  flex: 1;
+  border: 1px solid color-mix(in srgb, var(--quality) 36%, transparent);
+  border-radius: 11px;
+  padding: 9px 11px;
+  text-align: left;
+  background: color-mix(in srgb, var(--quality) 8%, transparent);
+  color: #fff;
+  cursor: pointer;
+}
+.compatibility-chip > i {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--quality);
+  box-shadow: 0 0 14px var(--quality);
+}
+.compatibility-chip span,
+.compatibility-chip b,
+.compatibility-chip small { display: block; }
+.compatibility-chip small { margin-top: 2px; color: #aeb8cf; font-size: .68rem; }
+.harmony-view .wheel-wrap { filter: saturate(1.08); }
+.harmony-view .wheel-center {
+  border-color: rgba(78, 214, 255, .7);
+  box-shadow: 0 0 46px rgba(78, 214, 255, .13);
+}
+.harmony-view .center-label { color: #61d7ff; }
+.harmony-sector { transition: opacity .22s ease, filter .22s ease; }
+.harmony-sector:hover { filter: brightness(1.35); }
+.controls-panel .control-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 10px;
+  width: 100%;
+}
+.controls-panel .control-actions .btn {
+  width: 100%;
+  min-width: 0;
+  white-space: normal;
+}
+.controls-panel .form-play-btn {
+  grid-column: 1 / -1;
+  min-height: 58px;
+}
+
+@media (max-width: 620px) {
+  .view-switch { grid-template-columns: 1fr 1fr; }
+  .view-switch > span { grid-column: 1 / -1; padding: 4px 7px 1px; }
+  .view-option { font-size: .82rem; }
+  .legend-row { gap: 10px; flex-wrap: wrap; font-size: .69rem; }
+  .compatibility-heading { grid-template-columns: 1fr; }
+  .compatibility-heading > small { grid-column: auto; }
+  .compatibility-chip { min-width: 100%; }
+  .make-root { font-size: .62rem; padding: 5px 8px; }
+  .controls-panel .control-actions { grid-template-columns: 1fr; }
+  .controls-panel .form-play-btn { grid-column: auto; }
+}
