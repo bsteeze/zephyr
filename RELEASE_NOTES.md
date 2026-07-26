@@ -1,6 +1,15 @@
-# Zephyr Observatory v2.2.4
+# Zephyr Observatory v2.2.5
 
 Release date: July 25, 2026
+
+## v2.2.5 Independent synchronized mini-map
+
+- Removed the placeholder and live-chart relocation that caused the map to disappear.
+- Leaves the original chart untouched in its normal document position.
+- Displays a separate viewport-level visual copy after the original chart scrolls past the top.
+- Synchronizes planet, aspect, house, and observation-label highlighting into the mini-map.
+- Hides the mini-map when leaving Natal, expanding the original chart, or reaching the end of the exploration flow.
+- Restores full chart-name rendering in the desktop center medallion.
 
 ## v2.2.4 Viewport-native mobile dock
 

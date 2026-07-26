@@ -33,6 +33,70 @@
   }
 }
 
+/* v2.2.5: independent synchronized mini-map. The source chart remains in
+   normal flow; this viewport-level visual copy cannot disturb page layout. */
+.natal-chart-dock { display:none; }
+@media(max-width:720px){
+  .natal-chart-stage:not(.is-expanded) {
+    position:relative !important;
+    top:auto !important;
+  }
+  .natal-chart-dock.is-visible {
+    position:fixed;
+    z-index:120;
+    top:0;
+    right:8px;
+    left:8px;
+    display:grid;
+    grid-template-rows:auto minmax(0,1fr) auto;
+    height:42svh;
+    padding:7px 9px 8px;
+    overflow:hidden;
+    border:1px solid rgba(204,221,255,.15);
+    border-radius:0 0 18px 18px;
+    background:radial-gradient(circle at 50% 45%,rgba(77,90,184,.22),transparent 48%),linear-gradient(145deg,rgba(7,16,34,.995),rgba(2,7,17,.998));
+    box-shadow:0 18px 36px rgba(0,0,0,.72);
+  }
+  .natal-dock-heading {
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    min-height:24px;
+    padding:0 5px;
+    color:#cbd5e9;
+    font-size:.66rem;
+  }
+  .natal-dock-heading span {
+    color:#e7b754;
+    font-size:.48rem;
+    font-weight:900;
+    letter-spacing:.12em;
+  }
+  .natal-dock-chart {
+    display:grid;
+    min-height:0;
+    place-items:center;
+  }
+  .natal-chart-dock .natal-chart-wrap {
+    width:29svh !important;
+    max-width:74vw !important;
+    height:29svh !important;
+    margin:-2px auto -3px !important;
+  }
+  .natal-dock-label {
+    overflow:hidden;
+    min-height:30px;
+    padding:7px 9px;
+    border:1px solid rgba(204,221,255,.12);
+    border-radius:10px;
+    color:#9cabc7;
+    font-size:.58rem;
+    font-weight:750;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+}
+
 /* v2.2.3: keep the chart's center medallion geometrically circular.
    Intrinsic text sizing previously allowed wrapped metadata to stretch it. */
 .natal-center {
@@ -54,6 +118,19 @@
   overflow:hidden;
   text-overflow:ellipsis;
   white-space:nowrap;
+}
+@media(min-width:721px){
+  .natal-center strong {
+    max-width:150%;
+    overflow:visible;
+    padding:0 4px;
+    text-overflow:clip;
+  }
+  .natal-center small {
+    max-width:130%;
+    overflow:visible;
+    text-overflow:clip;
+  }
 }
 @media(max-width:720px){
   .natal-center {

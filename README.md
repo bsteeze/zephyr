@@ -1,4 +1,4 @@
-# Zephyr Observatory v2.2.4
+# Zephyr Observatory v2.2.5
 
 This package is ready for a static Vercel deployment.
 
@@ -7,6 +7,13 @@ This package is ready for a static Vercel deployment.
 Zephyr is an interactive observatory for self-discovery through astrology,
 music, and story. The natal experience connects every interpretation to visible
 chart evidence: reading changes the wheel, and the wheel changes the reading.
+
+## v2.2.5 production correction
+
+- Replaces live chart relocation with an independent synchronized mobile mini-map
+- Leaves the source chart and page layout untouched
+- Mirrors active planet, aspect, house, and observation states at the viewport top
+- Keeps desktop chart names fully visible instead of applying the mobile truncation rule
 
 ## v2.2.4 production correction
 

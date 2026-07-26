@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.2.5 - Independent Synchronized Mini-map — 2026-07-25
+
+### Fixed
+
+- Removed the disappearing live-chart portal and its empty placeholder
+- Kept the original chart in normal flow
+- Added a viewport-level synchronized visual copy for mobile scrollytelling
+- Removed unintended desktop chart-name truncation
+
 ## 0.2.2.4 - Viewport-native Mobile Dock — 2026-07-25
 
 ### Fixed

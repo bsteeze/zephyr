@@ -71,7 +71,9 @@
     sectionObserver:null,
     chartExpanded:false,
     chartDockRaf:0,
-    chartDockBound:false
+    chartDockBound:false,
+    chartDockSyncRaf:0,
+    chartDockObserver:null
   };
 
   function norm(n) { return ((n%360)+360)%360; }
@@ -488,56 +490,65 @@
   function updateChartDock(){
     state.chartDockRaf=0;
     const stage=$('.natal-chart-stage');
-    const placeholder=$('.natal-chart-placeholder');
-    if(!stage||!placeholder)return;
+    const dock=$('.natal-chart-dock');
+    if(!stage||!dock)return;
     const mobile=matchMedia('(max-width:720px)').matches;
     const natalVisible=!$('#natalApp')?.hidden;
     if(!mobile||!natalVisible){
-      stage.classList.remove('is-fixed-dock');
-      if(stage.parentElement===document.body)placeholder.after(stage);
-      placeholder.hidden=true;
+      dock.classList.remove('is-visible');
       return;
     }
     if(state.chartExpanded){
-      stage.classList.remove('is-fixed-dock');
-      placeholder.hidden=false;
-      placeholder.style.height=`${stage.dataset.dockHeight||stage.offsetHeight}px`;
+      dock.classList.remove('is-visible');
       return;
     }
-    const anchor=placeholder.hidden?stage.getBoundingClientRect():placeholder.getBoundingClientRect();
-    const shouldDock=anchor.top<=0;
-    if(shouldDock){
-      const height=stage.offsetHeight;
-      stage.dataset.dockHeight=height;
-      placeholder.style.height=`${height}px`;
-      placeholder.hidden=false;
-      if(stage.parentElement!==document.body)document.body.appendChild(stage);
-      stage.classList.add('is-fixed-dock');
-    }else{
-      stage.classList.remove('is-fixed-dock');
-      if(stage.parentElement===document.body)placeholder.after(stage);
-      placeholder.hidden=true;
-    }
+    const flow=$('.natal-exploration-flow');
+    const shouldDock=stage.getBoundingClientRect().top<=0 && (!flow||flow.getBoundingClientRect().bottom>80);
+    dock.classList.toggle('is-visible',shouldDock);
+    if(shouldDock)syncChartDock();
   }
   function queueChartDock(){
     if(state.chartDockRaf)return;
     state.chartDockRaf=requestAnimationFrame(updateChartDock);
   }
+  function syncChartDock(){
+    if(state.chartDockSyncRaf)return;
+    state.chartDockSyncRaf=requestAnimationFrame(()=>{
+      state.chartDockSyncRaf=0;
+      const source=$('.natal-chart-stage');
+      const dock=$('.natal-chart-dock');
+      const host=dock?.querySelector('.natal-dock-chart');
+      const wrap=source?.querySelector('.natal-chart-wrap');
+      if(!dock||!host||!wrap)return;
+      const clone=wrap.cloneNode(true);
+      clone.querySelectorAll('[id]').forEach(node=>node.removeAttribute('id'));
+      host.replaceChildren(clone);
+      const title=dock.querySelector('.natal-dock-title');
+      const label=dock.querySelector('.natal-dock-label');
+      if(title)title.textContent=$('#natalChartTitle')?.textContent||'Celestial map';
+      if(label)label.textContent=$('#natalObservingLabel')?.textContent||'Full chart';
+    });
+  }
   function setupChartDock(){
     const stage=$('.natal-chart-stage');
     if(!stage)return;
-    let placeholder=$('.natal-chart-placeholder');
-    if(!placeholder){
-      placeholder=document.createElement('div');
-      placeholder.className='natal-chart-placeholder';
-      placeholder.hidden=true;
-      placeholder.setAttribute('aria-hidden','true');
-      stage.before(placeholder);
+    $('.natal-chart-placeholder')?.remove();
+    let dock=$('.natal-chart-dock');
+    if(!dock){
+      dock=document.createElement('aside');
+      dock.className='natal-chart-dock';
+      dock.setAttribute('aria-hidden','true');
+      dock.innerHTML='<div class="natal-dock-heading"><strong class="natal-dock-title">Celestial map</strong><span>LIVE MAP</span></div><div class="natal-dock-chart"></div><div class="natal-dock-label">Full chart</div>';
+      document.body.appendChild(dock);
     }
     if(!state.chartDockBound){
       addEventListener('scroll',queueChartDock,{passive:true});
       state.chartDockBound=true;
     }
+    state.chartDockObserver?.disconnect();
+    state.chartDockObserver=new MutationObserver(syncChartDock);
+    state.chartDockObserver.observe(stage,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['class','style']});
+    syncChartDock();
     queueChartDock();
   }
   function toggleChartExpanded(force){
