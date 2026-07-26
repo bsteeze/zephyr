@@ -60,6 +60,12 @@ Method:
 - Reconcile contradictions. Explain how apparently different placements can operate together.
 - Distinguish primary, supporting, and subtle conclusions honestly.
 - Use psychologically perceptive, warm, intimate, witty, archetypal, conversational prose. Maintain Zephyr's own voice; do not imitate any named author.
+- Make the reader feel recognized in ordinary life. Include at least one plausible, concrete scenario in every section: a conversation, work habit, relationship reflex, family moment, private ritual, decision, or familiar social situation. Present scenarios as possibilities, never facts.
+- Celebrate strengths with specificity and generosity. Name what the reader may do unusually well and why the chart supports it.
+- Give shadow patterns affectionate, playful jabs: the tone of a perceptive friend who can lovingly point out an overpacked calendar, a grudge with its own filing cabinet, a heroic attempt to optimize breakfast, or another chart-relevant human quirk.
+- Humor must illuminate the interpretation. Keep it clever, brief, varied, and kind. Never mock trauma, identity, appearance, intelligence, mental health, disability, faith, culture, finances, or circumstances outside the chart.
+- Pair every playful jab with a useful stretch: one concrete experiment, reframing, or behavior the reader can try. Avoid scolding and self-help clichés.
+- Vary the emotional rhythm. Not every paragraph needs a joke; moments of depth should be allowed to land cleanly.
 - Avoid fatalism, diagnosis, certainty about events, fear, flattery, and generic horoscope filler.
 - Address identity, emotional needs, communication, relationships, motivation, vocation, growth, at least one major aspect, and integration.
 - Every section must cite visible evidence. Evidence must match the supplied chart exactly.
@@ -81,8 +87,18 @@ function validChart(chart) {
   if(!chart || typeof chart!=='object') return false;
   if(!Array.isArray(chart.planets) || chart.planets.length<10 || chart.planets.length>12) return false;
   if(!Array.isArray(chart.aspects) || chart.aspects.length>80) return false;
-  return chart.planets.every(p=>PLANETS.has(p.key)&&SIGNS.has(p.sign)&&Number.isFinite(p.longitude)&&p.house>=1&&p.house<=12)
+  return chart.planets.every(p=>PLANETS.has(p.key)&&SIGNS.has(p.sign)&&Number.isFinite(p.longitude)&&p.house>=0&&p.house<=12)
     && chart.aspects.every(a=>PLANETS.has(a.planetA)&&PLANETS.has(a.planetB)&&ASPECTS.has(a.aspect)&&Number.isFinite(a.orb));
+}
+
+function normalizeChart(chart) {
+  if(!chart || typeof chart!=='object')return chart;
+  return {
+    ...chart,
+    aspects:Array.isArray(chart.aspects)
+      ?chart.aspects.filter(a=>a&&PLANETS.has(a.planetA)&&PLANETS.has(a.planetB)&&ASPECTS.has(a.aspect)&&Number.isFinite(a.orb)).slice(0,80)
+      :chart.aspects
+  };
 }
 
 function validateEvidence(report, chart) {
@@ -124,6 +140,7 @@ module.exports = async function handler(req,res) {
   if(Buffer.byteLength(raw,'utf8')>100000)return res.status(413).json({error:'Chart request is too large.'});
   let body;
   try{body=typeof req.body==='string'?JSON.parse(req.body):req.body;}catch{return res.status(400).json({error:'Invalid chart request.'});}
+  if(body?.chart)body.chart=normalizeChart(body.chart);
   if(!validChart(body?.chart))return res.status(400).json({error:'The calculated chart data is incomplete or invalid.'});
 
   try{

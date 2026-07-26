@@ -6,6 +6,7 @@
   const NS = 'http://www.w3.org/2000/svg';
   const ENGINE = window.ZephyrNatalEngine;
   const chart = $('#natalChart');
+  const EXPERT_CACHE_VERSION='v2';
   if (!ENGINE || !chart) return;
 
   const PLANETS = {
@@ -440,7 +441,8 @@
       const body=h.CelestialBodies[key];
       return {key,label:PLANETS[key].label,sign:body.Sign.key,signLabel:body.Sign.label,degree:degreesInSign(body),longitude:Number(decimal(body).toFixed(5)),house:Number(body.House?.id||0),retrograde:!!body.isRetrograde};
     });
-    const aspects=h.Aspects.all.filter(a=>PLANETS[a.point1Key]&&PLANETS[a.point2Key]).map(a=>({
+    const majorAspects=new Set(['conjunction','sextile','square','trine','opposition']);
+    const aspects=h.Aspects.all.filter(a=>PLANETS[a.point1Key]&&PLANETS[a.point2Key]&&majorAspects.has(a.aspectKey)).map(a=>({
       planetA:a.point1Key,planetB:a.point2Key,aspect:a.aspectKey,label:a.label,orb:Number(Number(a.orb||0).toFixed(2))
     })).sort((a,b)=>a.orb-b.orb);
     const houses=h.Houses.map((house,index)=>({number:index+1,sign:house.Sign?.key||signAt(decimal(house)).key,cusp:Number(decimal(house).toFixed(5)),residents:planets.filter(p=>p.house===index+1).map(p=>p.key)}));
@@ -506,7 +508,7 @@
     state.expertFingerprint=fingerprint;state.expertReport=null;
     $('#expertStoryReport').hidden=true;$('#downloadExpertPdf').hidden=true;
     try{
-      const saved=JSON.parse(localStorage.getItem(`zephyrExpertStory:${fingerprint}`)||'null');
+      const saved=JSON.parse(localStorage.getItem(`zephyrExpertStory:${EXPERT_CACHE_VERSION}:${fingerprint}`)||'null');
       if(saved?.report){renderExpertStory(saved.report);setExpertStatus('cached','Saved interpretation restored','This report was generated previously for the same calculated chart.');}
       else setExpertStatus('','Ready when you are','Generate an expert whole-chart synthesis, or continue with the curated Zephyr reading below.');
     }catch{setExpertStatus('','Ready when you are','Generate an expert whole-chart synthesis, or continue with the curated Zephyr reading below.');}
@@ -521,7 +523,7 @@
       const data=await response.json().catch(()=>({}));
       if(!response.ok)throw new Error(data.error||'The expert interpretation could not be completed.');
       state.expertFingerprint=fingerprint;
-      try{localStorage.setItem(`zephyrExpertStory:${fingerprint}`,JSON.stringify({report:data.report,generatedAt:new Date().toISOString()}));}catch{}
+      try{localStorage.setItem(`zephyrExpertStory:${EXPERT_CACHE_VERSION}:${fingerprint}`,JSON.stringify({report:data.report,generatedAt:new Date().toISOString()}));}catch{}
       renderExpertStory(data.report);
     }catch(error){
       setExpertStatus('error','Expert interpretation unavailable',`${error.message} Your curated Zephyr interpretation remains available below.`);

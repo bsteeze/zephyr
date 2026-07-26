@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.3.2 - Human Voice and Desktop Interpretation Fix — 2026-07-25
+
+### Changed
+
+- Expanded the Zephyr interpretation voice with concrete life scenarios, specific praise, kind humor, and practical growth experiments
+- Versioned generated-report caching for the revised voice
+
+### Fixed
+
+- Unsupported minor aspects are ignored instead of invalidating the desktop chart request
+- Unknown house assignments no longer invalidate an otherwise complete chart
+
 ## 0.3.1 - Branded Natal Portrait PDF — 2026-07-25
 
 ### Added

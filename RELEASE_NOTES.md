@@ -1,6 +1,17 @@
-# Zephyr Observatory v0.3.1 - Branded Natal Portrait PDF
+# Zephyr Observatory v0.3.2 - Human Voice and Desktop Interpretation Fix
 
 Release date: July 25, 2026
+
+## Expert interpretation
+
+- Fixed desktop report generation for charts containing unsupported minor aspects.
+- Allowed a missing house assignment to remain explicitly unknown instead of rejecting the entire chart.
+- Added concrete, close-to-home life scenarios to each interpretive chapter.
+- Added affectionate wit, specific praise, and playful shadow-pattern nudges.
+- Paired each growth observation with a practical experiment or reframing.
+- Versioned the report cache so the warmer voice replaces earlier austere reports.
+
+## v0.3.1 - Branded Natal Portrait PDF
 
 ## PDF polish
 
