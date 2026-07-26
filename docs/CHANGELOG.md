@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.2.1 - Mobile Observatory — 2026-07-25
+
+### Added
+
+- Fixed mobile application navigation
+- Persistent mobile celestial map
+- Story, Aspects, Houses, and Study exploration tabs
+- Complete major-aspect explorer
+- Twelve-house explorer
+
+### Changed
+
+- Natal exploration now uses a Safari-safe containing frame
+- Mobile Chart at a Glance is more compact
+- Scorpio rulership displays traditional and modern rulers
+
 ## 0.2.0 - Observatory v2 — 2026-07-25
 
 ### Added

@@ -1,6 +1,15 @@
-# Zephyr Observatory v2
+# Zephyr Observatory v2.1
 
 Release date: July 25, 2026
+
+## v2.1 Mobile Observatory
+
+- The bottom navigation is fixed above the iPhone safe area.
+- The celestial map remains docked while the active section scrolls.
+- Story, Aspects, Houses, and Study are now first-class exploration modes.
+- Every major aspect can illuminate both planets and its exact line.
+- Every house can illuminate its boundaries, cusp sign, and resident planets.
+- Scorpio rising identifies Mars and Pluto as traditional and modern rulers.
 
 ## The release
 

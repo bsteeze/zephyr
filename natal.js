@@ -144,6 +144,8 @@
     renderBigThree();
     renderGlance();
     renderReading();
+    renderAspectList();
+    renderHouseList();
     renderTable();
     renderFocus(state.focus || 'sun', false);
     setupReadingObserver();
@@ -260,7 +262,7 @@
   function focusPlanet(key){
     setFollowReading(false);
     renderFocus(key, true);
-    $$('.reading-card').forEach(card=>card.classList.toggle('is-active',(card.dataset.planets||'').split(',').includes(key)));
+    $$('.evidence-card').forEach(card=>card.classList.toggle('is-active',(card.dataset.planets||'').split(',').includes(key)));
   }
   function focusEvidenceCard(card,lock=false){
     const keys=(card.dataset.planets||'').split(',').filter(Boolean);
@@ -277,12 +279,30 @@
       const label=$('#natalObservingLabel');
       if(label)label.textContent=`Now observing · ${card.querySelector('strong')?.textContent||'Major aspect'}`;
     }
-    $$('.reading-card').forEach(x=>x.classList.toggle('is-active',x===card));
+    $$('.evidence-card').forEach(x=>x.classList.toggle('is-active',x===card));
+  }
+  function focusHouse(houseNumber,card=null,lock=false){
+    const h=state.horoscope;if(!h)return;
+    if(lock)setFollowReading(false);
+    const number=Number(houseNumber),next=number===12?1:number+1;
+    const residents=Object.keys(PLANETS).filter(key=>Number(h.CelestialBodies[key]?.House?.id)===number);
+    const house=h.Houses[number-1],cuspSign=house?.Sign?.key||signAt(decimal(house)).key;
+    $$('.natal-planet').forEach(g=>g.classList.toggle('is-active',residents.includes(g.dataset.planet)));
+    $$('.natal-sign-sector').forEach(sector=>sector.classList.toggle('is-active',sector.dataset.sign===cuspSign));
+    $$('.natal-house-line').forEach(line=>line.classList.toggle('is-active',[number,next].includes(Number(line.dataset.house))));
+    $$('.natal-aspect-line').forEach(line=>{
+      const linked=residents.includes(line.dataset.planetA)||residents.includes(line.dataset.planetB);
+      line.style.opacity=linked?'.7':'.1';
+      line.style.strokeWidth=linked?'1.8':'0.7';
+    });
+    $$('.evidence-card').forEach(x=>x.classList.toggle('is-active',x===card));
+    const label=$('#natalObservingLabel');
+    if(label)label.textContent=`Now observing · House ${number} · ${HOUSE_THEMES[number-1]}`;
   }
   function clearFocus(){
     setFollowReading(true);
     renderFocus(state.focus||'sun',false);
-    $$('.reading-card').forEach(card=>card.classList.remove('is-active'));
+    $$('.evidence-card').forEach(card=>card.classList.remove('is-active'));
   }
   function updateProfileSummary(){
     const p=state.profile||getProfile();
@@ -336,8 +356,9 @@
     $('#natalElementDetail').textContent=`${elements[element]} weighted points · ${ELEMENT_ARCHETYPES[element]||'distinctive'} energy`;
     $('#natalDominantMode').textContent=mode;
     $('#natalModeDetail').textContent=`${modes[mode]} weighted points · ${MODE_ARCHETYPES[mode]||'adaptive'} pattern`;
-    $('#natalChartRuler').textContent=ruler;
-    $('#natalRulerDetail').textContent=`Ruler of ${h.Ascendant.Sign.label} rising`;
+    const displayedRuler=rising==='scorpio'?'Mars / Pluto':rising==='aquarius'?'Saturn / Uranus':rising==='pisces'?'Jupiter / Neptune':ruler;
+    $('#natalChartRuler').textContent=displayedRuler;
+    $('#natalRulerDetail').textContent=rising==='scorpio'?'Traditional / modern rulers of Scorpio rising':`Ruler of ${h.Ascendant.Sign.label} rising`;
     const theme={
       Fire:'turn inspiration into visible movement',
       Earth:'build something tangible enough to last',
@@ -385,12 +406,56 @@
       planets:[strongest.point1Key,strongest.point2Key],
       symbol:aspectSymbol(strongest.aspectKey)
     });
-    $('#natalReading').innerHTML=cards.map((x,i)=>`<article class="reading-card" tabindex="0" data-reading="${i<10?x.planets[0]:'aspect'}" data-planets="${x.planets.join(',')}"><i>${x.symbol}</i><div><span>${esc(x.eyebrow)}</span><strong>${esc(x.title)}</strong><small>${esc(x.text)}</small><button type="button">Observe in chart</button></div></article>`).join('');
+    $('#natalReading').innerHTML=cards.map((x,i)=>`<article class="reading-card evidence-card" tabindex="0" data-reading="${i<10?x.planets[0]:'aspect'}" data-planets="${x.planets.join(',')}"><i>${x.symbol}</i><div><span>${esc(x.eyebrow)}</span><strong>${esc(x.title)}</strong><small>${esc(x.text)}</small><button type="button">Observe in chart</button></div></article>`).join('');
     $$('.reading-card').forEach(card=>{
       const activate=()=>focusEvidenceCard(card,true);
       card.addEventListener('click',activate);
       card.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();activate();}});
     });
+  }
+  function renderAspectList(){
+    const aspects=state.horoscope.Aspects.all
+      .filter(a=>PLANETS[a.point1Key]&&PLANETS[a.point2Key])
+      .sort((a,b)=>(a.orb||99)-(b.orb||99));
+    $('#natalAspectList').innerHTML=aspects.map(a=>`
+      <article class="aspect-evidence-card evidence-card" tabindex="0" data-planets="${a.point1Key},${a.point2Key}">
+        <i>${aspectSymbol(a.aspectKey)}</i>
+        <div><span>${esc(a.label)} · ${Number(a.orb||0).toFixed(1)}° orb</span>
+        <strong>${esc(a.point1Label)} ${esc(a.label)} ${esc(a.point2Label)}</strong>
+        <small>This ${a.label.toLowerCase()} ${aspectTone(a.aspectKey)}. Observe the exact line above, then notice how both placements participate in the larger pattern.</small></div>
+      </article>`).join('');
+    $$('.aspect-evidence-card').forEach(card=>{
+      const activate=()=>focusEvidenceCard(card,true);
+      card.addEventListener('click',activate);
+      card.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();activate();}});
+    });
+  }
+  function renderHouseList(){
+    const h=state.horoscope;
+    $('#natalHouseList').innerHTML=h.Houses.map((house,index)=>{
+      const number=index+1;
+      const residents=Object.keys(PLANETS).filter(key=>Number(h.CelestialBodies[key]?.House?.id)===number);
+      const names=residents.map(key=>PLANETS[key].label).join(', ')||'No planets';
+      return `<article class="house-evidence-card evidence-card" tabindex="0" data-house="${number}">
+        <i>${number}</i><div><span>${esc(house.Sign?.label||signAt(decimal(house)).label)} on the cusp</span>
+        <strong>House ${number}</strong><small>${esc(HOUSE_THEMES[index])}. <b>${esc(names)}</b>${residents.length?' live here in this chart.':'—an empty house is still active through its ruler and transits.'}</small></div>
+      </article>`;
+    }).join('');
+    $$('.house-evidence-card').forEach(card=>{
+      const activate=()=>focusHouse(card.dataset.house,card,true);
+      card.addEventListener('click',activate);
+      card.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();activate();}});
+    });
+  }
+  function switchNatalSection(section){
+    $$('[data-natal-section]').forEach(button=>button.classList.toggle('active',button.dataset.natalSection===section));
+    $$('[data-natal-panel]').forEach(panel=>{panel.hidden=panel.dataset.natalPanel!==section;panel.classList.toggle('active',!panel.hidden);});
+    if(section==='aspects'&&!state.layers.aspects){state.layers.aspects=true;$('[data-natal-layer="aspects"]')?.classList.add('active');renderChart();}
+    if(section==='houses'&&!state.layers.houses){state.layers.houses=true;$('[data-natal-layer="houses"]')?.classList.add('active');renderChart();}
+    clearFocus();
+    setupReadingObserver();
+    const panel=$(`[data-natal-panel="${section}"]`);
+    if(innerWidth<=720)panel?.scrollIntoView({behavior:'smooth',block:'start'});
   }
   function setupReadingObserver(){
     state.readingObserver?.disconnect();
@@ -401,9 +466,10 @@
       const visible=entries.filter(x=>x.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio)[0];
       if(!visible)return;
       const card=visible.target;
-      focusEvidenceCard(card,false);
+      if(card.dataset.house)focusHouse(card.dataset.house,card,false);
+      else focusEvidenceCard(card,false);
     },{root:null,rootMargin:mobile?'-54% 0px -20% 0px':'-28% 0px -52% 0px',threshold:[0,.1,.35,.7]});
-    $$('.reading-card').forEach(card=>state.readingObserver.observe(card));
+    $$('[data-natal-panel]:not([hidden]) .evidence-card').forEach(card=>state.readingObserver.observe(card));
   }
   function renderTable(){
     const h=state.horoscope;
@@ -458,6 +524,7 @@
     $('#saveNatalBtn').addEventListener('click',()=>{const p=getProfile(),error=validProfile(p);if(error){setStatus('error','Details needed',error);return;}localStorage.setItem('zephyrNatalProfileV1',JSON.stringify(p));setStatus('','Profile saved','Birth details are stored only in this browser.');});
     $('#natalFollowReading')?.addEventListener('click',()=>{setFollowReading(!state.followReading);if(state.followReading)setupReadingObserver();});
     $('#natalClearFocus')?.addEventListener('click',clearFocus);
+    $$('[data-natal-section]').forEach(button=>button.addEventListener('click',()=>switchNatalSection(button.dataset.natalSection)));
     $$('[data-natal-layer]').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.natalLayer;state.layers[k]=!state.layers[k];b.classList.toggle('active',state.layers[k]);if(state.horoscope){renderChart();renderFocus(state.focus, state.focusActive);}}));
     ['natalHouseSystem','natalZodiac'].forEach(id=>$('#'+id).addEventListener('change',()=>state.horoscope&&generate()));
     let resizeTimer;

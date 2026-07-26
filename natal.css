@@ -320,3 +320,65 @@ body.natal-mode .header-actions { display: none; }
 @media(prefers-reduced-motion:reduce){
   .natal-aspect-line,.natal-sign-sector,.natal-house-line,.natal-planet circle,.reading-card { transition:none !important; }
 }
+
+/* ── v2.1 Mobile Observatory frame ─────────────────────────────────── */
+.natal-section-panel[data-natal-panel="story"] { display:contents; }
+.natal-section-panel[hidden] { display:none !important; }
+.natal-section-panel:not([data-natal-panel="story"]) { grid-column:1/-1; min-width:0; padding:22px 4px 4px; }
+.natal-story-section { grid-column:1/-1; }
+.natal-explore-tabs { position:relative; z-index:3; display:grid; grid-template-columns:repeat(4,1fr); gap:5px; margin-top:8px; padding:4px; border:1px solid rgba(204,221,255,.12); border-radius:12px; background:rgba(3,8,19,.72); }
+.natal-explore-tabs button { min-width:0; border:0; border-radius:8px; padding:9px 7px; background:transparent; color:#8796b4; font-size:.66rem; font-weight:850; cursor:pointer; }
+.natal-explore-tabs button.active { color:#fff3cd; background:linear-gradient(135deg,rgba(72,59,139,.92),rgba(39,34,91,.92)); box-shadow:inset 0 0 0 1px rgba(231,183,84,.12); }
+.natal-section-heading { max-width:760px; padding:0 4px 18px; }
+.natal-section-heading h2 { margin:.12em 0 .28em; font-family:Georgia,serif; font-size:clamp(2rem,4vw,3.3rem); font-weight:400; }
+.natal-section-heading > p:last-child { color:#8998b5; line-height:1.55; }
+.natal-evidence-list { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+.aspect-evidence-card,.house-evidence-card { position:relative; display:grid; grid-template-columns:46px 1fr; gap:14px; min-height:170px; padding:18px; border:1px solid rgba(204,221,255,.15); border-radius:18px; background:linear-gradient(145deg,rgba(16,29,55,.96),rgba(5,12,27,.98)); cursor:pointer; outline:none; transition:.24s ease; }
+.aspect-evidence-card > i,.house-evidence-card > i { width:44px; height:44px; display:grid; place-items:center; border-radius:50%; background:rgba(78,214,255,.09); color:#65d9ff; font-style:normal; font-size:1.2rem; }
+.house-evidence-card > i { color:#f0cc7b; background:rgba(231,183,84,.08); font-family:Georgia,serif; }
+.aspect-evidence-card span,.aspect-evidence-card strong,.aspect-evidence-card small,.house-evidence-card span,.house-evidence-card strong,.house-evidence-card small { display:block; }
+.aspect-evidence-card span,.house-evidence-card span { color:#69d9ae; font-size:.68rem; font-weight:800; text-transform:uppercase; letter-spacing:.07em; }
+.aspect-evidence-card strong,.house-evidence-card strong { margin:5px 0 8px; font-family:Georgia,serif; font-size:1.25rem; font-weight:400; }
+.aspect-evidence-card small,.house-evidence-card small { color:#a8b3ca; line-height:1.55; }
+.aspect-evidence-card small b,.house-evidence-card small b { color:#dce3f0; font-weight:700; }
+.evidence-card.is-active { border-color:rgba(231,183,84,.58); background:linear-gradient(145deg,rgba(52,47,94,.42),rgba(12,24,47,.94)); box-shadow:0 16px 45px rgba(0,0,0,.28),inset 0 0 28px rgba(231,183,84,.04); }
+.evidence-card.is-active:before { content:''; position:absolute; left:-1px; top:22px; bottom:22px; width:2px; border-radius:2px; background:#e7b754; box-shadow:0 0 12px rgba(231,183,84,.6); }
+
+@media(max-width:720px){
+  body { padding-bottom:calc(76px + env(safe-area-inset-bottom)); }
+  .app-shell { padding-bottom:0; }
+  .mobile-nav {
+    position:fixed !important;
+    z-index:100 !important;
+    left:10px !important;
+    right:10px !important;
+    bottom:max(6px,env(safe-area-inset-bottom)) !important;
+    width:auto !important;
+    margin:0 !important;
+    border-radius:16px !important;
+    padding:8px 6px !important;
+    background:rgba(4,9,20,.94) !important;
+    box-shadow:0 12px 34px rgba(0,0,0,.62),inset 0 1px rgba(255,255,255,.04);
+    -webkit-backdrop-filter:blur(18px);
+    backdrop-filter:blur(18px);
+  }
+  .mobile-nav button { min-height:46px; }
+  .natal-observatory-layout { display:block; position:relative; min-width:0; }
+  .natal-chart-stage { max-height:none; }
+  .natal-section-panel[data-natal-panel="story"] { display:block; }
+  .natal-section-panel:not([data-natal-panel="story"]) { padding:25px 6px 8px; scroll-margin-top:48svh; }
+  .natal-insight-rail { display:block; }
+  .natal-focus-card,.natal-angle-strip { display:none; }
+  .natal-big-three { margin-bottom:14px; }
+  .natal-explore-tabs { margin:5px 3px 0; }
+  .natal-explore-tabs button { padding:7px 3px; font-size:.58rem; }
+  .natal-evidence-list { grid-template-columns:1fr; gap:16px; }
+  .aspect-evidence-card,.house-evidence-card { min-height:38svh; align-content:center; padding:20px 17px; scroll-margin-top:48svh; }
+  .natal-study-section .natal-data-table { margin:0; border:1px solid var(--line); border-radius:16px; background:rgba(7,15,31,.92); }
+  .natal-study-section table { min-width:610px; }
+  .glance-facts { grid-template-columns:repeat(3,minmax(0,1fr)); }
+  .glance-facts article { min-width:0; border-top:0; border-left:1px solid rgba(204,221,255,.1); padding:13px 9px; }
+  .glance-facts article:first-child { border-left:0; }
+  .glance-facts strong { font-size:1rem; }
+  .glance-facts small { display:none; }
+}

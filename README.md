@@ -1,4 +1,4 @@
-# Zephyr Observatory v2
+# Zephyr Observatory v2.1
 
 This package is ready for a static Vercel deployment.
 
@@ -8,7 +8,17 @@ Zephyr is an interactive observatory for self-discovery through astrology,
 music, and story. The natal experience connects every interpretation to visible
 chart evidence: reading changes the wheel, and the wheel changes the reading.
 
-## New in Observatory v2
+## New in Observatory v2.1
+
+- Fixed mobile navigation that remains available throughout Harmony and Natal
+- Safari-safe persistent celestial map while natal content scrolls
+- Story, Aspects, Houses, and Study exploration tabs
+- Full scrollable major-aspect library with exact two-planet highlighting
+- Twelve-house explorer with illuminated boundaries and resident planets
+- Mobile reading layout that keeps the chart and interpretation connected
+- Traditional and modern rulership shown for Scorpio rising
+
+## Added in Observatory v2
 
 - Chart at a Glance synthesis with archetypes, dominant element, dominant mode,
   chart ruler, and a concise central theme
@@ -63,4 +73,4 @@ chart evidence: reading changes the wheel, and the wheel changes the reading.
 Replace the matching files in the repository root, commit, and Vercel will deploy automatically.
 
 Recommended commit message:
-`feat: ship Zephyr Observatory v2`
+`feat: ship Zephyr Observatory v2.1 mobile frame`
