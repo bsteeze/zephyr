@@ -1,6 +1,28 @@
-# Zephyr Observatory v0.3.2 - Human Voice and Desktop Interpretation Fix
+# Zephyr Observatory v0.3.4 - Velvet Scalpel Reading Rhythm
 
 Release date: July 25, 2026
+
+## Reading experience
+
+- Broke generated chapters into three compact beats: insight, recognizable scene, and growth stretch.
+- Added visible paragraph spacing to synthesis, chapters, and closing integration.
+- Reduced repetition and placement catalogues in favor of one sharp example.
+- Increased card padding, headline separation, and spacing between chapters.
+- Automatically breaks older single-block reports into readable paragraphs.
+- Versioned the generated-report cache for the more concise format.
+
+## v0.3.3 - Wine-With-Friends Voice
+
+## Interpretation voice
+
+- Shifted the reading experience toward candid, funny, read-aloud-with-friends storytelling.
+- Added vivid domestic and social scenarios that make chart patterns recognizable.
+- Added quotable "loving call-outs" with an "okay, rude—but accurate" energy.
+- Uses contradictions in the chart as a source of affectionate comedy.
+- Preserves expert chart evidence and protects tender subjects from forced humor.
+- Versioned the generated-report cache for the new voice.
+
+## v0.3.2 - Human Voice and Desktop Interpretation Fix
 
 ## Expert interpretation
 

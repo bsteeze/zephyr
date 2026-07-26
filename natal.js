@@ -6,7 +6,7 @@
   const NS = 'http://www.w3.org/2000/svg';
   const ENGINE = window.ZephyrNatalEngine;
   const chart = $('#natalChart');
-  const EXPERT_CACHE_VERSION='v2';
+  const EXPERT_CACHE_VERSION='v4';
   if (!ENGINE || !chart) return;
 
   const PLANETS = {
@@ -473,22 +473,34 @@
     if(e.type==='angle')return `${e.planets[0]||'Angle'}${e.sign?` in ${signByKey(e.sign).label}`:''}`;
     return e.planets.map(p=>PLANETS[p]?.label||p).join(' · ')||'Chart pattern';
   }
+  function renderExpertProse(value){
+    const source=String(value||'').trim();
+    let paragraphs=source.split(/\n\s*\n/).map(part=>part.trim()).filter(Boolean);
+    if(paragraphs.length===1){
+      const sentences=source.split(/(?<=[.!?])\s+/).filter(Boolean);
+      if(sentences.length>=5){
+        const groups=sentences.length>=8?3:2,size=Math.ceil(sentences.length/groups);
+        paragraphs=Array.from({length:groups},(_,index)=>sentences.slice(index*size,(index+1)*size).join(' ')).filter(Boolean);
+      }
+    }
+    return `<div class="expert-prose">${paragraphs.map(paragraph=>`<p>${esc(paragraph)}</p>`).join('')}</div>`;
+  }
   function renderExpertStory(report){
     state.expertReport=report;
     const output=$('#expertStoryReport');if(!output)return;
     output.hidden=false;
     output.innerHTML=`<header class="expert-report-header"><p class="kicker">YOUR NATAL PORTRAIT</p><h3>${esc(report.title)}</h3><p>${esc(report.subtitle)}</p></header>
-      <article class="expert-synthesis"><span>WHOLE-CHART SYNTHESIS</span><p>${esc(report.synthesis)}</p></article>
+      <article class="expert-synthesis"><span>WHOLE-CHART SYNTHESIS</span>${renderExpertProse(report.synthesis)}</article>
       <div class="expert-sections">${report.sections.map((section,index)=>{
         const planets=[...new Set(section.evidence.flatMap(e=>e.planets||[]).filter(p=>PLANETS[p]))];
         const house=section.evidence.find(e=>e.house)?.house||0;
         return `<article class="expert-section evidence-card" tabindex="0" data-expert="${index}" data-planets="${planets.join(',')}" ${house?`data-house="${house}"`:''}>
           <div class="expert-section-top"><span>${esc(section.eyebrow)}</span><em class="confidence-${section.confidence}">${esc(section.confidence)}</em></div>
-          <h4>${esc(section.title)}</h4><p>${esc(section.body)}</p>
+          <h4>${esc(section.title)}</h4>${renderExpertProse(section.body)}
           <div class="expert-evidence">${section.evidence.map(e=>`<small>${esc(evidenceLabel(e))}</small>`).join('')}</div>
         </article>`;
       }).join('')}</div>
-      <article class="expert-closing"><span>INTEGRATION</span><p>${esc(report.closing)}</p><small>${esc(report.disclaimer)}</small></article>`;
+      <article class="expert-closing"><span>INTEGRATION</span>${renderExpertProse(report.closing)}<small>${esc(report.disclaimer)}</small></article>`;
     $$('.expert-section').forEach(card=>{
       const activate=()=>{
         const keys=(card.dataset.planets||'').split(',').filter(Boolean);

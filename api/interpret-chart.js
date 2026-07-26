@@ -25,7 +25,7 @@ const reportSchema = {
           category:{type:'string',enum:['identity','emotions','communication','relationships','motivation','vocation','growth','major-aspect','integration','spiritual-life','resources','community']},
           eyebrow:{type:'string',minLength:3,maxLength:80},
           title:{type:'string',minLength:3,maxLength:120},
-          body:{type:'string',minLength:160,maxLength:1400},
+          body:{type:'string',minLength:160,maxLength:1100},
           confidence:{type:'string',enum:['primary','supporting','subtle']},
           evidence:{
             type:'array',minItems:1,maxItems:6,
@@ -66,6 +66,15 @@ Method:
 - Humor must illuminate the interpretation. Keep it clever, brief, varied, and kind. Never mock trauma, identity, appearance, intelligence, mental health, disability, faith, culture, finances, or circumstances outside the chart.
 - Pair every playful jab with a useful stretch: one concrete experiment, reframing, or behavior the reader can try. Avoid scolding and self-help clichés.
 - Vary the emotional rhythm. Not every paragraph needs a joke; moments of depth should be allowed to land cleanly.
+- Aim for the pleasure of reading this aloud over wine with close friends: candid enough to provoke an "okay, rude—but accurate," warm enough that the reader feels included rather than exposed, and insightful enough that the laughter gives way to recognition.
+- Prefer crisp, quotable observations over polished corporate prose. Use vivid domestic and social details when the chart supports them: the text drafted and deleted six times, the emergency snacks, the color-coded vacation plan nobody requested, the argument mentally rehearsed in the shower, or the declaration of being "fine" delivered with courtroom-level evidence.
+- Let the chart's contradictions create comedy. Affectionately notice when one placement wants spontaneity while another has already made the spreadsheet, or when a craving for intimacy arrives with a security system and visiting hours.
+- Include one memorable "loving call-out" in most sections, but never force a punchline into grief, vulnerability, or genuinely tender material.
+- Do not sound like a horoscope meme, stand-up routine, insult comic, therapist, or lifestyle influencer. The astrology remains expert; the humor makes its rawness easier to recognize.
+- Keep the whole-chart synthesis between 130 and 190 words, divided into 2 or 3 short paragraphs separated by a blank line.
+- Keep each section between 110 and 165 words. Divide it into exactly 3 compact paragraphs separated by blank lines: (1) the clear interpretation and strength, (2) a recognizable life scene with an optional loving call-out, and (3) the shadow-to-growth stretch.
+- Keep paragraphs to 2 or 3 sentences. Prefer one sharp example over a catalogue of placements. Do not restate every supporting placement in prose when the evidence labels already show the receipts.
+- Give the reader visual breathing room: use short sentences among longer ones, avoid throat-clearing, and end before the point becomes a lecture.
 - Avoid fatalism, diagnosis, certainty about events, fear, flattery, and generic horoscope filler.
 - Address identity, emotional needs, communication, relationships, motivation, vocation, growth, at least one major aspect, and integration.
 - Every section must cite visible evidence. Evidence must match the supplied chart exactly.

@@ -1,5 +1,24 @@
 # Changelog
 
+## 0.3.4 - Velvet Scalpel Reading Rhythm — 2026-07-25
+
+### Changed
+
+- Structured generated chapters as three short reading beats
+- Added paragraph-aware report rendering and automatic fallback chunking
+- Increased card spacing, padding, and typographic separation
+- Reduced repetitive placement catalogues and overall paragraph length
+- Versioned generated-report caching for the concise format
+
+## 0.3.3 - Wine-With-Friends Voice — 2026-07-25
+
+### Changed
+
+- Made generated readings more candid, playful, quotable, and enjoyable to read aloud
+- Added chart-grounded domestic and social scenarios
+- Added affectionate "loving call-outs" while protecting tender material from forced humor
+- Versioned generated-report caching for the revised voice
+
 ## 0.3.2 - Human Voice and Desktop Interpretation Fix — 2026-07-25
 
 ### Changed
