@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.2.2 - Scrollytelling Observatory — 2026-07-25
+
+### Added
+
+- Dock-on-arrival chart behavior
+- Continuous Story, Aspects, Houses, and Study journey
+- Scroll-aware section navigation
+- Expand Map overlay
+- Release-at-end sticky boundary
+
+### Changed
+
+- Natal tabs now jump within a continuous document
+- Active evidence follows a reading line below the docked map
+- Mobile hero, summary, and Big Three consume less vertical space
+
 ## 0.2.1 - Mobile Observatory — 2026-07-25
 
 ### Added

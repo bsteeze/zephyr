@@ -6,7 +6,7 @@ window.dataLayer = window.dataLayer || [];
 function gtag(){dataLayer.push(arguments);}
 gtag('js', new Date());
 gtag('config', 'G-0JSD84W2V2', { anonymize_ip: true });
-</script><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#050914"><title>Zephyr | Earth’s Orbit Becomes Music</title><meta name="description" content="Zephyr turns birthdays into playable musical intervals by mapping positions in Earth’s solar year onto one octave. Hear, see, and explore birthday harmony."><link rel="stylesheet" href="harmony.css?v=20260719-redesign1"><link rel="stylesheet" href="welcome.css?v=20260719-brand1"><link rel="stylesheet" href="mobile-fixes.css?v=20260719-ios1"><link rel="stylesheet" href="harmony-wheel.css?v=20260725-root4"><link rel="stylesheet" href="natal.css?v=20260725-v21"><style id="critical-action-layout">.controls-panel .control-actions{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:10px!important;width:100%!important}.controls-panel .control-actions .btn{display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;min-width:0!important;min-height:54px!important;white-space:normal!important;writing-mode:horizontal-tb!important}.controls-panel .form-play-btn{grid-column:1!important;min-height:62px!important}body.privacy-mode .date-field .person-date{display:block!important}</style>
+</script><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#050914"><title>Zephyr | Earth’s Orbit Becomes Music</title><meta name="description" content="Zephyr turns birthdays into playable musical intervals by mapping positions in Earth’s solar year onto one octave. Hear, see, and explore birthday harmony."><link rel="stylesheet" href="harmony.css?v=20260719-redesign1"><link rel="stylesheet" href="welcome.css?v=20260719-brand1"><link rel="stylesheet" href="mobile-fixes.css?v=20260719-ios1"><link rel="stylesheet" href="harmony-wheel.css?v=20260725-root4"><link rel="stylesheet" href="natal.css?v=20260725-v22"><style id="critical-action-layout">.controls-panel .control-actions{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:10px!important;width:100%!important}.controls-panel .control-actions .btn{display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;min-width:0!important;min-height:54px!important;white-space:normal!important;writing-mode:horizontal-tb!important}.controls-panel .form-play-btn{grid-column:1!important;min-height:62px!important}body.privacy-mode .date-field .person-date{display:block!important}</style>
 <link rel="canonical" href="https://zephyr.guru/">
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
 <meta name="author" content="Zephyr">
@@ -203,6 +203,7 @@ gtag('config', 'G-0JSD84W2V2', { anonymize_ip: true });
 
   <section class="natal-exploration-flow">
   <section class="natal-observatory-layout">
+    <div class="natal-chart-sentinel" id="natalChartSentinel" aria-hidden="true"></div>
     <section class="natal-chart-stage">
       <div class="natal-chart-heading">
         <div><p class="kicker">CELESTIAL MAP</p><h2 id="natalChartTitle">Brian’s celestial map</h2></div>
@@ -213,6 +214,7 @@ gtag('config', 'G-0JSD84W2V2', { anonymize_ip: true });
         <span id="natalObservingLabel">Full chart · scroll to begin exploring</span>
         <div>
           <button class="active" id="natalFollowReading" type="button" aria-pressed="true">Follow reading</button>
+          <button id="natalExpandChart" type="button" aria-pressed="false">Expand map</button>
           <button id="natalClearFocus" type="button">Full chart</button>
         </div>
       </div>
@@ -224,7 +226,7 @@ gtag('config', 'G-0JSD84W2V2', { anonymize_ip: true });
       </nav>
     </section>
 
-    <section class="natal-section-panel active" data-natal-panel="story">
+    <section class="natal-section-panel active" id="natalStorySection" data-natal-panel="story">
     <aside class="natal-insight-rail">
       <section class="natal-focus-card" id="natalFocusCard">
         <div class="focus-orbit"><i id="natalFocusSymbol">☉</i></div>
@@ -247,17 +249,17 @@ gtag('config', 'G-0JSD84W2V2', { anonymize_ip: true });
     </section>
     </section>
 
-    <section class="natal-section-panel natal-aspects-section" data-natal-panel="aspects" hidden>
+    <section class="natal-section-panel natal-aspects-section" id="natalAspectsSection" data-natal-panel="aspects">
       <div class="natal-section-heading"><p class="kicker">RELATIONSHIPS IN THE CHART</p><h2>Aspects</h2><p>Scroll through the conversations between planets. Each relationship illuminates above.</p></div>
       <div class="natal-evidence-list" id="natalAspectList"></div>
     </section>
 
-    <section class="natal-section-panel natal-houses-section" data-natal-panel="houses" hidden>
+    <section class="natal-section-panel natal-houses-section" id="natalHousesSection" data-natal-panel="houses">
       <div class="natal-section-heading"><p class="kicker">WHERE LIFE HAPPENS</p><h2>Houses</h2><p>Explore each field of experience while its boundaries and resident planets illuminate above.</p></div>
       <div class="natal-evidence-list" id="natalHouseList"></div>
     </section>
 
-    <section class="natal-section-panel natal-study-section" data-natal-panel="study" hidden>
+    <section class="natal-section-panel natal-study-section" id="natalStudySection" data-natal-panel="study">
       <div class="natal-section-heading"><p class="kicker">STUDY MODE</p><h2>Technical chart data</h2><p>Exact degrees, houses, motion, and chart positions.</p></div>
       <div class="natal-data-table" id="natalDataTable"></div>
     </section>
@@ -267,4 +269,4 @@ gtag('config', 'G-0JSD84W2V2', { anonymize_ip: true });
 <footer class="mobile-nav"><button class="active" data-app-view="solar" type="button">☼<small>Harmony</small></button><button data-app-view="natal" type="button">☿<small>Natal</small></button><button data-app-view="people" type="button">♙<small>People</small></button><button data-app-view="guide" type="button">◉<small>Guide</small></button></footer>
 </div>
 <template id="personTemplate"><article class="person-card"><div class="person-head"><button class="person-index set-root" type="button" title="Make this person the root"></button><button class="make-root" type="button">Make root</button><button class="remove-person" type="button">×</button></div><div class="role-badge"><i></i><span class="role-text">MEMBER</span></div><input class="person-name" aria-label="Name" maxlength="30"><label class="date-field"><span>Birthday</span><input class="person-date" type="date"><em class="privacy-hint">Always editable here. Privacy only hides dates from shared views.</em></label><label><span>Role</span><select class="person-role"><option value="member">Member</option><option value="root">Root</option></select></label><div class="person-readout"><strong class="person-note">—</strong><span class="person-sign">—</span><span class="person-position">—</span><span class="person-interval">—</span></div><div class="person-harmonic-readout"><span class="person-solar-name">Solar Unison</span><small class="person-theory-name">Perfect unison · exact</small></div></article></template>
-<script src="ios-audio-unlock.js?v=20260719-ios1"></script><script src="harmony.js?v=20260725-root4"></script><script src="mobile-actions.js?v=20260719-mobile2"></script><script src="natal-engine.bundle.js?v=1.1.0"></script><script src="natal.js?v=20260725-v21"></script></body></html>
+<script src="ios-audio-unlock.js?v=20260719-ios1"></script><script src="harmony.js?v=20260725-root4"></script><script src="mobile-actions.js?v=20260719-mobile2"></script><script src="natal-engine.bundle.js?v=1.1.0"></script><script src="natal.js?v=20260725-v22"></script></body></html>

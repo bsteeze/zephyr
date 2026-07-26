@@ -1,6 +1,17 @@
-# Zephyr Observatory v2.1
+# Zephyr Observatory v2.2
 
 Release date: July 25, 2026
+
+## v2.2 Scrollytelling Observatory
+
+- The full celestial map now arrives naturally in the document flow.
+- When the chart reaches the top of the mobile viewport, it compresses and docks.
+- Story, Aspects, Houses, and Study form one continuous reading journey.
+- Section tabs are scroll-aware jump links rather than content switches.
+- Each evidence card updates the docked map as it crosses the reading line.
+- The chart releases cleanly after Study Mode.
+- Expand Map opens the full wheel without losing the reader's place.
+- Mobile summary and Big Three content are substantially more compact.
 
 ## v2.1 Mobile Observatory
 

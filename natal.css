@@ -382,3 +382,95 @@ body.natal-mode .header-actions { display: none; }
   .glance-facts strong { font-size:1rem; }
   .glance-facts small { display:none; }
 }
+
+/* ── v2.2 Continuous scrollytelling ────────────────────────────────── */
+.natal-observatory-layout { position:relative; }
+.natal-chart-sentinel { position:absolute; top:0; left:0; width:1px; height:1px; pointer-events:none; }
+.natal-section-panel { scroll-margin-top:48vh; }
+
+@media(max-width:720px){
+  .natal-hero { gap:10px; }
+  .natal-hero h1 { max-width:11ch; font-size:clamp(2.8rem,13vw,3.8rem); }
+  .natal-hero > div > p:last-child { margin-bottom:4px; }
+  .natal-status { padding:11px 13px; }
+  .natal-glance { gap:13px; padding:17px 15px; }
+  .glance-intro h2 { font-size:1.8rem; }
+  .glance-intro > p:last-child { margin-top:12px; font-size:.82rem; line-height:1.5; }
+  .glance-archetypes span { padding:6px 9px; font-size:.6rem; }
+
+  .natal-chart-stage {
+    position:sticky;
+    top:0;
+    z-index:20;
+    max-height:none;
+    overflow:hidden;
+    transition:max-height .32s ease,padding .32s ease,border-radius .32s ease,box-shadow .32s ease;
+  }
+  .natal-chart-stage:not(.is-docked):not(.is-expanded) {
+    position:relative;
+    margin-bottom:18px;
+    padding:14px 8px 12px;
+    border-radius:18px;
+  }
+  .natal-chart-stage:not(.is-docked):not(.is-expanded) .natal-chart-wrap {
+    width:calc(100% + 4px);
+    max-width:100%;
+    height:auto;
+    margin:0 auto;
+  }
+  .natal-chart-stage.is-docked {
+    max-height:46svh;
+    margin:0 -2px 16px;
+    padding:7px 7px 8px;
+    border-radius:0 0 18px 18px;
+    box-shadow:0 18px 36px rgba(0,0,0,.68);
+    background:radial-gradient(circle at 50% 45%,rgba(77,90,184,.22),transparent 48%),linear-gradient(145deg,rgba(7,16,34,.99),rgba(2,7,17,.995));
+  }
+  .natal-chart-stage.is-docked .natal-chart-wrap {
+    width:30svh;
+    max-width:76vw;
+    height:30svh;
+    margin:-4px auto -5px;
+  }
+  .natal-chart-stage.is-docked .natal-chart-heading { min-height:26px; }
+  .natal-chart-stage.is-docked .natal-chart-heading h2 { font-size:.68rem; }
+  .natal-chart-stage.is-docked .natal-view-options button { padding:5px 7px; }
+  .natal-chart-stage.is-docked .natal-observation-toolbar { min-height:31px; padding:4px 7px; }
+  .natal-chart-stage.is-docked .natal-explore-tabs { margin-top:4px; }
+
+  .natal-chart-stage.is-expanded {
+    position:fixed;
+    z-index:140;
+    inset:8px 8px calc(76px + env(safe-area-inset-bottom)) 8px;
+    max-height:none;
+    margin:0;
+    padding:12px 8px;
+    overflow:auto;
+    border-radius:20px;
+    box-shadow:0 0 0 100vmax rgba(1,5,13,.82),0 24px 80px rgba(0,0,0,.72);
+  }
+  .natal-chart-stage.is-expanded .natal-chart-wrap {
+    width:min(92vw,66svh);
+    max-width:92vw;
+    height:auto;
+    margin:2px auto;
+  }
+  .natal-chart-stage.is-expanded .natal-chart-heading .kicker { display:block; }
+  .natal-chart-stage.is-expanded .natal-chart-heading h2 { max-width:48vw; font-family:Georgia,serif; font-size:1rem; font-weight:400; }
+  .natal-chart-stage.is-expanded .natal-observation-toolbar button:first-child { display:inline-block; }
+
+  .natal-section-panel { scroll-margin-top:47svh; }
+  .natal-section-panel:not([data-natal-panel="story"]) { padding-top:31px; }
+  .natal-story-section { padding-top:20px; }
+  .natal-story-heading { padding-bottom:10px; }
+  .natal-big-three { padding:13px 10px; }
+  .natal-big-three .section-mini-heading { margin:0 3px 9px; }
+  .natal-big-three .big-three-grid { grid-template-columns:repeat(3,minmax(0,1fr)); gap:6px; }
+  .natal-big-three .big-three-card { padding:9px 7px; }
+  .natal-big-three .big-three-card header { display:block; }
+  .natal-big-three .big-three-card .planet-symbol { width:30px; height:30px; margin-bottom:7px; font-size:.9rem; }
+  .natal-big-three .big-three-card header span { font-size:.55rem; }
+  .natal-big-three .big-three-card header strong { overflow:hidden; font-size:.82rem; text-overflow:ellipsis; white-space:nowrap; }
+  .natal-big-three .big-three-card > small { margin:5px 0 0; overflow:hidden; font-size:.57rem; text-overflow:ellipsis; white-space:nowrap; }
+  .reading-card,.aspect-evidence-card,.house-evidence-card { scroll-margin-top:47svh; }
+}

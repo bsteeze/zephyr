@@ -67,7 +67,10 @@
     focus:'sun',
     focusActive:false,
     followReading:true,
-    readingObserver:null
+    readingObserver:null,
+    sectionObserver:null,
+    dockObserver:null,
+    chartExpanded:false
   };
 
   function norm(n) { return ((n%360)+360)%360; }
@@ -149,6 +152,8 @@
     renderTable();
     renderFocus(state.focus || 'sun', false);
     setupReadingObserver();
+    setupSectionObserver();
+    setupChartDock();
   }
 
   function renderChart() {
@@ -449,13 +454,10 @@
   }
   function switchNatalSection(section){
     $$('[data-natal-section]').forEach(button=>button.classList.toggle('active',button.dataset.natalSection===section));
-    $$('[data-natal-panel]').forEach(panel=>{panel.hidden=panel.dataset.natalPanel!==section;panel.classList.toggle('active',!panel.hidden);});
     if(section==='aspects'&&!state.layers.aspects){state.layers.aspects=true;$('[data-natal-layer="aspects"]')?.classList.add('active');renderChart();}
     if(section==='houses'&&!state.layers.houses){state.layers.houses=true;$('[data-natal-layer="houses"]')?.classList.add('active');renderChart();}
-    clearFocus();
-    setupReadingObserver();
     const panel=$(`[data-natal-panel="${section}"]`);
-    if(innerWidth<=720)panel?.scrollIntoView({behavior:'smooth',block:'start'});
+    panel?.scrollIntoView({behavior:'smooth',block:'start'});
   }
   function setupReadingObserver(){
     state.readingObserver?.disconnect();
@@ -469,7 +471,42 @@
       if(card.dataset.house)focusHouse(card.dataset.house,card,false);
       else focusEvidenceCard(card,false);
     },{root:null,rootMargin:mobile?'-54% 0px -20% 0px':'-28% 0px -52% 0px',threshold:[0,.1,.35,.7]});
-    $$('[data-natal-panel]:not([hidden]) .evidence-card').forEach(card=>state.readingObserver.observe(card));
+    $$('.evidence-card').forEach(card=>state.readingObserver.observe(card));
+  }
+  function setupSectionObserver(){
+    state.sectionObserver?.disconnect();
+    if(!('IntersectionObserver' in window))return;
+    state.sectionObserver=new IntersectionObserver(entries=>{
+      const active=entries.filter(x=>x.isIntersecting).sort((a,b)=>b.intersectionRatio-a.intersectionRatio)[0];
+      if(!active)return;
+      const section=active.target.dataset.natalPanel;
+      $$('[data-natal-section]').forEach(button=>button.classList.toggle('active',button.dataset.natalSection===section));
+      if(section==='study')renderFocus(state.focus||'sun',false);
+    },{root:null,rootMargin:'-42% 0px -43% 0px',threshold:[0,.05,.2,.5]});
+    $$('[data-natal-panel]').forEach(panel=>state.sectionObserver.observe(panel));
+  }
+  function setupChartDock(){
+    state.dockObserver?.disconnect();
+    const sentinel=$('#natalChartSentinel'),stage=$('.natal-chart-stage');
+    if(!sentinel||!stage||!('IntersectionObserver' in window))return;
+    if(innerWidth>720){stage.classList.remove('is-docked','is-expanded');return;}
+    state.dockObserver=new IntersectionObserver(entries=>{
+      const entry=entries[0];
+      const docked=!entry.isIntersecting&&entry.boundingClientRect.top<0&&!state.chartExpanded;
+      stage.classList.toggle('is-docked',docked);
+    },{root:null,threshold:0});
+    state.dockObserver.observe(sentinel);
+  }
+  function toggleChartExpanded(force){
+    const stage=$('.natal-chart-stage'),button=$('#natalExpandChart');
+    if(!stage||innerWidth>720)return;
+    state.chartExpanded=typeof force==='boolean'?force:!state.chartExpanded;
+    stage.classList.toggle('is-expanded',state.chartExpanded);
+    if(state.chartExpanded)stage.classList.remove('is-docked');
+    button?.setAttribute('aria-pressed',String(state.chartExpanded));
+    if(button)button.textContent=state.chartExpanded?'Collapse map':'Expand map';
+    document.body.classList.toggle('natal-chart-expanded',state.chartExpanded);
+    if(!state.chartExpanded)setupChartDock();
   }
   function renderTable(){
     const h=state.horoscope;
@@ -524,11 +561,13 @@
     $('#saveNatalBtn').addEventListener('click',()=>{const p=getProfile(),error=validProfile(p);if(error){setStatus('error','Details needed',error);return;}localStorage.setItem('zephyrNatalProfileV1',JSON.stringify(p));setStatus('','Profile saved','Birth details are stored only in this browser.');});
     $('#natalFollowReading')?.addEventListener('click',()=>{setFollowReading(!state.followReading);if(state.followReading)setupReadingObserver();});
     $('#natalClearFocus')?.addEventListener('click',clearFocus);
+    $('#natalExpandChart')?.addEventListener('click',()=>toggleChartExpanded());
+    $('.natal-center')?.addEventListener('click',()=>innerWidth<=720&&toggleChartExpanded());
     $$('[data-natal-section]').forEach(button=>button.addEventListener('click',()=>switchNatalSection(button.dataset.natalSection)));
     $$('[data-natal-layer]').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.natalLayer;state.layers[k]=!state.layers[k];b.classList.toggle('active',state.layers[k]);if(state.horoscope){renderChart();renderFocus(state.focus, state.focusActive);}}));
     ['natalHouseSystem','natalZodiac'].forEach(id=>$('#'+id).addEventListener('change',()=>state.horoscope&&generate()));
     let resizeTimer;
-    addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>state.horoscope&&setupReadingObserver(),180);},{passive:true});
+    addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{if(!state.horoscope)return;setupReadingObserver();setupSectionObserver();setupChartDock();},180);},{passive:true});
   }
   restore();updateProfileSummary();bind();
 })();
