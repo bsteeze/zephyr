@@ -55,7 +55,7 @@
     'partnership, mirrors, and commitment','intimacy, shared resources, and transformation','belief, travel, and the search for meaning',
     'vocation, reputation, and public contribution','community, friendship, and future vision','rest, surrender, and the inner world'
   ];
-  const state = { horoscope:null, layers:{aspects:true,houses:true,labels:false}, profile:null, focus:'sun' };
+  const state = { horoscope:null, layers:{aspects:true,houses:true,labels:false}, profile:null, focus:'sun', focusActive:false };
 
   function norm(n) { return ((n%360)+360)%360; }
   function polar(cx,cy,r,deg) { const a=(deg-90)*Math.PI/180; return [cx+r*Math.cos(a),cy+r*Math.sin(a)]; }
@@ -131,7 +131,7 @@
     renderBigThree();
     renderReading();
     renderTable();
-    renderFocus(state.focus || 'sun');
+    renderFocus(state.focus || 'sun', false);
   }
 
   function renderChart() {
@@ -211,10 +211,11 @@
 
   function aspectSymbol(key){return ({conjunction:'☌',sextile:'⚹',square:'□',trine:'△',opposition:'☍'})[key]||'◇';}
   function aspectTone(key){return ({conjunction:'fuses these energies',sextile:'creates an easy opportunity between them',square:'creates productive friction between them',trine:'lets them flow naturally together',opposition:'asks them to find balance across a polarity'})[key]||'connects these energies';}
-  function renderFocus(key){
+  function renderFocus(key, highlight=true){
     const h=state.horoscope;if(!h)return;
     const body=h.CelestialBodies[key]||h.CelestialBodies.sun;
     state.focus=body.key;
+    state.focusActive=highlight;
     const meta=PLANETS[body.key],reading=interpretationFor(body),house=body.House?.id;
     $('#natalFocusSymbol').textContent=meta.symbol;
     $('#natalFocusEyebrow').textContent=meta.role.toUpperCase();
@@ -225,9 +226,14 @@
     $('#natalFocusAspects').innerHTML=aspects.length?aspects.map(a=>{const other=a.point1Key===body.key?a.point2Key:a.point1Key;return `<button type="button" data-focus-planet="${other}"><span>${aspectSymbol(a.aspectKey)} ${esc(a.label)} ${esc(PLANETS[other].label)}</span><small>${Number(a.orb||0).toFixed(1)}° orb</small></button>`}).join(''):'<span class="muted">No major aspects displayed.</span>';
     $$('#natalFocusAspects [data-focus-planet]').forEach(b=>b.addEventListener('click',()=>focusPlanet(b.dataset.focusPlanet)));
     $$('.natal-planet').forEach(g=>g.classList.toggle('is-active',g.dataset.planet===body.key));
-    $$('.natal-aspect-line').forEach(line=>{const linked=line.dataset.point1===body.key||line.dataset.point2===body.key;line.style.opacity=linked?'.9':'.09';line.style.strokeWidth=linked?'2.1':'0.7';});
+    $$('.natal-aspect-line').forEach(line=>{
+      if(!highlight){ line.style.opacity=''; line.style.strokeWidth=''; return; }
+      const linked=line.dataset.point1===body.key||line.dataset.point2===body.key;
+      line.style.opacity=linked?'.95':'.16';
+      line.style.strokeWidth=linked?'2.4':'0.9';
+    });
   }
-  function focusPlanet(key){renderFocus(key);if(innerWidth<1050)$('#natalFocusCard')?.scrollIntoView({behavior:'smooth',block:'center'});}
+  function focusPlanet(key){renderFocus(key, true);if(innerWidth<1050)$('#natalFocusCard')?.scrollIntoView({behavior:'smooth',block:'center'});}
   function updateProfileSummary(){
     const p=state.profile||getProfile();
     const d=p.date?new Date(`${p.date}T12:00:00`).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}):'Date needed';
@@ -333,7 +339,7 @@
     $('#findCityBtn').addEventListener('click',findCity);
     $('#natalCity').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();findCity();}});
     $('#saveNatalBtn').addEventListener('click',()=>{const p=getProfile(),error=validProfile(p);if(error){setStatus('error','Details needed',error);return;}localStorage.setItem('zephyrNatalProfileV1',JSON.stringify(p));setStatus('','Profile saved','Birth details are stored only in this browser.');});
-    $$('[data-natal-layer]').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.natalLayer;state.layers[k]=!state.layers[k];b.classList.toggle('active',state.layers[k]);if(state.horoscope){renderChart();renderFocus(state.focus);}}));
+    $$('[data-natal-layer]').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.natalLayer;state.layers[k]=!state.layers[k];b.classList.toggle('active',state.layers[k]);if(state.horoscope){renderChart();renderFocus(state.focus, state.focusActive);}}));
     ['natalHouseSystem','natalZodiac'].forEach(id=>$('#'+id).addEventListener('change',()=>state.horoscope&&generate()));
   }
   restore();updateProfileSummary();bind();

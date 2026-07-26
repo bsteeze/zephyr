@@ -187,7 +187,10 @@ body.natal-mode .header-actions { display: none; }
 .reading-card strong { font-family:Georgia,serif; font-size:1.15rem; font-weight:400; }
 .natal-advanced { padding:0; overflow:hidden; }
 .natal-advanced .natal-data-table { margin:0; padding:4px 20px 20px; border-top:1px solid var(--line); }
-.natal-aspect-line { opacity:.42; transition:opacity .2s ease,stroke-width .2s ease; pointer-events:stroke; }
+.natal-aspect-line { opacity:.78; transition:opacity .2s ease,stroke-width .2s ease; pointer-events:stroke; }
+.natal-aspect-line.conjunction { stroke:#e8d27b; }
+.natal-aspect-line.sextile,.natal-aspect-line.trine { stroke:#5fcf9b; }
+.natal-aspect-line.square,.natal-aspect-line.opposition { stroke:#ef6385; }
 .natal-planet circle { transition:transform .22s ease,filter .22s ease,stroke-width .22s ease; transform-box:fill-box; transform-origin:center; }
 .natal-planet:hover circle,.natal-planet.is-active circle { transform:scale(1.14); stroke-width:2.3; filter:brightness(1.45) drop-shadow(0 0 8px rgba(255,220,150,.5)); }
 @media(max-width:1050px){
