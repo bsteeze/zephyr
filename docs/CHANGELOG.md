@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.2.4 - Viewport-native Mobile Dock — 2026-07-25
+
+### Fixed
+
+- Ported the docked chart outside nested layout containers on iPhone
+- Restored the chart to its source position when undocking
+- Simplified compact medallion content to prevent clipping
+
 ## 0.2.2.3 - Center Medallion Correction — 2026-07-25
 
 ### Fixed

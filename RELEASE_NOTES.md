@@ -1,6 +1,13 @@
-# Zephyr Observatory v2.2.3
+# Zephyr Observatory v2.2.4
 
 Release date: July 25, 2026
+
+## v2.2.4 Viewport-native mobile dock
+
+- Moves the docked chart directly beneath the page body to escape nested Safari layout behavior.
+- Restores the chart to its original placeholder when the reader scrolls above it or leaves Natal.
+- Simplifies the compact center medallion to two lines: chart name and Sun sign.
+- Keeps the full three-line medallion treatment for larger layouts.
 
 ## v2.2.3 Center medallion correction
 

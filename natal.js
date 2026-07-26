@@ -494,6 +494,7 @@
     const natalVisible=!$('#natalApp')?.hidden;
     if(!mobile||!natalVisible){
       stage.classList.remove('is-fixed-dock');
+      if(stage.parentElement===document.body)placeholder.after(stage);
       placeholder.hidden=true;
       return;
     }
@@ -510,9 +511,11 @@
       stage.dataset.dockHeight=height;
       placeholder.style.height=`${height}px`;
       placeholder.hidden=false;
+      if(stage.parentElement!==document.body)document.body.appendChild(stage);
       stage.classList.add('is-fixed-dock');
     }else{
       stage.classList.remove('is-fixed-dock');
+      if(stage.parentElement===document.body)placeholder.after(stage);
       placeholder.hidden=true;
     }
   }
@@ -584,6 +587,7 @@
     if(natal){$('#natalApp').scrollIntoView({behavior:'smooth',block:'start'});if(!state.horoscope)generate();setupChartDock();}
     else if(view==='people'){$('#solarApp').hidden=false;document.body.classList.remove('natal-mode');document.querySelector('.controls-panel')?.scrollIntoView({behavior:'smooth'});}
     else if(view==='guide'){$('#solarApp').hidden=false;document.body.classList.remove('natal-mode');$('#faq')?.scrollIntoView({behavior:'smooth'});}
+    queueChartDock();
   }
   function restore(){
     try{

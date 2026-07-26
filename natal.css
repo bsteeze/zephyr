@@ -55,6 +55,29 @@
   text-overflow:ellipsis;
   white-space:nowrap;
 }
+@media(max-width:720px){
+  .natal-center {
+    width:22%;
+    height:22%;
+    overflow:visible;
+  }
+  .natal-center > span { display:none; }
+  .natal-center strong {
+    max-width:145%;
+    margin:0 0 2px;
+    overflow:visible;
+    font-size:clamp(.72rem,3.5vw,.92rem);
+    line-height:1.05;
+    text-overflow:clip;
+  }
+  .natal-center small {
+    max-width:145%;
+    overflow:visible;
+    font-size:clamp(.44rem,2.1vw,.58rem);
+    line-height:1;
+    text-overflow:clip;
+  }
+}
 .natal-intro h1 { font-family: Georgia, serif; font-size: clamp(2rem,4vw,3.7rem); font-weight: 500; }
 .natal-intro p:last-child { max-width: 760px; color: var(--muted); line-height: 1.55; }
 .natal-status { display: flex; align-items: center; gap: 12px; min-width: 220px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; background: rgba(255,255,255,.025); }
