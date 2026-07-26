@@ -18,6 +18,18 @@
     });
     if(line)lines.push(line);return lines;
   };
+  const proseParagraphs=value=>{
+    const raw=String(value??'').replace(/\r/g,'').trim();
+    let paragraphs=raw.split(/\n\s*\n/).map(ascii).filter(Boolean);
+    if(paragraphs.length===1){
+      const sentences=ascii(raw).split(/(?<=[.!?])\s+/).filter(Boolean);
+      if(sentences.length>=5){
+        const groups=sentences.length>=8?3:2,size=Math.ceil(sentences.length/groups);
+        paragraphs=Array.from({length:groups},(_,index)=>sentences.slice(index*size,(index+1)*size).join(' ')).filter(Boolean);
+      }
+    }
+    return paragraphs.length?paragraphs:[''];
+  };
 
   const PLANET_LABELS={sun:'Sun',moon:'Moon',mercury:'Mercury',venus:'Venus',mars:'Mars',jupiter:'Jupiter',saturn:'Saturn',uranus:'Uranus',neptune:'Neptune',pluto:'Pluto'};
   const ASPECT_LABELS={conjunction:'Conjunction',sextile:'Sextile',square:'Square',trine:'Trine',opposition:'Opposition'};
@@ -97,22 +109,31 @@
     pages.push({cover:true,title:report.title||`${profile.name}'s Natal Portrait`,subtitle:report.subtitle||'',meta:`${profile.dateLabel||profile.date||''} - ${profile.city||''}`});
     const content=[
       {eyebrow:'CHART SYNTHESIS',title:'Your chart as a whole',body:report.synthesis},
-      ...(report.sections||[]),
-      {eyebrow:'ASPECTS AT A GLANCE',title:'The chart’s strongest conversations',body:aspectSummary(profile.chart)},
+      ...(report.sections||[]).map(section=>({...section,pageBreakBefore:true})),
+      {eyebrow:'ASPECTS AT A GLANCE',title:'The chart’s strongest conversations',body:aspectSummary(profile.chart),pageBreakBefore:true},
       {eyebrow:'INTEGRATION',title:'Closing observation',body:report.closing},
       {eyebrow:'A NOTE ON INTERPRETATION',title:'Reflective, not deterministic',body:report.disclaimer}
     ].filter(section=>section.body);
-    let page={lines:[]},remaining=40;
-    const pushPage=()=>{if(page.lines.length)pages.push(page);page={lines:[]};remaining=40;};
+    let page={lines:[]},remaining=38;
+    const pushPage=()=>{if(page.lines.length)pages.push(page);page={lines:[]};remaining=38;};
     content.forEach(section=>{
-      const body=wrap(section.body,84);
-      const needed=body.length+4;
+      if(section.pageBreakBefore&&page.lines.length)pushPage();
+      const paragraphs=proseParagraphs(section.body).map(paragraph=>wrap(paragraph,78));
+      const bodyLines=paragraphs.reduce((count,paragraph)=>count+paragraph.length,0);
+      const needed=bodyLines+paragraphs.length+5;
       if(needed>remaining&&page.lines.length)pushPage();
       page.lines.push({kind:'eyebrow',text:section.eyebrow||section.category||'OBSERVATION'});
       page.lines.push({kind:'title',text:section.title||'Observation'});
-      body.forEach(line=>{
-        if(remaining<=2)pushPage();
-        page.lines.push({kind:'body',text:line});remaining--;
+      remaining-=4;
+      paragraphs.forEach((paragraph,paragraphIndex)=>{
+        if(paragraphIndex){
+          if(remaining<=4)pushPage();
+          else {page.lines.push({kind:'paragraph',text:''});remaining-=1;}
+        }
+        paragraph.forEach(line=>{
+          if(remaining<=2)pushPage();
+          page.lines.push({kind:'body',text:line});remaining--;
+        });
       });
       page.lines.push({kind:'space',text:''});remaining-=4;
     });
@@ -147,12 +168,13 @@
       commands.push('0.16 0.21 0.31 RG .6 w 56 744 m 556 744 l S');
       let y=718;
       (page.lines||[]).forEach(line=>{
-        if(line.kind==='space'){y-=10;return;}
+        if(line.kind==='space'){y-=18;return;}
+        if(line.kind==='paragraph'){y-=10;return;}
         const style=line.kind==='eyebrow'
           ?['0.42 0.84 0.68 rg',9,14]
           :line.kind==='title'
-            ?['0.97 0.98 0.99 rg',18,27]
-            :['0.74 0.78 0.87 rg',11,16];
+            ?['0.97 0.98 0.99 rg',17,29]
+            :['0.74 0.78 0.87 rg',10.5,17];
         commands.push(`${style[0]} BT /F1 ${style[1]} Tf 56 ${y} Td (${pdfEscape(line.text)}) Tj ET`);
         y-=style[2];
       });

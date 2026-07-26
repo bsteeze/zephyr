@@ -1,6 +1,30 @@
-# Zephyr Observatory v0.3.4 - Velvet Scalpel Reading Rhythm
+# Zephyr Observatory v0.3.6 - Paragraph-First Portrait PDF
 
-Release date: July 25, 2026
+Release date: July 26, 2026
+
+## PDF reading experience
+
+- Preserves the three-paragraph rhythm from generated reports.
+- Automatically divides older single-block reports into readable paragraph groups.
+- Adds visible paragraph and chapter spacing.
+- Uses shorter lines and slightly more leading for easier reading.
+- Prevents a new paragraph from being stranded at the bottom of a page.
+- Gives titles more separation from the body copy.
+- Starts every interpretation chapter on a fresh page.
+
+## v0.3.5 - Smart, Funny, Plainspoken
+
+## Interpretation voice
+
+- Shifted generated readings to an accessible eighth-grade reading level.
+- Replaced academic abstractions with familiar behavior and everyday language.
+- Added shorter sentences, contractions, and punchier read-aloud phrasing.
+- Moved recognizable personality quirks and humor earlier in each chapter.
+- Added short, playful section titles instead of essay-style headings.
+- Keeps technical astrology in the evidence labels unless it needs a plain-English explanation.
+- Versioned the report cache for the new plainspoken voice.
+
+## v0.3.4 - Velvet Scalpel Reading Rhythm
 
 ## Reading experience
 

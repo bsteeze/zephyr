@@ -6,7 +6,7 @@
   const NS = 'http://www.w3.org/2000/svg';
   const ENGINE = window.ZephyrNatalEngine;
   const chart = $('#natalChart');
-  const EXPERT_CACHE_VERSION='v4';
+  const EXPERT_CACHE_VERSION='v5';
   if (!ENGINE || !chart) return;
 
   const PLANETS = {

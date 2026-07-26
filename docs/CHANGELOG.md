@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.3.6 - Paragraph-First Portrait PDF — 2026-07-26
+
+### Changed
+
+- Preserved generated paragraph breaks in PDF exports
+- Added automatic paragraph grouping for older reports
+- Increased paragraph, title, and chapter spacing
+- Shortened PDF line length and increased leading
+- Added page-break protection around paragraph starts
+- Started each interpretation chapter on a fresh page
+
+## 0.3.5 - Smart, Funny, Plainspoken — 2026-07-25
+
+### Changed
+
+- Targeted an eighth-grade reading level without making the content childish
+- Replaced academic language with familiar actions, habits, and social moments
+- Added shorter sentences and punchier, playful headings
+- Moved humor and recognizable personality quirks earlier in each chapter
+- Versioned generated-report caching for the plainspoken voice
+
 ## 0.3.4 - Velvet Scalpel Reading Rhythm — 2026-07-25
 
 ### Changed
