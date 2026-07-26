@@ -55,7 +55,7 @@
     'partnership, mirrors, and commitment','intimacy, shared resources, and transformation','belief, travel, and the search for meaning',
     'vocation, reputation, and public contribution','community, friendship, and future vision','rest, surrender, and the inner world'
   ];
-  const state = { horoscope:null, layers:{aspects:true,houses:true,labels:true}, profile:null };
+  const state = { horoscope:null, layers:{aspects:true,houses:true,labels:false}, profile:null, focus:'sun' };
 
   function norm(n) { return ((n%360)+360)%360; }
   function polar(cx,cy,r,deg) { const a=(deg-90)*Math.PI/180; return [cx+r*Math.cos(a),cy+r*Math.sin(a)]; }
@@ -110,6 +110,7 @@
       state.profile=p;state.horoscope=horoscope;
       $('#natalTimezone').textContent=`Resolved time zone: ${origin.timezone?.name||'local zone'} · UTC birth time ${origin.utcTimeFormatted||''}`;
       renderAll();
+      updateProfileSummary();
       setStatus('','Chart complete',`${horoscope.SunSign?.label||'Natal'} chart · ${labelHouseSystem(p.houseSystem)} houses`);
       try{localStorage.setItem('zephyrNatalDraftV1',JSON.stringify(p));}catch{}
     } catch(err) {
@@ -130,6 +131,7 @@
     renderBigThree();
     renderReading();
     renderTable();
+    renderFocus(state.focus || 'sun');
   }
 
   function renderChart() {
@@ -170,7 +172,7 @@
     if(state.layers.aspects) h.Aspects.all.filter(a=>PLANETS[a.point1Key]&&PLANETS[a.point2Key]).forEach(a=>{
       const b1=h.CelestialBodies[a.point1Key],b2=h.CelestialBodies[a.point2Key];
       const p1=polar(400,400,205,angleForLongitude(decimal(b1),asc)),p2=polar(400,400,205,angleForLongitude(decimal(b2),asc));
-      chart.appendChild(svg('line',{x1:p1[0],y1:p1[1],x2:p2[0],y2:p2[1],class:`natal-aspect-line ${a.aspectKey}`,stroke:'rgba(120,160,220,.5)','stroke-width':Math.max(.7,2.2-(a.orb||0)/6)}));
+      chart.appendChild(svg('line',{x1:p1[0],y1:p1[1],x2:p2[0],y2:p2[1],class:`natal-aspect-line ${a.aspectKey}`,'data-point-1':a.point1Key,'data-point-2':a.point2Key,stroke:'rgba(120,160,220,.5)','stroke-width':Math.max(.7,2.2-(a.orb||0)/6)}));
     });
 
     const occupied=[];
@@ -189,7 +191,9 @@
         const label=svg('text',{x:pos[0],y:pos[1]-23,fill:'#f5f7ff','font-size':9,'font-weight':800,'text-anchor':'middle'});
         label.textContent=body.label;g.appendChild(label);
       }
-      g.addEventListener('click',()=>focusReading(body.key));chart.appendChild(g);
+      g.addEventListener('click',()=>focusPlanet(body.key));
+      g.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();focusPlanet(body.key);}});
+      chart.appendChild(g);
     });
     const axis=(lon,label,color)=>{
       const a=angleForLongitude(lon,asc),p1=polar(400,400,120,a),p2=polar(400,400,375,a);
@@ -202,6 +206,33 @@
     $('#natalChartTitle').textContent=`${p.name}’s celestial map`;
     $('#natalCenterName').textContent=p.name;
     $('#natalCenterMeta').textContent=`${h.CelestialBodies.sun.Sign.label} Sun`;
+  }
+
+
+  function aspectSymbol(key){return ({conjunction:'☌',sextile:'⚹',square:'□',trine:'△',opposition:'☍'})[key]||'◇';}
+  function aspectTone(key){return ({conjunction:'fuses these energies',sextile:'creates an easy opportunity between them',square:'creates productive friction between them',trine:'lets them flow naturally together',opposition:'asks them to find balance across a polarity'})[key]||'connects these energies';}
+  function renderFocus(key){
+    const h=state.horoscope;if(!h)return;
+    const body=h.CelestialBodies[key]||h.CelestialBodies.sun;
+    state.focus=body.key;
+    const meta=PLANETS[body.key],reading=interpretationFor(body),house=body.House?.id;
+    $('#natalFocusSymbol').textContent=meta.symbol;
+    $('#natalFocusEyebrow').textContent=meta.role.toUpperCase();
+    $('#natalFocusTitle').textContent=`${meta.label} in ${body.Sign.label}`;
+    $('#natalFocusText').textContent=reading.text;
+    $('#natalFocusMeta').innerHTML=[degreesInSign(body),house?`House ${house}`:'No house',signByKey(body.Sign.key).element,body.isRetrograde?'Retrograde':'Direct'].map(x=>`<span>${esc(x)}</span>`).join('');
+    const aspects=h.Aspects.all.filter(a=>(a.point1Key===body.key||a.point2Key===body.key)&&PLANETS[a.point1Key]&&PLANETS[a.point2Key]).sort((a,b)=>(a.orb||99)-(b.orb||99)).slice(0,5);
+    $('#natalFocusAspects').innerHTML=aspects.length?aspects.map(a=>{const other=a.point1Key===body.key?a.point2Key:a.point1Key;return `<button type="button" data-focus-planet="${other}"><span>${aspectSymbol(a.aspectKey)} ${esc(a.label)} ${esc(PLANETS[other].label)}</span><small>${Number(a.orb||0).toFixed(1)}° orb</small></button>`}).join(''):'<span class="muted">No major aspects displayed.</span>';
+    $$('#natalFocusAspects [data-focus-planet]').forEach(b=>b.addEventListener('click',()=>focusPlanet(b.dataset.focusPlanet)));
+    $$('.natal-planet').forEach(g=>g.classList.toggle('is-active',g.dataset.planet===body.key));
+    $$('.natal-aspect-line').forEach(line=>{const linked=line.dataset.point1===body.key||line.dataset.point2===body.key;line.style.opacity=linked?'.9':'.09';line.style.strokeWidth=linked?'2.1':'0.7';});
+  }
+  function focusPlanet(key){renderFocus(key);if(innerWidth<1050)$('#natalFocusCard')?.scrollIntoView({behavior:'smooth',block:'center'});}
+  function updateProfileSummary(){
+    const p=state.profile||getProfile();
+    const d=p.date?new Date(`${p.date}T12:00:00`).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}):'Date needed';
+    const city=(p.city||'Location needed').split(',').slice(0,2).join(',');
+    const el=$('#natalProfileSummary');if(el)el.textContent=`${p.name||'Unnamed'} · ${d} · ${city}`;
   }
 
   function renderAngles(){
@@ -223,7 +254,8 @@
       {title:'MOON',body:h.CelestialBodies.moon,symbol:'☽',meaning:'Your instinctive emotional rhythm, needs, memory, and private response.'},
       {title:'RISING',body:h.Ascendant,symbol:'ASC',meaning:'The way you enter situations, meet the world, and are initially perceived.'}
     ];
-    $('#bigThreeGrid').innerHTML=items.map(x=>`<article class="big-three-card"><header><i class="planet-symbol">${x.symbol}</i><div><span>${x.title}</span><strong>${esc(x.body.Sign.label)}</strong></div></header><p>${x.meaning}</p><small>${esc(x.body.ChartPosition.Ecliptic.ArcDegreesFormatted30||formatDegree(decimal(x.body)))} · ${signByKey(x.body.Sign.key).element}</small></article>`).join('');
+    $('#bigThreeGrid').innerHTML=items.map((x,i)=>`<article class="big-three-card" ${i<2?`data-focus-planet="${i===0?'sun':'moon'}"`:''}><header><i class="planet-symbol">${x.symbol}</i><div><span>${x.title}</span><strong>${esc(x.body.Sign.label)}</strong></div></header><p>${x.meaning}</p><small>${esc(x.body.ChartPosition.Ecliptic.ArcDegreesFormatted30||formatDegree(decimal(x.body)))} · ${signByKey(x.body.Sign.key).element}</small></article>`).join('');
+    $$('[data-focus-planet]').forEach(b=>b.addEventListener('click',()=>focusPlanet(b.dataset.focusPlanet)));
   }
 
   function interpretationFor(body){
@@ -249,10 +281,7 @@
     if(strongest) cards.push({eyebrow:'Strongest major aspect',title:`${strongest.point1Label} ${strongest.label} ${strongest.point2Label}`,text:`With an orb of ${strongest.orb.toFixed(1)}°, this is one of the chart’s clearest internal conversations. A ${strongest.label.toLowerCase()} describes how these two drives combine, cooperate, or challenge one another.`});
     $('#natalReading').innerHTML=cards.map((x,i)=>`<article class="reading-card" data-reading="${i<5?Object.keys(PLANETS)[i]:'aspect'}"><i>${i<5?PLANETS[Object.keys(PLANETS)[i]].symbol:'◇'}</i><div><span>${esc(x.eyebrow)}</span><strong>${esc(x.title)}</strong><small>${esc(x.text)}</small></div></article>`).join('');
   }
-  function focusReading(key){
-    const card=$(`[data-reading="${key}"]`);
-    if(card){card.scrollIntoView({behavior:'smooth',block:'center'});card.animate([{background:'rgba(78,214,255,.15)'},{background:'rgba(255,255,255,.02)'}],{duration:1200});}
-  }
+  function focusReading(key){focusPlanet(key);}
   function renderTable(){
     const h=state.horoscope;
     const bodies=Object.keys(PLANETS).map(k=>h.CelestialBodies[k]).filter(Boolean);
@@ -275,7 +304,7 @@
         $('#natalCity').value=[x.name,x.admin1,x.country].filter(Boolean).join(', ');
         $('#natalLatitude').value=x.latitude;$('#natalLongitude').value=x.longitude;
         $('#natalTimezone').textContent=`Selected time zone: ${x.timezone}. Historical offset will be resolved for the birth date.`;
-        results.hidden=true;setStatus('','Location selected','Generate the chart when the remaining details are ready.');
+        results.hidden=true;updateProfileSummary();setStatus('','Location selected','Generate the chart when the remaining details are ready.');
       }));
       setStatus('','Choose a location',`${places.length} possible matches found.`);
     }catch(err){setStatus('error','Location search failed',err.message);$('.coordinates-panel').open=true;}
@@ -304,8 +333,8 @@
     $('#findCityBtn').addEventListener('click',findCity);
     $('#natalCity').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();findCity();}});
     $('#saveNatalBtn').addEventListener('click',()=>{const p=getProfile(),error=validProfile(p);if(error){setStatus('error','Details needed',error);return;}localStorage.setItem('zephyrNatalProfileV1',JSON.stringify(p));setStatus('','Profile saved','Birth details are stored only in this browser.');});
-    $$('[data-natal-layer]').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.natalLayer;state.layers[k]=!state.layers[k];b.classList.toggle('active',state.layers[k]);if(state.horoscope)renderChart();}));
+    $$('[data-natal-layer]').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.natalLayer;state.layers[k]=!state.layers[k];b.classList.toggle('active',state.layers[k]);if(state.horoscope){renderChart();renderFocus(state.focus);}}));
     ['natalHouseSystem','natalZodiac'].forEach(id=>$('#'+id).addEventListener('change',()=>state.horoscope&&generate()));
   }
-  restore();bind();
+  restore();updateProfileSummary();bind();
 })();
