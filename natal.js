@@ -534,7 +534,7 @@
     try{
       const p=state.profile;
       const dateLabel=p.date?new Date(`${p.date}T12:00:00`).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}):'';
-      await window.ZephyrPdf.download(state.expertReport,{...p,dateLabel});
+      await window.ZephyrPdf.download(state.expertReport,{...p,dateLabel,chart:expertChartPayload()});
       button.textContent='✓ Portrait downloaded';
     }catch(error){setExpertStatus('error','PDF could not be created',error.message||'Please try again.');button.textContent='↓ Download portrait PDF';}
     finally{button.disabled=false;setTimeout(()=>{if(button.textContent.startsWith('✓'))button.textContent='↓ Download portrait PDF';},2200);}

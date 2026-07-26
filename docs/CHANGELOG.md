@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.3.1 - Branded Natal Portrait PDF — 2026-07-25
+
+### Added
+
+- Zephyr-branded PDF masthead, running headers, and footer
+- Strongest-aspects summary with orb values
+- Aspect-color legend on the celestial-map page
+
+### Fixed
+
+- PDF chart snapshots now draw aspect geometry explicitly instead of depending on page CSS
+
 ## 0.3.0 - Expert Story Engine Alpha — 2026-07-25
 
 ### Added

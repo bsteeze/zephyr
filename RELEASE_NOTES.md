@@ -1,6 +1,17 @@
-# Zephyr Observatory v0.3.0 — Expert Story Engine Alpha
+# Zephyr Observatory v0.3.1 - Branded Natal Portrait PDF
 
 Release date: July 25, 2026
+
+## PDF polish
+
+- Added the Zephyr sun mark, wordmark, and celestial-harmony masthead to the cover.
+- Added branded running headers and footers throughout the interpretation.
+- Added an "Aspects at a Glance" summary ordered by orb.
+- Passed the full calculated chart into the PDF renderer.
+- Restored high-contrast aspect lines on the final chart page.
+- Added an aspect-color legend beneath the chart.
+
+## v0.3.0 - Expert Story Engine Alpha
 
 ## Expert Story Engine
 
