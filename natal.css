@@ -10,6 +10,51 @@
     radial-gradient(circle at 84% 30%, rgba(116,100,238,.18), transparent 28%),
     linear-gradient(135deg, rgba(11,24,49,.98), rgba(6,14,29,.98));
 }
+
+/* v2.2.2: measured iOS dock. This bypasses Safari's sticky/overflow
+   interaction while a placeholder preserves the chart's document space. */
+.natal-chart-placeholder[hidden] { display:none; }
+@media(max-width:720px){
+  .natal-chart-placeholder {
+    width:100%;
+    margin:0 0 16px;
+    pointer-events:none;
+  }
+  .natal-chart-stage.is-fixed-dock:not(.is-expanded) {
+    position:fixed !important;
+    top:0 !important;
+    right:8px !important;
+    left:8px !important;
+    width:auto !important;
+    margin:0 !important;
+    z-index:120 !important;
+    -webkit-transform:translateZ(0);
+    transform:translateZ(0);
+  }
+}
+
+/* v2.2.3: keep the chart's center medallion geometrically circular.
+   Intrinsic text sizing previously allowed wrapped metadata to stretch it. */
+.natal-center {
+  width:20%;
+  height:20%;
+  min-width:0;
+  min-height:0;
+  aspect-ratio:auto;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  overflow:hidden;
+}
+.natal-center strong,
+.natal-center small {
+  display:block;
+  max-width:90%;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
 .natal-intro h1 { font-family: Georgia, serif; font-size: clamp(2rem,4vw,3.7rem); font-weight: 500; }
 .natal-intro p:last-child { max-width: 760px; color: var(--muted); line-height: 1.55; }
 .natal-status { display: flex; align-items: center; gap: 12px; min-width: 220px; padding: 14px 16px; border: 1px solid var(--line); border-radius: 14px; background: rgba(255,255,255,.025); }

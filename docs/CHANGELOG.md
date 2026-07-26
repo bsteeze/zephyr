@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.2.2.3 - Center Medallion Correction — 2026-07-25
+
+### Fixed
+
+- Locked the natal center medallion to equal width and height
+- Prevented wrapped metadata from stretching the center into an oval
+
+## 0.2.2.2 - Measured iPhone Chart Dock — 2026-07-25
+
+### Fixed
+
+- Replaced unreliable iOS sticky positioning with a measured fixed chart dock
+- Preserved page position with an automatic chart placeholder
+- Kept map expansion compatible with the docked mobile state
+
 ## 0.2.2.1 - Sticky Chart Correction — 2026-07-25
 
 ### Fixed

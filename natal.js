@@ -69,7 +69,9 @@
     followReading:true,
     readingObserver:null,
     sectionObserver:null,
-    chartExpanded:false
+    chartExpanded:false,
+    chartDockRaf:0,
+    chartDockBound:false
   };
 
   function norm(n) { return ((n%360)+360)%360; }
@@ -483,6 +485,58 @@
     },{root:null,rootMargin:'-42% 0px -43% 0px',threshold:[0,.05,.2,.5]});
     $$('[data-natal-panel]').forEach(panel=>state.sectionObserver.observe(panel));
   }
+  function updateChartDock(){
+    state.chartDockRaf=0;
+    const stage=$('.natal-chart-stage');
+    const placeholder=$('.natal-chart-placeholder');
+    if(!stage||!placeholder)return;
+    const mobile=matchMedia('(max-width:720px)').matches;
+    const natalVisible=!$('#natalApp')?.hidden;
+    if(!mobile||!natalVisible){
+      stage.classList.remove('is-fixed-dock');
+      placeholder.hidden=true;
+      return;
+    }
+    if(state.chartExpanded){
+      stage.classList.remove('is-fixed-dock');
+      placeholder.hidden=false;
+      placeholder.style.height=`${stage.dataset.dockHeight||stage.offsetHeight}px`;
+      return;
+    }
+    const anchor=placeholder.hidden?stage.getBoundingClientRect():placeholder.getBoundingClientRect();
+    const shouldDock=anchor.top<=0;
+    if(shouldDock){
+      const height=stage.offsetHeight;
+      stage.dataset.dockHeight=height;
+      placeholder.style.height=`${height}px`;
+      placeholder.hidden=false;
+      stage.classList.add('is-fixed-dock');
+    }else{
+      stage.classList.remove('is-fixed-dock');
+      placeholder.hidden=true;
+    }
+  }
+  function queueChartDock(){
+    if(state.chartDockRaf)return;
+    state.chartDockRaf=requestAnimationFrame(updateChartDock);
+  }
+  function setupChartDock(){
+    const stage=$('.natal-chart-stage');
+    if(!stage)return;
+    let placeholder=$('.natal-chart-placeholder');
+    if(!placeholder){
+      placeholder=document.createElement('div');
+      placeholder.className='natal-chart-placeholder';
+      placeholder.hidden=true;
+      placeholder.setAttribute('aria-hidden','true');
+      stage.before(placeholder);
+    }
+    if(!state.chartDockBound){
+      addEventListener('scroll',queueChartDock,{passive:true});
+      state.chartDockBound=true;
+    }
+    queueChartDock();
+  }
   function toggleChartExpanded(force){
     const stage=$('.natal-chart-stage'),button=$('#natalExpandChart');
     if(!stage||innerWidth>720)return;
@@ -492,6 +546,7 @@
     button?.setAttribute('aria-pressed',String(state.chartExpanded));
     if(button)button.textContent=state.chartExpanded?'Collapse map':'Expand map';
     document.body.classList.toggle('natal-chart-expanded',state.chartExpanded);
+    queueChartDock();
   }
   function renderTable(){
     const h=state.horoscope;
@@ -526,7 +581,7 @@
     $('#natalApp').hidden=!natal;$('#solarApp').hidden=natal;
     document.body.classList.toggle('natal-mode',natal);
     $$('[data-app-view]').forEach(b=>b.classList.toggle('active',b.dataset.appView===view));
-    if(natal){$('#natalApp').scrollIntoView({behavior:'smooth',block:'start'});if(!state.horoscope)generate();}
+    if(natal){$('#natalApp').scrollIntoView({behavior:'smooth',block:'start'});if(!state.horoscope)generate();setupChartDock();}
     else if(view==='people'){$('#solarApp').hidden=false;document.body.classList.remove('natal-mode');document.querySelector('.controls-panel')?.scrollIntoView({behavior:'smooth'});}
     else if(view==='guide'){$('#solarApp').hidden=false;document.body.classList.remove('natal-mode');$('#faq')?.scrollIntoView({behavior:'smooth'});}
   }
@@ -552,7 +607,7 @@
     $$('[data-natal-layer]').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.natalLayer;state.layers[k]=!state.layers[k];b.classList.toggle('active',state.layers[k]);if(state.horoscope){renderChart();renderFocus(state.focus, state.focusActive);}}));
     ['natalHouseSystem','natalZodiac'].forEach(id=>$('#'+id).addEventListener('change',()=>state.horoscope&&generate()));
     let resizeTimer;
-    addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{if(!state.horoscope)return;setupReadingObserver();setupSectionObserver();},180);},{passive:true});
+    addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{setupChartDock();if(!state.horoscope)return;setupReadingObserver();setupSectionObserver();},180);},{passive:true});
   }
-  restore();updateProfileSummary();bind();
+  restore();updateProfileSummary();bind();setupChartDock();
 })();

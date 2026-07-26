@@ -1,6 +1,20 @@
-# Zephyr Observatory v2.2.1
+# Zephyr Observatory v2.2.3
 
 Release date: July 25, 2026
+
+## v2.2.3 Center medallion correction
+
+- Locked the natal center medallion to equal width and height.
+- Prevented the sign and luminary label from wrapping and stretching the circle.
+- Added safe truncation for unusually long chart names.
+
+## v2.2.2 Measured iPhone chart dock
+
+- Replaced Safari-dependent sticky behavior with a measured fixed-position dock.
+- Added an automatic placeholder so the document does not jump when docking begins.
+- Docking begins only when the compact chart reaches the top of the viewport.
+- Expand Map releases the dock temporarily and restores it after collapse.
+- The visible chart continues responding to Story, Aspect, House, and Study cards.
 
 ## v2.2.1 Sticky chart correction
 
