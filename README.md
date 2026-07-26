@@ -1,8 +1,28 @@
-# Zephyr V5 — Harmony and Natal Observatory
+# Zephyr Observatory v2
 
 This package is ready for a static Vercel deployment.
 
-## What changed
+## What Zephyr is
+
+Zephyr is an interactive observatory for self-discovery through astrology,
+music, and story. The natal experience connects every interpretation to visible
+chart evidence: reading changes the wheel, and the wheel changes the reading.
+
+## New in Observatory v2
+
+- Chart at a Glance synthesis with archetypes, dominant element, dominant mode,
+  chart ruler, and a concise central theme
+- Scroll-linked story cards that automatically illuminate the relevant planet,
+  zodiac sector, house, and aspect lines
+- Tap-to-lock planet focus plus Follow Reading and Full Chart controls
+- Major-aspect cards that illuminate both planets and their exact relationship
+- Compact sticky mobile wheel designed to remain visible while reading
+- Expanded original observations for all ten displayed planets
+- Corrected aspect-focus data bindings
+- Canonical sample chart: May 15, 1976, 7:03 PM, Price, Utah
+
+## Existing foundation
+
 - Dedicated Natal Observatory with a modern SVG birth chart
 - Local calculations for Sun, Moon, Mercury through Pluto, Ascendant, Midheaven, houses, retrogrades, and major aspects
 - Placidus, Whole Sign, Equal House, Koch, Campanus, Regiomontanus, and Topocentric house systems
@@ -28,8 +48,19 @@ This package is ready for a static Vercel deployment.
 - Existing interval math, interpretation engine, bell synthesis, storage, and GA4 retained
 - GA4 Measurement ID: G-0JSD84W2V2
 
+## Documentation
+
+- [North Star](docs/NORTH_STAR.md)
+- [Design System](docs/DESIGN_SYSTEM.md)
+- [Developer Reference](docs/DEV_REFERENCE.md)
+- [Writing Guide](docs/WRITING_GUIDE.md)
+- [Interaction Principles](docs/INTERACTION_PRINCIPLES.md)
+- [Meeting Notes](docs/MEETING_NOTES.md)
+- [Ideas](docs/IDEAS.md)
+- [Changelog](docs/CHANGELOG.md)
+
 ## Deploy through GitHub
 Replace the matching files in the repository root, commit, and Vercel will deploy automatically.
 
 Recommended commit message:
-`feat: ship Zephyr V5 natal observatory`
+`feat: ship Zephyr Observatory v2`

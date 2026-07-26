@@ -220,3 +220,103 @@ body.natal-mode .header-actions { display: none; }
  .reading-card { min-height:0; }
  .natal-story-heading { align-items:flex-start; }
 }
+
+/* ── Zephyr Observatory v2: synthesis + scroll-linked exploration ─── */
+.natal-glance {
+  display:grid;
+  grid-template-columns:minmax(0,1.08fr) minmax(420px,.92fr);
+  gap:24px;
+  padding:25px;
+  overflow:hidden;
+  border:1px solid rgba(225,195,126,.2);
+  border-radius:24px;
+  background:
+    radial-gradient(circle at 12% 20%,rgba(101,83,205,.22),transparent 33%),
+    linear-gradient(135deg,rgba(17,30,57,.98),rgba(5,12,27,.98));
+  box-shadow:0 22px 65px rgba(0,0,0,.24);
+}
+.glance-intro h2 { margin:.18em 0 .45em; font-family:Georgia,serif; font-size:clamp(1.9rem,3.5vw,3.25rem); font-weight:400; line-height:1; }
+.glance-intro > p:last-child { max-width:720px; margin:16px 0 0; color:#aebbd4; line-height:1.65; }
+.glance-archetypes { display:flex; flex-wrap:wrap; gap:8px; }
+.glance-archetypes span { padding:8px 12px; border:1px solid rgba(230,194,111,.28); border-radius:999px; color:#f3d68f; background:rgba(226,184,87,.07); font-size:.72rem; font-weight:900; letter-spacing:.08em; text-transform:uppercase; }
+.glance-archetypes .archetype-2 { color:#aab8ff; border-color:rgba(143,130,255,.28); background:rgba(116,100,238,.08); }
+.glance-archetypes .archetype-3 { color:#8ee5d2; border-color:rgba(95,207,155,.28); background:rgba(95,207,155,.07); }
+.glance-facts { display:grid; grid-template-columns:repeat(3,1fr); align-self:stretch; border:1px solid rgba(204,221,255,.1); border-radius:18px; overflow:hidden; background:rgba(3,8,19,.36); }
+.glance-facts article { display:flex; min-width:0; flex-direction:column; justify-content:center; padding:18px 16px; border-left:1px solid rgba(204,221,255,.1); }
+.glance-facts article:first-child { border-left:0; }
+.glance-facts span,.glance-facts strong,.glance-facts small { display:block; }
+.glance-facts span { color:#d6b867; font-size:.58rem; font-weight:900; letter-spacing:.12em; }
+.glance-facts strong { margin:8px 0 6px; font-family:Georgia,serif; font-size:clamp(1.35rem,2.3vw,2rem); font-weight:400; }
+.glance-facts small { color:#8493b2; font-size:.65rem; line-height:1.4; }
+.natal-exploration-flow { min-width:0; }
+.natal-observation-toolbar { position:relative; z-index:2; display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:2px; padding:10px 12px; border:1px solid rgba(204,221,255,.1); border-radius:12px; background:rgba(3,8,19,.55); backdrop-filter:blur(12px); }
+.natal-observation-toolbar > span { color:#91a2c2; font-size:.68rem; font-weight:700; }
+.natal-observation-toolbar > div { display:flex; gap:6px; flex:0 0 auto; }
+.natal-observation-toolbar button,.reading-card button { border:1px solid rgba(204,221,255,.12); border-radius:8px; padding:7px 9px; background:rgba(255,255,255,.025); color:#8797b6; font-size:.62rem; font-weight:800; cursor:pointer; }
+.natal-observation-toolbar button.active { border-color:rgba(113,220,190,.3); color:#89e1c6; background:rgba(95,207,155,.08); }
+.natal-sign-sector,.natal-house-line { transition:opacity .3s ease,filter .3s ease,stroke-width .3s ease; }
+.natal-sign-sector.is-active { opacity:.62; filter:brightness(1.5) drop-shadow(0 0 8px rgba(241,203,119,.35)); }
+.natal-house-line.is-active { stroke:#f0c66e; stroke-width:2.4; filter:drop-shadow(0 0 5px rgba(240,198,110,.45)); }
+.natal-story-heading > div > p:last-child { margin:.45em 0 0; color:#8291ad; font-size:.76rem; }
+.natal-reading { grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+.reading-card { position:relative; min-height:215px; cursor:pointer; outline:none; transition:transform .28s ease,border-color .28s ease,background .28s ease,box-shadow .28s ease; }
+.reading-card:focus-visible { box-shadow:0 0 0 3px rgba(78,214,255,.18); }
+.reading-card.is-active { transform:translateY(-2px); border-color:rgba(231,183,84,.55); background:linear-gradient(145deg,rgba(52,47,94,.42),rgba(12,24,47,.92)); box-shadow:0 16px 45px rgba(0,0,0,.28),inset 0 0 28px rgba(231,183,84,.04); }
+.reading-card.is-active:before { content:''; position:absolute; left:-1px; top:22px; bottom:22px; width:2px; border-radius:2px; background:#e7b754; box-shadow:0 0 12px rgba(231,183,84,.6); }
+.reading-card button { margin-top:14px; color:#a7b7d4; }
+.reading-card.is-active button { color:#f0cd7c; border-color:rgba(231,183,84,.24); }
+
+@media(max-width:1050px){
+  .natal-glance { grid-template-columns:1fr; }
+  .glance-facts { min-height:125px; }
+}
+
+@media(max-width:720px){
+  .natal-glance { grid-template-columns:1fr; gap:18px; padding:20px 17px; border-radius:18px; }
+  .glance-facts { grid-template-columns:1fr; min-height:0; }
+  .glance-facts article { border-left:0; border-top:1px solid rgba(204,221,255,.1); padding:14px 15px; }
+  .glance-facts article:first-child { border-top:0; }
+  .natal-exploration-flow { position:relative; }
+  .natal-observatory-layout { display:contents; }
+  .natal-chart-stage {
+    position:sticky;
+    z-index:12;
+    top:0;
+    max-height:48svh;
+    margin:0 -2px 14px;
+    padding:10px 8px 9px;
+    border-radius:0 0 18px 18px;
+    box-shadow:0 18px 34px rgba(0,0,0,.54);
+  }
+  .natal-chart-heading { display:flex; padding:0 7px; }
+  .natal-chart-heading .kicker { display:none; }
+  .natal-chart-heading h2 { overflow:hidden; max-width:46vw; margin:0; font-family:inherit; font-size:.74rem; font-weight:800; text-overflow:ellipsis; white-space:nowrap; color:#cbd5e9; }
+  .natal-view-options { width:auto; }
+  .natal-view-options button { padding:6px 8px; font-size:.58rem; }
+  .natal-chart-wrap { width:34svh; max-width:82vw; height:34svh; margin:-2px auto -4px; }
+  .natal-center span { font-size:.48rem; }
+  .natal-center strong { margin:3px 0; font-size:.82rem; }
+  .natal-center small { font-size:.52rem; }
+  .natal-observation-toolbar { min-height:36px; margin:0 3px; padding:6px 8px; }
+  .natal-observation-toolbar > span { overflow:hidden; font-size:.58rem; text-overflow:ellipsis; white-space:nowrap; }
+  .natal-observation-toolbar button { padding:5px 7px; font-size:.54rem; }
+  .natal-observation-toolbar button:first-child { display:none; }
+  .natal-insight-rail { position:relative; z-index:1; }
+  .natal-focus-card { display:grid; grid-template-columns:48px 1fr; column-gap:12px; padding:17px; }
+  .focus-orbit { grid-row:1/4; width:46px; height:46px; margin:0; }
+  .focus-orbit i { font-size:1.55rem; }
+  .natal-focus-card .kicker,.natal-focus-card h2,.natal-focus-card > p { grid-column:2; }
+  .natal-focus-card h2 { margin:.1em 0 .35em; font-size:1.55rem; }
+  .natal-focus-card > p:not(.kicker) { margin:.2em 0; font-size:.82rem; line-height:1.5; }
+  .natal-focus-meta,.natal-focus-aspects { grid-column:1/-1; }
+  .natal-reading { grid-template-columns:1fr; gap:18px; }
+  .reading-card { min-height:42svh; justify-content:center; padding:20px 18px; scroll-margin-top:50svh; }
+  .reading-card strong { font-size:1.35rem; }
+  .reading-card small { font-size:.82rem; line-height:1.65; }
+  .natal-story-section { padding-top:28px; }
+  .natal-story-heading { display:grid; }
+}
+
+@media(prefers-reduced-motion:reduce){
+  .natal-aspect-line,.natal-sign-sector,.natal-house-line,.natal-planet circle,.reading-card { transition:none !important; }
+}
