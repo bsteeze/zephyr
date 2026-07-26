@@ -1,6 +1,17 @@
-# Zephyr Observatory v2.2.5
+# Zephyr Observatory v0.3.0 — Expert Story Engine Alpha
 
 Release date: July 25, 2026
+
+## Expert Story Engine
+
+- Added a server-side Vercel Function using the OpenAI Responses API.
+- Added strict structured output for expert whole-chart interpretation.
+- Added server-side chart-payload validation and evidence verification.
+- Added same-origin protection, request-size limits, and lightweight rate limiting.
+- Added on-demand generation, loading, error, cached, and fallback states.
+- Added scroll-linked expert sections with visible confidence and evidence.
+- Added browser-generated portrait PDF download with the natal chart on the final page.
+- Added `.env` protection and deployment instructions.
 
 ## v2.2.5 Independent synchronized mini-map
 

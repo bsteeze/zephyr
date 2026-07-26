@@ -1,6 +1,23 @@
-# Zephyr Observatory v2.2.5
+# Zephyr Observatory v0.3.0 — Expert Story Engine Alpha
 
 This package is ready for a static Vercel deployment.
+
+## Expert Story Engine
+
+The Vercel Function at `/api/interpret-chart` sends calculated chart facts to
+the OpenAI Responses API and receives a strict, evidence-linked interpretation.
+The API key is read only from the server-side `OPENAI_API_KEY` environment
+variable.
+
+The client:
+
+- Generates an expert whole-chart synthesis on demand
+- Connects every section to visible planets, houses, signs, and aspects
+- Caches the completed interpretation for the same calculated chart
+- Preserves the curated Zephyr reading as an offline/error fallback
+- Downloads a Zephyr Natal Portrait PDF with the full chart on the final page
+
+See `.env.example` for variable names. Never commit a real API key.
 
 ## What Zephyr is
 

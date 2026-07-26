@@ -244,6 +244,17 @@ gtag('config', 'G-0JSD84W2V2', { anonymize_ip: true });
 
     <section class="natal-story-section">
       <div class="natal-story-heading"><div><p class="kicker">YOUR STORY</p><h2>Read it. See it. Understand it.</h2><p>As each observation reaches the reading line, its evidence illuminates in the celestial map.</p></div><span class="interpretation-note">Original Zephyr interpretation</span></div>
+      <section class="expert-story-engine" id="expertStoryEngine">
+        <div class="expert-story-intro">
+          <div><p class="kicker">EXPERT STORY ENGINE</p><h3>Your chart, interpreted as a whole.</h3><p>Zephyr weighs the strongest placements, rulers, houses, and aspects together—then connects every conclusion back to visible chart evidence.</p></div>
+          <div class="expert-story-actions">
+            <button class="btn expert-generate" id="generateExpertStory" type="button">✦ Generate expert interpretation</button>
+            <button class="btn ghost" id="downloadExpertPdf" type="button" hidden>↓ Download portrait PDF</button>
+          </div>
+        </div>
+        <div class="expert-story-status" id="expertStoryStatus" aria-live="polite"><i></i><span><b>Ready when you are</b><small>Your curated Zephyr interpretation remains available below.</small></span></div>
+        <div class="expert-story-report" id="expertStoryReport" hidden></div>
+      </section>
       <div class="natal-reading" id="natalReading"></div>
     </section>
     </section>
@@ -268,4 +279,4 @@ gtag('config', 'G-0JSD84W2V2', { anonymize_ip: true });
 <footer class="mobile-nav"><button class="active" data-app-view="solar" type="button">☼<small>Harmony</small></button><button data-app-view="natal" type="button">☿<small>Natal</small></button><button data-app-view="people" type="button">♙<small>People</small></button><button data-app-view="guide" type="button">◉<small>Guide</small></button></footer>
 </div>
 <template id="personTemplate"><article class="person-card"><div class="person-head"><button class="person-index set-root" type="button" title="Make this person the root"></button><button class="make-root" type="button">Make root</button><button class="remove-person" type="button">×</button></div><div class="role-badge"><i></i><span class="role-text">MEMBER</span></div><input class="person-name" aria-label="Name" maxlength="30"><label class="date-field"><span>Birthday</span><input class="person-date" type="date"><em class="privacy-hint">Always editable here. Privacy only hides dates from shared views.</em></label><label><span>Role</span><select class="person-role"><option value="member">Member</option><option value="root">Root</option></select></label><div class="person-readout"><strong class="person-note">—</strong><span class="person-sign">—</span><span class="person-position">—</span><span class="person-interval">—</span></div><div class="person-harmonic-readout"><span class="person-solar-name">Solar Unison</span><small class="person-theory-name">Perfect unison · exact</small></div></article></template>
-<script src="ios-audio-unlock.js?v=20260719-ios1"></script><script src="harmony.js?v=20260725-root4"></script><script src="mobile-actions.js?v=20260719-mobile2"></script><script src="natal-engine.bundle.js?v=1.1.0"></script><script src="natal.js?v=20260725-v225"></script></body></html>
+<script src="ios-audio-unlock.js?v=20260719-ios1"></script><script src="harmony.js?v=20260725-root4"></script><script src="mobile-actions.js?v=20260719-mobile2"></script><script src="natal-engine.bundle.js?v=1.1.0"></script><script src="pdf-export.js?v=20260725-story1"></script><script src="natal.js?v=20260725-story1"></script></body></html>

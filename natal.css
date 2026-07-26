@@ -33,6 +33,60 @@
   }
 }
 
+/* Expert Story Engine */
+.expert-story-engine {
+  margin:0 0 26px;
+  padding:22px;
+  border:1px solid rgba(231,183,84,.24);
+  border-radius:22px;
+  background:radial-gradient(circle at 92% 4%,rgba(85,69,166,.2),transparent 31%),linear-gradient(145deg,rgba(13,25,51,.97),rgba(5,12,27,.99));
+  box-shadow:0 24px 70px rgba(0,0,0,.28);
+}
+.expert-story-intro { display:grid; grid-template-columns:minmax(0,1fr) auto; gap:22px; align-items:center; }
+.expert-story-intro h3,.expert-report-header h3 { margin:.1em 0 .25em; font-family:Georgia,serif; font-size:clamp(1.8rem,4vw,3.1rem); font-weight:400; letter-spacing:-.03em; }
+.expert-story-intro > div > p:last-child,.expert-report-header > p:last-child { max-width:720px; margin:.5em 0 0; color:#aab5cc; line-height:1.65; }
+.expert-story-actions { display:grid; gap:9px; min-width:245px; }
+.expert-story-actions .btn { width:100%; }
+.expert-generate { color:#10101b; background:linear-gradient(135deg,#f2d58d,#dcae4d); }
+.expert-story-status { display:flex; gap:12px; align-items:center; margin-top:18px; padding:12px 14px; border:1px solid rgba(204,221,255,.12); border-radius:13px; background:rgba(3,8,19,.4); }
+.expert-story-status i { width:10px; height:10px; flex:0 0 auto; border-radius:50%; background:#7f8ba6; box-shadow:0 0 14px currentColor; }
+.expert-story-status span,.expert-story-status b,.expert-story-status small { display:block; }
+.expert-story-status small { margin-top:3px; color:#8d9ab5; }
+.expert-story-status.working i { color:#e7b754; background:#e7b754; animation:natalPulse 1.25s ease-in-out infinite; }
+.expert-story-status.complete i,.expert-story-status.cached i { color:#62d59d; background:#62d59d; }
+.expert-story-status.error i { color:#ff735f; background:#ff735f; }
+.expert-story-report { margin-top:22px; }
+.expert-report-header { padding:22px 4px; }
+.expert-synthesis,.expert-closing { padding:22px; border:1px solid rgba(98,213,157,.2); border-radius:18px; background:rgba(24,75,68,.1); }
+.expert-synthesis span,.expert-closing span { color:#69d9ae; font-size:.68rem; font-weight:900; letter-spacing:.12em; }
+.expert-synthesis p,.expert-closing p { margin:.7em 0 0; color:#d0d7e6; font:1.05rem/1.75 Georgia,serif; }
+.expert-closing small { display:block; margin-top:16px; color:#7886a1; line-height:1.5; }
+.expert-sections { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; margin:16px 0; }
+.expert-section { position:relative; min-height:300px; padding:22px; border:1px solid rgba(204,221,255,.14); border-radius:18px; background:linear-gradient(145deg,rgba(16,29,55,.96),rgba(5,12,27,.98)); cursor:pointer; transition:.25s ease; }
+.expert-section.is-active { transform:translateY(-2px); border-color:rgba(231,183,84,.58); background:linear-gradient(145deg,rgba(52,47,94,.42),rgba(12,24,47,.94)); box-shadow:0 16px 45px rgba(0,0,0,.28); }
+.expert-section-top { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.expert-section-top > span { color:#69d9ae; font-size:.68rem; font-weight:900; letter-spacing:.09em; text-transform:uppercase; }
+.expert-section-top em { padding:5px 8px; border:1px solid rgba(204,221,255,.12); border-radius:999px; color:#8e9bb5; font-size:.56rem; font-style:normal; font-weight:850; text-transform:uppercase; }
+.expert-section-top .confidence-primary { color:#f0cc7b; border-color:rgba(231,183,84,.28); }
+.expert-section h4 { margin:.55em 0 .45em; font:400 1.5rem/1.15 Georgia,serif; }
+.expert-section > p { margin:0; color:#aeb9cf; line-height:1.68; }
+.expert-evidence { display:flex; flex-wrap:wrap; gap:6px; margin-top:18px; }
+.expert-evidence small { padding:6px 8px; border:1px solid rgba(78,214,255,.14); border-radius:999px; color:#70d9ee; background:rgba(35,132,160,.06); }
+@media(max-width:720px){
+  .expert-story-engine { margin:0 -2px 22px; padding:17px 14px; border-radius:18px; }
+  .expert-story-intro { grid-template-columns:1fr; gap:15px; }
+  .expert-story-intro h3 { font-size:2rem; }
+  .expert-story-actions { min-width:0; }
+  .expert-story-status { align-items:flex-start; }
+  .expert-sections { grid-template-columns:1fr; gap:18px; }
+  .expert-section { min-height:42svh; display:flex; flex-direction:column; justify-content:center; padding:20px 17px; scroll-margin-top:44svh; }
+  .expert-synthesis,.expert-closing { padding:18px 16px; }
+}
+
+@media print{
+  .site-header,.mobile-nav,.welcome-stage,.natal-profile-panel,.expert-story-actions,.natal-explore-tabs,.natal-observation-toolbar { display:none !important; }
+}
+
 /* v2.2.5: independent synchronized mini-map. The source chart remains in
    normal flow; this viewport-level visual copy cannot disturb page layout. */
 .natal-chart-dock { display:none; }

@@ -73,7 +73,9 @@
     chartDockRaf:0,
     chartDockBound:false,
     chartDockSyncRaf:0,
-    chartDockObserver:null
+    chartDockObserver:null,
+    expertReport:null,
+    expertFingerprint:''
   };
 
   function norm(n) { return ((n%360)+360)%360; }
@@ -129,6 +131,7 @@
       state.profile=p;state.horoscope=horoscope;
       $('#natalTimezone').textContent=`Resolved time zone: ${origin.timezone?.name||'local zone'} · UTC birth time ${origin.utcTimeFormatted||''}`;
       renderAll();
+      restoreExpertStory();
       updateProfileSummary();
       setStatus('','Chart complete',`${horoscope.SunSign?.label||'Natal'} chart · ${labelHouseSystem(p.houseSystem)} houses`);
       try{localStorage.setItem('zephyrNatalDraftV1',JSON.stringify(p));}catch{}
@@ -420,6 +423,122 @@
       card.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();activate();}});
     });
   }
+  function chartDominants(){
+    const h=state.horoscope,elements={Fire:0,Earth:0,Air:0,Water:0},modes={Cardinal:0,Fixed:0,Mutable:0};
+    Object.keys(PLANETS).forEach(key=>{
+      const body=h.CelestialBodies[key];if(!body)return;
+      const weight=(key==='sun'||key==='moon')?2:1;
+      elements[signByKey(body.Sign.key).element]+=weight;modes[SIGN_MODES[body.Sign.key]]+=weight;
+    });
+    const rising=h.Ascendant?.Sign?.key;
+    if(rising){elements[signByKey(rising).element]+=2;modes[SIGN_MODES[rising]]+=2;}
+    return {element:dominantKey(elements),mode:dominantKey(modes),elementScores:elements,modeScores:modes,chartRulers:rising==='scorpio'?['mars','pluto']:rising==='aquarius'?['saturn','uranus']:rising==='pisces'?['jupiter','neptune']:[String(SIGN_RULERS[rising]||'').toLowerCase()].filter(Boolean)};
+  }
+  function expertChartPayload(){
+    const h=state.horoscope,p=state.profile,dominants=chartDominants();
+    const planets=Object.keys(PLANETS).map(key=>{
+      const body=h.CelestialBodies[key];
+      return {key,label:PLANETS[key].label,sign:body.Sign.key,signLabel:body.Sign.label,degree:degreesInSign(body),longitude:Number(decimal(body).toFixed(5)),house:Number(body.House?.id||0),retrograde:!!body.isRetrograde};
+    });
+    const aspects=h.Aspects.all.filter(a=>PLANETS[a.point1Key]&&PLANETS[a.point2Key]).map(a=>({
+      planetA:a.point1Key,planetB:a.point2Key,aspect:a.aspectKey,label:a.label,orb:Number(Number(a.orb||0).toFixed(2))
+    })).sort((a,b)=>a.orb-b.orb);
+    const houses=h.Houses.map((house,index)=>({number:index+1,sign:house.Sign?.key||signAt(decimal(house)).key,cusp:Number(decimal(house).toFixed(5)),residents:planets.filter(p=>p.house===index+1).map(p=>p.key)}));
+    return {
+      subject:{name:p.name||'Chart subject'},
+      framework:{zodiac:p.zodiac,houseSystem:p.houseSystem},
+      angles:{
+        ascendant:{sign:h.Ascendant.Sign.key,longitude:Number(decimal(h.Ascendant).toFixed(5)),degree:h.Ascendant.ChartPosition.Ecliptic.ArcDegreesFormatted30||formatDegree(decimal(h.Ascendant))},
+        midheaven:{sign:h.Midheaven.Sign.key,longitude:Number(decimal(h.Midheaven).toFixed(5)),degree:h.Midheaven.ChartPosition.Ecliptic.ArcDegreesFormatted30||formatDegree(decimal(h.Midheaven))}
+      },
+      dominants,planets,aspects,houses
+    };
+  }
+  function expertFingerprint(payload){
+    const text=JSON.stringify(payload);let hash=2166136261;
+    for(let i=0;i<text.length;i++){hash^=text.charCodeAt(i);hash=Math.imul(hash,16777619);}
+    return (hash>>>0).toString(36);
+  }
+  function setExpertStatus(kind,title,detail){
+    const box=$('#expertStoryStatus');if(!box)return;
+    box.className=`expert-story-status ${kind||''}`;
+    box.querySelector('b').textContent=title;box.querySelector('small').textContent=detail;
+  }
+  function evidenceLabel(e){
+    if(e.type==='aspect')return `${e.planets.map(p=>PLANETS[p]?.label||p).join(' · ')} ${e.aspect}${e.orb?` · ${e.orb.toFixed(1)}°`:''}`;
+    if(e.type==='placement')return `${PLANETS[e.planets[0]]?.label||e.planets[0]}${e.sign?` in ${signByKey(e.sign).label}`:''}${e.house?` · House ${e.house}`:''}`;
+    if(e.type==='house')return `House ${e.house}`;
+    if(e.type==='angle')return `${e.planets[0]||'Angle'}${e.sign?` in ${signByKey(e.sign).label}`:''}`;
+    return e.planets.map(p=>PLANETS[p]?.label||p).join(' · ')||'Chart pattern';
+  }
+  function renderExpertStory(report){
+    state.expertReport=report;
+    const output=$('#expertStoryReport');if(!output)return;
+    output.hidden=false;
+    output.innerHTML=`<header class="expert-report-header"><p class="kicker">YOUR NATAL PORTRAIT</p><h3>${esc(report.title)}</h3><p>${esc(report.subtitle)}</p></header>
+      <article class="expert-synthesis"><span>WHOLE-CHART SYNTHESIS</span><p>${esc(report.synthesis)}</p></article>
+      <div class="expert-sections">${report.sections.map((section,index)=>{
+        const planets=[...new Set(section.evidence.flatMap(e=>e.planets||[]).filter(p=>PLANETS[p]))];
+        const house=section.evidence.find(e=>e.house)?.house||0;
+        return `<article class="expert-section evidence-card" tabindex="0" data-expert="${index}" data-planets="${planets.join(',')}" ${house?`data-house="${house}"`:''}>
+          <div class="expert-section-top"><span>${esc(section.eyebrow)}</span><em class="confidence-${section.confidence}">${esc(section.confidence)}</em></div>
+          <h4>${esc(section.title)}</h4><p>${esc(section.body)}</p>
+          <div class="expert-evidence">${section.evidence.map(e=>`<small>${esc(evidenceLabel(e))}</small>`).join('')}</div>
+        </article>`;
+      }).join('')}</div>
+      <article class="expert-closing"><span>INTEGRATION</span><p>${esc(report.closing)}</p><small>${esc(report.disclaimer)}</small></article>`;
+    $$('.expert-section').forEach(card=>{
+      const activate=()=>{
+        const keys=(card.dataset.planets||'').split(',').filter(Boolean);
+        if(keys.length)focusEvidenceCard(card,true);else if(card.dataset.house)focusHouse(card.dataset.house,card,true);
+      };
+      card.addEventListener('click',activate);
+      card.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();activate();}});
+    });
+    $('#downloadExpertPdf').hidden=false;
+    $('#generateExpertStory').textContent='↻ Regenerate expert interpretation';
+    setExpertStatus('complete','Expert interpretation complete','Scroll through the report to illuminate its chart evidence.');
+    setupReadingObserver();syncChartDock();
+  }
+  function restoreExpertStory(){
+    if(!state.horoscope)return;
+    const payload=expertChartPayload(),fingerprint=expertFingerprint(payload);
+    state.expertFingerprint=fingerprint;state.expertReport=null;
+    $('#expertStoryReport').hidden=true;$('#downloadExpertPdf').hidden=true;
+    try{
+      const saved=JSON.parse(localStorage.getItem(`zephyrExpertStory:${fingerprint}`)||'null');
+      if(saved?.report){renderExpertStory(saved.report);setExpertStatus('cached','Saved interpretation restored','This report was generated previously for the same calculated chart.');}
+      else setExpertStatus('','Ready when you are','Generate an expert whole-chart synthesis, or continue with the curated Zephyr reading below.');
+    }catch{setExpertStatus('','Ready when you are','Generate an expert whole-chart synthesis, or continue with the curated Zephyr reading below.');}
+  }
+  async function generateExpertStory(){
+    if(!state.horoscope){setExpertStatus('error','Calculate the chart first','Complete the birth profile and reveal the chart before generating its interpretation.');return;}
+    const button=$('#generateExpertStory'),payload=expertChartPayload(),fingerprint=expertFingerprint(payload);
+    button.disabled=true;button.textContent='Observing the whole chart…';
+    setExpertStatus('working','Synthesizing your chart','Weighing rulers, repeated patterns, houses, and the strongest planetary conversations.');
+    try{
+      const response=await fetch('/api/interpret-chart',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chart:payload})});
+      const data=await response.json().catch(()=>({}));
+      if(!response.ok)throw new Error(data.error||'The expert interpretation could not be completed.');
+      state.expertFingerprint=fingerprint;
+      try{localStorage.setItem(`zephyrExpertStory:${fingerprint}`,JSON.stringify({report:data.report,generatedAt:new Date().toISOString()}));}catch{}
+      renderExpertStory(data.report);
+    }catch(error){
+      setExpertStatus('error','Expert interpretation unavailable',`${error.message} Your curated Zephyr interpretation remains available below.`);
+      button.textContent='Try expert interpretation again';
+    }finally{button.disabled=false;}
+  }
+  async function downloadExpertPdf(){
+    if(!state.expertReport||!window.ZephyrPdf)return;
+    const button=$('#downloadExpertPdf');button.disabled=true;button.textContent='Preparing portrait…';
+    try{
+      const p=state.profile;
+      const dateLabel=p.date?new Date(`${p.date}T12:00:00`).toLocaleDateString('en-US',{month:'long',day:'numeric',year:'numeric'}):'';
+      await window.ZephyrPdf.download(state.expertReport,{...p,dateLabel});
+      button.textContent='✓ Portrait downloaded';
+    }catch(error){setExpertStatus('error','PDF could not be created',error.message||'Please try again.');button.textContent='↓ Download portrait PDF';}
+    finally{button.disabled=false;setTimeout(()=>{if(button.textContent.startsWith('✓'))button.textContent='↓ Download portrait PDF';},2200);}
+  }
   function renderAspectList(){
     const aspects=state.horoscope.Aspects.all
       .filter(a=>PLANETS[a.point1Key]&&PLANETS[a.point2Key])
@@ -617,6 +736,8 @@
     $('#natalFollowReading')?.addEventListener('click',()=>{setFollowReading(!state.followReading);if(state.followReading)setupReadingObserver();});
     $('#natalClearFocus')?.addEventListener('click',clearFocus);
     $('#natalExpandChart')?.addEventListener('click',()=>toggleChartExpanded());
+    $('#generateExpertStory')?.addEventListener('click',generateExpertStory);
+    $('#downloadExpertPdf')?.addEventListener('click',downloadExpertPdf);
     $('.natal-center')?.addEventListener('click',()=>innerWidth<=720&&toggleChartExpanded());
     $$('[data-natal-section]').forEach(button=>button.addEventListener('click',()=>switchNatalSection(button.dataset.natalSection)));
     $$('[data-natal-layer]').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.natalLayer;state.layers[k]=!state.layers[k];b.classList.toggle('active',state.layers[k]);if(state.horoscope){renderChart();renderFocus(state.focus, state.focusActive);}}));

@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.3.0 - Expert Story Engine Alpha — 2026-07-25
+
+### Added
+
+- Server-side OpenAI Responses API interpretation endpoint
+- Strict expert-report schema and chart-evidence verification
+- Expert whole-chart UI with confidence and evidence labels
+- Scroll-linked highlighting for generated interpretations
+- Local report caching by calculated-chart fingerprint
+- Downloadable portrait PDF with the full natal chart on the final page
+- Same-origin checks, payload limits, and lightweight rate limiting
+
+### Security
+
+- API credential is read only from `OPENAI_API_KEY`
+- Added `.gitignore` protection for local environment files
+- The browser never receives the OpenAI API key
+
 ## 0.2.2.5 - Independent Synchronized Mini-map — 2026-07-25
 
 ### Fixed
