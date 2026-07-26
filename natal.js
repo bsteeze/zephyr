@@ -69,7 +69,6 @@
     followReading:true,
     readingObserver:null,
     sectionObserver:null,
-    dockObserver:null,
     chartExpanded:false
   };
 
@@ -153,7 +152,6 @@
     renderFocus(state.focus || 'sun', false);
     setupReadingObserver();
     setupSectionObserver();
-    setupChartDock();
   }
 
   function renderChart() {
@@ -485,18 +483,6 @@
     },{root:null,rootMargin:'-42% 0px -43% 0px',threshold:[0,.05,.2,.5]});
     $$('[data-natal-panel]').forEach(panel=>state.sectionObserver.observe(panel));
   }
-  function setupChartDock(){
-    state.dockObserver?.disconnect();
-    const sentinel=$('#natalChartSentinel'),stage=$('.natal-chart-stage');
-    if(!sentinel||!stage||!('IntersectionObserver' in window))return;
-    if(innerWidth>720){stage.classList.remove('is-docked','is-expanded');return;}
-    state.dockObserver=new IntersectionObserver(entries=>{
-      const entry=entries[0];
-      const docked=!entry.isIntersecting&&entry.boundingClientRect.top<0&&!state.chartExpanded;
-      stage.classList.toggle('is-docked',docked);
-    },{root:null,threshold:0});
-    state.dockObserver.observe(sentinel);
-  }
   function toggleChartExpanded(force){
     const stage=$('.natal-chart-stage'),button=$('#natalExpandChart');
     if(!stage||innerWidth>720)return;
@@ -506,7 +492,6 @@
     button?.setAttribute('aria-pressed',String(state.chartExpanded));
     if(button)button.textContent=state.chartExpanded?'Collapse map':'Expand map';
     document.body.classList.toggle('natal-chart-expanded',state.chartExpanded);
-    if(!state.chartExpanded)setupChartDock();
   }
   function renderTable(){
     const h=state.horoscope;
@@ -567,7 +552,7 @@
     $$('[data-natal-layer]').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.natalLayer;state.layers[k]=!state.layers[k];b.classList.toggle('active',state.layers[k]);if(state.horoscope){renderChart();renderFocus(state.focus, state.focusActive);}}));
     ['natalHouseSystem','natalZodiac'].forEach(id=>$('#'+id).addEventListener('change',()=>state.horoscope&&generate()));
     let resizeTimer;
-    addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{if(!state.horoscope)return;setupReadingObserver();setupSectionObserver();setupChartDock();},180);},{passive:true});
+    addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(()=>{if(!state.horoscope)return;setupReadingObserver();setupSectionObserver();},180);},{passive:true});
   }
   restore();updateProfileSummary();bind();
 })();

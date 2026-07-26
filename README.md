@@ -1,4 +1,4 @@
-# Zephyr Observatory v2.2
+# Zephyr Observatory v2.2.1
 
 This package is ready for a static Vercel deployment.
 
@@ -8,7 +8,13 @@ Zephyr is an interactive observatory for self-discovery through astrology,
 music, and story. The natal experience connects every interpretation to visible
 chart evidence: reading changes the wheel, and the wheel changes the reading.
 
-## New in Observatory v2.2
+## v2.2.1 production correction
+
+- Replaced JavaScript-controlled chart docking with native CSS sticky positioning
+- The complete compact chart now remains at the top throughout natal exploration
+- Removed the sentinel state that allowed the full chart to continue scrolling offscreen
+
+## Added in Observatory v2.2
 
 - Continuous Story → Aspects → Houses → Study scrollytelling journey
 - Full chart scrolls normally until it reaches the top, then compresses and docks
@@ -83,4 +89,4 @@ chart evidence: reading changes the wheel, and the wheel changes the reading.
 Replace the matching files in the repository root, commit, and Vercel will deploy automatically.
 
 Recommended commit message:
-`feat: ship Zephyr Observatory v2.2 scrollytelling`
+`fix: keep Zephyr natal chart sticky on iPhone`

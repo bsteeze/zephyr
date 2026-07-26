@@ -474,3 +474,51 @@ body.natal-mode .header-actions { display: none; }
   .natal-big-three .big-three-card > small { margin:5px 0 0; overflow:hidden; font-size:.57rem; text-overflow:ellipsis; white-space:nowrap; }
   .reading-card,.aspect-evidence-card,.house-evidence-card { scroll-margin-top:47svh; }
 }
+
+/* v2.2.1: CSS-only mobile docking. The chart remains in normal document
+   flow until it reaches top:0, then the browser owns the sticky state. */
+@media(max-width:720px){
+  .natal-chart-stage,
+  .natal-chart-stage:not(.is-docked):not(.is-expanded),
+  .natal-chart-stage.is-docked {
+    position:-webkit-sticky !important;
+    position:sticky !important;
+    top:0 !important;
+    z-index:30 !important;
+    max-height:46svh !important;
+    margin:0 -2px 16px !important;
+    padding:7px 7px 8px !important;
+    overflow:hidden !important;
+    border-radius:0 0 18px 18px !important;
+    background:radial-gradient(circle at 50% 45%,rgba(77,90,184,.22),transparent 48%),linear-gradient(145deg,rgba(7,16,34,.99),rgba(2,7,17,.995)) !important;
+    box-shadow:0 18px 36px rgba(0,0,0,.68) !important;
+  }
+  .natal-chart-stage .natal-chart-wrap,
+  .natal-chart-stage:not(.is-docked):not(.is-expanded) .natal-chart-wrap,
+  .natal-chart-stage.is-docked .natal-chart-wrap {
+    width:30svh !important;
+    max-width:76vw !important;
+    height:30svh !important;
+    margin:-4px auto -5px !important;
+  }
+  .natal-chart-stage .natal-chart-heading { min-height:26px; }
+  .natal-chart-stage .natal-chart-heading h2 { font-size:.68rem; }
+  .natal-chart-stage .natal-view-options button { padding:5px 7px; }
+  .natal-chart-stage .natal-observation-toolbar { min-height:31px; padding:4px 7px; }
+  .natal-chart-stage .natal-explore-tabs { margin-top:4px; }
+  .natal-chart-stage.is-expanded {
+    position:fixed !important;
+    inset:8px 8px calc(76px + env(safe-area-inset-bottom)) 8px !important;
+    max-height:none !important;
+    margin:0 !important;
+    padding:12px 8px !important;
+    overflow:auto !important;
+    border-radius:20px !important;
+  }
+  .natal-chart-stage.is-expanded .natal-chart-wrap {
+    width:min(92vw,66svh) !important;
+    max-width:92vw !important;
+    height:auto !important;
+    margin:2px auto !important;
+  }
+}

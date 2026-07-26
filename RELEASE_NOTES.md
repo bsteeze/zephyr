@@ -1,6 +1,13 @@
-# Zephyr Observatory v2.2
+# Zephyr Observatory v2.2.1
 
 Release date: July 25, 2026
+
+## v2.2.1 Sticky chart correction
+
+- Removed the unreliable JavaScript docking sentinel.
+- Mobile docking is now controlled entirely by native CSS sticky positioning.
+- The chart uses its compact dimensions before reaching the viewport top, preventing half of the wheel from scrolling out of view.
+- Expansion remains an explicit fixed overlay and returns to the sticky reading state.
 
 ## v2.2 Scrollytelling Observatory
 

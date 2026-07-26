@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.2.2.1 - Sticky Chart Correction — 2026-07-25
+
+### Fixed
+
+- Replaced JavaScript sentinel docking with native CSS sticky positioning
+- Prevented the upper half of the wheel from scrolling offscreen on iPhone
+- Preserved chart expansion independently from sticky reading mode
+
 ## 0.2.2 - Scrollytelling Observatory — 2026-07-25
 
 ### Added
