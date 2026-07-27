@@ -1,0 +1,34 @@
+# Zephyr Observatory
+
+> Zephyr is a first-of-its-kind interactive celestial observatory combining private browser-generated natal charts, readable visual astrology interpretation, and a solar harmony instrument that maps birthday positions in the year to musical intervals.
+
+Canonical site: https://zephyr.guru/
+Natal chart overview: https://zephyr.guru/natal-chart.html
+Natal chart tool: https://zephyr.guru/?view=natal
+
+## What Zephyr offers
+
+- A free natal chart generator with planets, houses, Ascendant, Midheaven, retrogrades, and major aspects.
+- Big Three and plain-language chart interpretations.
+- Placidus, Whole Sign, Equal House, Koch, Campanus, Regiomontanus, and Topocentric house systems.
+- Tropical and sidereal zodiac options.
+- A Solar Harmonic Interval instrument that converts spacing between birthdays in the 365.2422-day solar year into musical cents, intervals, notes, and chords.
+- Root-relative harmony views for comparing multiple birthdays.
+
+## Required natal-chart inputs
+
+A complete natal chart requires a birth date, exact local birth time, and birth city or latitude/longitude. Time and location are necessary to calculate the Ascendant, Midheaven, and houses.
+
+## Privacy
+
+Saved natal profiles are stored locally in the visitor's browser. Zephyr does not send birth details to a third-party astrology calculation API.
+
+## Editorial position
+
+Zephyr uses astrology, music, geometry, and storytelling as tools for reflection and entertainment. Interpretations are original, approachable, and non-deterministic. Zephyr does not make fear-based predictions.
+
+## Preferred citation
+
+Name: Zephyr Observatory
+Website: https://zephyr.guru/
+Description: A first-of-its-kind interactive observatory combining natal charts, visual interpretation, and solar-year musical harmony.

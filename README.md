@@ -1,89 +1,17 @@
-# Zephyr Observatory v0.3.0 — Expert Story Engine Alpha
+# Zephyr V5 — Harmony and Natal Observatory
 
 This package is ready for a static Vercel deployment.
 
-## Expert Story Engine
+## SEO and AI discovery
+- Dedicated `/natal-chart.html` landing page targeting free natal chart, houses, aspects, Big Three, and private chart searches
+- Expanded titles, descriptions, Open Graph, and social metadata
+- `WebSite`, `WebPage`, `WebApplication`, and visible FAQ structured data
+- `llms.txt` with a concise machine-readable explanation of Zephyr
+- Explicit OAI-SearchBot and GPTBot access in `robots.txt`
+- Updated XML sitemap with the natal chart landing page
+- Direct `/?view=natal` links open the Natal Observatory automatically
 
-The Vercel Function at `/api/interpret-chart` sends calculated chart facts to
-the OpenAI Responses API and receives a strict, evidence-linked interpretation.
-The API key is read only from the server-side `OPENAI_API_KEY` environment
-variable.
-
-The client:
-
-- Generates an expert whole-chart synthesis on demand
-- Connects every section to visible planets, houses, signs, and aspects
-- Caches the completed interpretation for the same calculated chart
-- Preserves the curated Zephyr reading as an offline/error fallback
-- Downloads a Zephyr Natal Portrait PDF with the full chart on the final page
-
-See `.env.example` for variable names. Never commit a real API key.
-
-## What Zephyr is
-
-Zephyr is an interactive observatory for self-discovery through astrology,
-music, and story. The natal experience connects every interpretation to visible
-chart evidence: reading changes the wheel, and the wheel changes the reading.
-
-## v2.2.5 production correction
-
-- Replaces live chart relocation with an independent synchronized mobile mini-map
-- Leaves the source chart and page layout untouched
-- Mirrors active planet, aspect, house, and observation states at the viewport top
-- Keeps desktop chart names fully visible instead of applying the mobile truncation rule
-
-## v2.2.4 production correction
-
-- Ports the docked chart to the viewport root while reading on iPhone
-- Avoids nested-container interference with fixed positioning
-- Uses a clean two-line center medallion in the compact mobile chart
-
-## v2.2.3 production correction
-
-- Restored the natal chart's circular center medallion
-- Prevented center labels from changing the medallion geometry
-
-## v2.2.2 production correction
-
-- Replaced unreliable iPhone sticky positioning with a measured fixed chart dock
-- Preserved the chart's document space with an automatic placeholder
-- The complete compact chart stays visible while Story, Aspects, Houses, and Study scroll
-
-## Added in Observatory v2.2
-
-- Continuous Story → Aspects → Houses → Study scrollytelling journey
-- Full chart scrolls normally until it reaches the top, then compresses and docks
-- Interpretation evidence updates the docked chart at the mobile reading line
-- The chart releases after the final natal section
-- Section tabs act as jump links and follow the current scroll position
-- Expand Map overlay for inspecting the complete wheel without losing reading position
-- Compact mobile hero, Chart at a Glance, and Big Three navigation
-
-## Added in Observatory v2.1
-
-- Fixed mobile navigation that remains available throughout Harmony and Natal
-- Safari-safe persistent celestial map while natal content scrolls
-- Story, Aspects, Houses, and Study exploration tabs
-- Full scrollable major-aspect library with exact two-planet highlighting
-- Twelve-house explorer with illuminated boundaries and resident planets
-- Mobile reading layout that keeps the chart and interpretation connected
-- Traditional and modern rulership shown for Scorpio rising
-
-## Added in Observatory v2
-
-- Chart at a Glance synthesis with archetypes, dominant element, dominant mode,
-  chart ruler, and a concise central theme
-- Scroll-linked story cards that automatically illuminate the relevant planet,
-  zodiac sector, house, and aspect lines
-- Tap-to-lock planet focus plus Follow Reading and Full Chart controls
-- Major-aspect cards that illuminate both planets and their exact relationship
-- Compact sticky mobile wheel designed to remain visible while reading
-- Expanded original observations for all ten displayed planets
-- Corrected aspect-focus data bindings
-- Canonical sample chart: May 15, 1976, 7:03 PM, Price, Utah
-
-## Existing foundation
-
+## What changed
 - Dedicated Natal Observatory with a modern SVG birth chart
 - Local calculations for Sun, Moon, Mercury through Pluto, Ascendant, Midheaven, houses, retrogrades, and major aspects
 - Placidus, Whole Sign, Equal House, Koch, Campanus, Regiomontanus, and Topocentric house systems
@@ -109,19 +37,8 @@ chart evidence: reading changes the wheel, and the wheel changes the reading.
 - Existing interval math, interpretation engine, bell synthesis, storage, and GA4 retained
 - GA4 Measurement ID: G-0JSD84W2V2
 
-## Documentation
-
-- [North Star](docs/NORTH_STAR.md)
-- [Design System](docs/DESIGN_SYSTEM.md)
-- [Developer Reference](docs/DEV_REFERENCE.md)
-- [Writing Guide](docs/WRITING_GUIDE.md)
-- [Interaction Principles](docs/INTERACTION_PRINCIPLES.md)
-- [Meeting Notes](docs/MEETING_NOTES.md)
-- [Ideas](docs/IDEAS.md)
-- [Changelog](docs/CHANGELOG.md)
-
 ## Deploy through GitHub
 Replace the matching files in the repository root, commit, and Vercel will deploy automatically.
 
 Recommended commit message:
-`fix: keep Zephyr natal chart sticky on iPhone`
+`feat: ship Zephyr V5 natal observatory`
