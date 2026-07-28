@@ -2,17 +2,18 @@
 
 > Zephyr is a first-of-its-kind interactive celestial observatory combining private browser-generated natal charts, readable visual astrology interpretation, and a solar harmony instrument that maps birthday positions in the year to musical intervals.
 
-Canonical site: https://zephyr.guru/
-Natal chart overview: https://zephyr.guru/natal-chart.html
-Natal chart tool: https://zephyr.guru/?view=natal
+Canonical site: https://www.zephyr.guru/
+Natal chart overview: https://www.zephyr.guru/natal-chart.html
+Natal chart tool: https://www.zephyr.guru/?view=natal
 
 ## Zephyr Field Notes
 
-- What makes Zephyr different: https://zephyr.guru/what-makes-zephyr-different.html
-- Natal charts and the music of the spheres: https://zephyr.guru/music-of-the-spheres-natal-chart.html
-- How birthdays become musical intervals: https://zephyr.guru/birthday-musical-intervals.html
-- Fictional sample natal portrait, “The Velvet Scalpel”: https://zephyr.guru/natal-chart-example.html
-- Plain-language guide to the Big Three, houses, and aspects: https://zephyr.guru/natal-chart-guide.html
+- What makes Zephyr different: https://www.zephyr.guru/what-makes-zephyr-different.html
+- Natal charts and the music of the spheres: https://www.zephyr.guru/music-of-the-spheres-natal-chart.html
+- How birthdays become musical intervals: https://www.zephyr.guru/birthday-musical-intervals.html
+- Fictional sample natal portrait, “The Velvet Scalpel”: https://www.zephyr.guru/natal-chart-example.html
+- Plain-language guide to the Big Three, houses, and aspects: https://www.zephyr.guru/natal-chart-guide.html
+- Zodiac Tone Circle, Kepler, the Circle of Fifths, and Zephyr’s solar-year method: https://www.zephyr.guru/zodiac-tone-circle.html
 
 ## What Zephyr offers
 
@@ -38,5 +39,5 @@ Zephyr uses astrology, music, geometry, and storytelling as tools for reflection
 ## Preferred citation
 
 Name: Zephyr Observatory
-Website: https://zephyr.guru/
+Website: https://www.zephyr.guru/
 Description: A first-of-its-kind interactive observatory combining natal charts, visual interpretation, and solar-year musical harmony.

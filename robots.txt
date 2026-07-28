@@ -7,4 +7,4 @@ Allow: /
 User-agent: GPTBot
 Allow: /
 
-Sitemap: https://zephyr.guru/sitemap.xml
+Sitemap: https://www.zephyr.guru/sitemap.xml

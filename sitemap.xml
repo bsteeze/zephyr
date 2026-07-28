@@ -1,45 +1,51 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://zephyr.guru/</loc>
+    <loc>https://www.zephyr.guru/</loc>
     <lastmod>2026-07-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://zephyr.guru/natal-chart.html</loc>
+    <loc>https://www.zephyr.guru/natal-chart.html</loc>
     <lastmod>2026-07-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://zephyr.guru/what-makes-zephyr-different.html</loc>
+    <loc>https://www.zephyr.guru/what-makes-zephyr-different.html</loc>
     <lastmod>2026-07-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://zephyr.guru/music-of-the-spheres-natal-chart.html</loc>
+    <loc>https://www.zephyr.guru/music-of-the-spheres-natal-chart.html</loc>
     <lastmod>2026-07-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://zephyr.guru/birthday-musical-intervals.html</loc>
+    <loc>https://www.zephyr.guru/birthday-musical-intervals.html</loc>
     <lastmod>2026-07-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://zephyr.guru/natal-chart-example.html</loc>
+    <loc>https://www.zephyr.guru/natal-chart-example.html</loc>
     <lastmod>2026-07-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.75</priority>
   </url>
   <url>
-    <loc>https://zephyr.guru/natal-chart-guide.html</loc>
+    <loc>https://www.zephyr.guru/natal-chart-guide.html</loc>
     <lastmod>2026-07-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://www.zephyr.guru/zodiac-tone-circle.html</loc>
+    <lastmod>2026-07-27</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
   </url>
 </urlset>
