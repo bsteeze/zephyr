@@ -11,3 +11,7 @@
 .natal-discovery h3{margin:5px 0 8px;font-size:clamp(1.35rem,2.5vw,2rem)}.natal-discovery p{margin:0;max-width:760px;color:#aeb8cb;line-height:1.55}.natal-discovery .kicker{color:#e7b754}.natal-discovery .btn{text-decoration:none;white-space:nowrap}
 @media(max-width:820px){.how-grid{grid-template-columns:1fr}.seo-story{border-radius:18px;padding:24px 16px}}
 @media(max-width:720px){.natal-discovery{grid-template-columns:1fr}.natal-discovery .btn{white-space:normal;text-align:center}}
+.discovery-library{margin-top:46px}.discovery-library>h2{font-size:clamp(2rem,4vw,3.4rem);margin:6px 0 24px}.discovery-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.discovery-grid a{display:block;min-width:0;padding:21px;border:1px solid rgba(159,184,229,.16);border-radius:16px;background:rgba(255,255,255,.025);text-decoration:none;transition:.2s ease}
+.discovery-grid a:hover{transform:translateY(-2px);border-color:rgba(231,183,84,.42)}.discovery-grid span{display:block;color:#e7b754;font-size:.67rem;font-weight:900;letter-spacing:.14em}.discovery-grid b{display:block;margin:8px 0 7px;line-height:1.25}.discovery-grid small{display:block;color:#aeb8cb;line-height:1.5}
+@media(max-width:900px){.discovery-grid{grid-template-columns:1fr 1fr}}@media(max-width:620px){.discovery-grid{grid-template-columns:1fr}}

@@ -6,6 +6,14 @@ Canonical site: https://zephyr.guru/
 Natal chart overview: https://zephyr.guru/natal-chart.html
 Natal chart tool: https://zephyr.guru/?view=natal
 
+## Zephyr Field Notes
+
+- What makes Zephyr different: https://zephyr.guru/what-makes-zephyr-different.html
+- Natal charts and the music of the spheres: https://zephyr.guru/music-of-the-spheres-natal-chart.html
+- How birthdays become musical intervals: https://zephyr.guru/birthday-musical-intervals.html
+- Fictional sample natal portrait, “The Velvet Scalpel”: https://zephyr.guru/natal-chart-example.html
+- Plain-language guide to the Big Three, houses, and aspects: https://zephyr.guru/natal-chart-guide.html
+
 ## What Zephyr offers
 
 - A free natal chart generator with planets, houses, Ascendant, Midheaven, retrogrades, and major aspects.

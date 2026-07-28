@@ -4,6 +4,8 @@ This package is ready for a static Vercel deployment.
 
 ## SEO and AI discovery
 - Dedicated `/natal-chart.html` landing page targeting free natal chart, houses, aspects, Big Three, and private chart searches
+- Rebuilt natal landing-page illustration as a precise SVG chart with engraved sign names, planet markers, and aspect geometry—no emoji glyph dependency
+- Five interconnected Zephyr Field Notes covering product differentiation, music of the spheres, birthday interval math, a sample portrait, and a beginner natal-chart guide
 - Expanded titles, descriptions, Open Graph, and social metadata
 - `WebSite`, `WebPage`, `WebApplication`, and visible FAQ structured data
 - `llms.txt` with a concise machine-readable explanation of Zephyr

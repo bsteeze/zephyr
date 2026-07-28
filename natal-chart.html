@@ -96,7 +96,7 @@
     *{box-sizing:border-box}html{background:var(--bg)}body{margin:0;color:var(--ink);background:radial-gradient(circle at 78% 18%,rgba(87,68,190,.22),transparent 34%),radial-gradient(circle at 10% 48%,rgba(33,150,190,.13),transparent 28%),var(--bg);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;line-height:1.55}
     a{color:inherit}.shell{width:min(1160px,calc(100% - 32px));margin:auto}.header{display:flex;align-items:center;justify-content:space-between;padding:24px 0}.brand{display:flex;align-items:center;gap:12px;text-decoration:none;letter-spacing:.22em;font-weight:900}.brand img{width:38px;height:38px}.back{color:var(--muted);text-decoration:none;font-weight:700}
     .hero{display:grid;grid-template-columns:minmax(0,1.08fr) minmax(360px,.92fr);gap:clamp(32px,6vw,80px);align-items:center;padding:70px 0 78px;min-height:690px}.eyebrow{color:var(--gold);font-size:.76rem;font-weight:900;letter-spacing:.22em;text-transform:uppercase}.hero h1{font-family:Georgia,serif;font-size:clamp(3.2rem,7vw,6.6rem);font-weight:500;line-height:.92;letter-spacing:-.045em;margin:18px 0 24px}.lead{font-size:clamp(1.05rem,2vw,1.28rem);color:#cbd4e6;max-width:720px}.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}.button{display:inline-flex;justify-content:center;align-items:center;min-height:54px;padding:0 24px;border-radius:13px;text-decoration:none;font-weight:900;border:1px solid rgba(140,116,255,.7);background:linear-gradient(135deg,#4a379b,#7659ed)}.button.secondary{background:rgba(255,255,255,.03);border-color:var(--line)}
-    .chart-card{position:relative;aspect-ratio:1;border:1px solid var(--line);border-radius:50%;background:radial-gradient(circle,#121d3e 0 34%,#081329 35% 58%,rgba(43,61,106,.7) 59% 72%,#101b34 73%);box-shadow:0 30px 100px rgba(0,0,0,.5),inset 0 0 0 2px rgba(239,196,102,.26)}.chart-card:before,.chart-card:after{content:"";position:absolute;inset:12%;border:1px solid rgba(184,204,239,.22);border-radius:50%}.chart-card:after{inset:27%}.zodiac{position:absolute;inset:0;display:grid;place-items:center;color:var(--gold);font-family:Georgia,serif;font-size:clamp(1rem,2vw,1.65rem)}.zodiac span{position:absolute;transform:rotate(calc(var(--i)*30deg)) translateY(-42%) rotate(calc(var(--i)*-30deg));height:90%;transform-origin:center}.center{position:absolute;inset:36%;display:grid;place-content:center;text-align:center;border-radius:50%;border:1px solid rgba(239,196,102,.4);background:#070d1c}.center b{font-family:Georgia,serif;font-size:clamp(1.2rem,2.5vw,2rem)}.center small{color:var(--muted)}
+    .chart-card{position:relative;aspect-ratio:1;display:grid;place-items:center}.hero-chart{display:block;width:100%;height:100%;filter:drop-shadow(0 30px 70px rgba(0,0,0,.45))}.chart-ring{fill:#09142b;stroke:rgba(239,196,102,.68);stroke-width:2}.chart-band{fill:none;stroke:rgba(175,199,240,.2);stroke-width:1}.chart-sector{stroke:rgba(175,199,240,.19);stroke-width:1}.chart-sign{fill:#efc466;font:800 11px Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:1.4px;text-anchor:middle}.chart-house{fill:rgba(199,212,238,.62);font:700 9px Inter,ui-sans-serif,system-ui,sans-serif;text-anchor:middle}.chart-aspect{fill:none;stroke-linecap:round;stroke-width:1.6;opacity:.58}.chart-planet{fill:#101d3b;stroke:#efc466;stroke-width:2}.chart-planet.alt{stroke:#59d8f2}.chart-label{fill:#f7f8ff;font:800 9px Inter,ui-sans-serif,system-ui,sans-serif;text-anchor:middle}.chart-center{fill:#070d1c;stroke:rgba(239,196,102,.55);stroke-width:1.5}.chart-center-kicker{fill:#efc466;font:900 9px Inter,ui-sans-serif,system-ui,sans-serif;letter-spacing:2px;text-anchor:middle}.chart-center-title{fill:#f7f8ff;font:500 29px Georgia,serif;text-anchor:middle}.chart-center-sub{fill:#aeb9cf;font:500 11px Inter,ui-sans-serif,system-ui,sans-serif;text-anchor:middle}
     .section{padding:70px 0;border-top:1px solid var(--line)}.section h2{font-family:Georgia,serif;font-size:clamp(2.2rem,4.5vw,4rem);line-height:1;margin:12px 0 28px}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}.card{padding:24px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(180deg,rgba(16,29,57,.9),rgba(8,17,36,.9))}.card b{display:block;font-size:1.08rem;margin-bottom:8px}.card p,.faq p{color:var(--muted);margin:0}.privacy{display:grid;grid-template-columns:1fr auto;gap:24px;align-items:center;padding:28px;border:1px solid rgba(70,203,189,.25);border-radius:18px;background:rgba(22,116,112,.08);margin-top:24px}.privacy strong{display:block;color:#65dfcf;margin-bottom:5px}.faq details{padding:18px 0;border-top:1px solid var(--line)}.faq summary{cursor:pointer;font-weight:850}.faq p{padding-top:10px;max-width:840px}.footer{display:flex;justify-content:space-between;gap:20px;padding:28px 0 48px;color:var(--muted);border-top:1px solid var(--line)}
     @media(max-width:850px){.hero{grid-template-columns:1fr;padding-top:36px}.chart-card{width:min(520px,100%);margin:auto}.grid{grid-template-columns:1fr}.privacy{grid-template-columns:1fr}.footer{flex-direction:column}.header{padding:18px 0}.back{font-size:.88rem}}
   </style>
@@ -117,13 +117,72 @@
           <a class="button secondary" href="#how-it-works">See what’s included</a>
         </div>
       </div>
-      <div class="chart-card" aria-label="Stylized natal chart illustration">
-        <div class="zodiac" aria-hidden="true">
-          <span style="--i:0">♈</span><span style="--i:1">♉</span><span style="--i:2">♊</span><span style="--i:3">♋</span>
-          <span style="--i:4">♌</span><span style="--i:5">♍</span><span style="--i:6">♎</span><span style="--i:7">♏</span>
-          <span style="--i:8">♐</span><span style="--i:9">♑</span><span style="--i:10">♒</span><span style="--i:11">♓</span>
-        </div>
-        <div class="center"><b>Your chart</b><small>Sun · Moon · Rising</small></div>
+      <div class="chart-card">
+        <svg class="hero-chart" viewBox="0 0 600 600" role="img" aria-labelledby="heroChartTitle heroChartDesc">
+          <title id="heroChartTitle">Stylized Zephyr natal chart</title>
+          <desc id="heroChartDesc">A precise circular natal chart with twelve zodiac sectors, houses, planet markers, and aspect lines.</desc>
+          <defs>
+            <radialGradient id="heroChartBg"><stop offset="0" stop-color="#17234a"/><stop offset=".72" stop-color="#09142b"/><stop offset="1" stop-color="#050a17"/></radialGradient>
+            <filter id="heroPlanetGlow"><feGaussianBlur stdDeviation="3" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          </defs>
+          <circle cx="300" cy="300" r="282" fill="url(#heroChartBg)" stroke="rgba(239,196,102,.68)" stroke-width="2"/>
+          <circle class="chart-band" cx="300" cy="300" r="225"/>
+          <circle class="chart-band" cx="300" cy="300" r="165"/>
+          <circle class="chart-band" cx="300" cy="300" r="112"/>
+          <g aria-hidden="true">
+            <line class="chart-sector" x1="300" y1="18" x2="300" y2="75"/>
+            <line class="chart-sector" x1="300" y1="18" x2="300" y2="75" transform="rotate(30 300 300)"/>
+            <line class="chart-sector" x1="300" y1="18" x2="300" y2="75" transform="rotate(60 300 300)"/>
+            <line class="chart-sector" x1="300" y1="18" x2="300" y2="75" transform="rotate(90 300 300)"/>
+            <line class="chart-sector" x1="300" y1="18" x2="300" y2="75" transform="rotate(120 300 300)"/>
+            <line class="chart-sector" x1="300" y1="18" x2="300" y2="75" transform="rotate(150 300 300)"/>
+            <line class="chart-sector" x1="300" y1="18" x2="300" y2="75" transform="rotate(180 300 300)"/>
+            <line class="chart-sector" x1="300" y1="18" x2="300" y2="75" transform="rotate(210 300 300)"/>
+            <line class="chart-sector" x1="300" y1="18" x2="300" y2="75" transform="rotate(240 300 300)"/>
+            <line class="chart-sector" x1="300" y1="18" x2="300" y2="75" transform="rotate(270 300 300)"/>
+            <line class="chart-sector" x1="300" y1="18" x2="300" y2="75" transform="rotate(300 300 300)"/>
+            <line class="chart-sector" x1="300" y1="18" x2="300" y2="75" transform="rotate(330 300 300)"/>
+            <g opacity=".9">
+              <line class="chart-sector" x1="300" y1="135" x2="300" y2="188"/>
+              <line class="chart-sector" x1="300" y1="135" x2="300" y2="188" transform="rotate(30 300 300)"/>
+              <line class="chart-sector" x1="300" y1="135" x2="300" y2="188" transform="rotate(60 300 300)"/>
+              <line class="chart-sector" x1="300" y1="135" x2="300" y2="188" transform="rotate(90 300 300)"/>
+              <line class="chart-sector" x1="300" y1="135" x2="300" y2="188" transform="rotate(120 300 300)"/>
+              <line class="chart-sector" x1="300" y1="135" x2="300" y2="188" transform="rotate(150 300 300)"/>
+              <line class="chart-sector" x1="300" y1="135" x2="300" y2="188" transform="rotate(180 300 300)"/>
+              <line class="chart-sector" x1="300" y1="135" x2="300" y2="188" transform="rotate(210 300 300)"/>
+              <line class="chart-sector" x1="300" y1="135" x2="300" y2="188" transform="rotate(240 300 300)"/>
+              <line class="chart-sector" x1="300" y1="135" x2="300" y2="188" transform="rotate(270 300 300)"/>
+              <line class="chart-sector" x1="300" y1="135" x2="300" y2="188" transform="rotate(300 300 300)"/>
+              <line class="chart-sector" x1="300" y1="135" x2="300" y2="188" transform="rotate(330 300 300)"/>
+            </g>
+            <text class="chart-sign" x="548" y="305">ARIES</text><text class="chart-sign" x="514" y="181">TAURUS</text>
+            <text class="chart-sign" x="421" y="90">GEMINI</text><text class="chart-sign" x="300" y="57">CANCER</text>
+            <text class="chart-sign" x="179" y="90">LEO</text><text class="chart-sign" x="86" y="181">VIRGO</text>
+            <text class="chart-sign" x="52" y="305">LIBRA</text><text class="chart-sign" x="86" y="429">SCORPIO</text>
+            <text class="chart-sign" x="179" y="520">SAGITTARIUS</text><text class="chart-sign" x="300" y="553">CAPRICORN</text>
+            <text class="chart-sign" x="421" y="520">AQUARIUS</text><text class="chart-sign" x="514" y="429">PISCES</text>
+            <text class="chart-house" x="390" y="165">10</text><text class="chart-house" x="450" y="220">9</text>
+            <text class="chart-house" x="468" y="307">8</text><text class="chart-house" x="443" y="395">7</text>
+            <text class="chart-house" x="374" y="448">6</text><text class="chart-house" x="287" y="468">5</text>
+            <text class="chart-house" x="204" y="435">4</text><text class="chart-house" x="151" y="370">3</text>
+            <text class="chart-house" x="134" y="282">2</text><text class="chart-house" x="170" y="198">1</text>
+            <path class="chart-aspect" stroke="#59d8f2" d="M191 244 L360 176 L432 352 L228 408 Z"/>
+            <path class="chart-aspect" stroke="#f07687" d="M191 244 L432 352 M360 176 L228 408"/>
+            <path class="chart-aspect" stroke="#66d6ad" d="M228 408 L360 176 L442 276"/>
+            <g filter="url(#heroPlanetGlow)">
+              <circle class="chart-planet" cx="191" cy="244" r="10"/><text class="chart-label" x="191" y="225">SUN</text>
+              <circle class="chart-planet alt" cx="360" cy="176" r="10"/><text class="chart-label" x="360" y="157">MOON</text>
+              <circle class="chart-planet" cx="432" cy="352" r="9"/><text class="chart-label" x="432" y="333">VENUS</text>
+              <circle class="chart-planet alt" cx="228" cy="408" r="9"/><text class="chart-label" x="228" y="433">MARS</text>
+              <circle class="chart-planet" cx="442" cy="276" r="8"/><text class="chart-label" x="442" y="258">MERCURY</text>
+            </g>
+          </g>
+          <circle class="chart-center" cx="300" cy="300" r="72"/>
+          <text class="chart-center-kicker" x="300" y="276">NATAL</text>
+          <text class="chart-center-title" x="300" y="311">Your chart</text>
+          <text class="chart-center-sub" x="300" y="334">SUN · MOON · RISING</text>
+        </svg>
       </div>
     </section>
     <section class="section" id="how-it-works">
@@ -146,6 +205,19 @@
         <details><summary>Is the Zephyr natal chart free?</summary><p>Yes. The chart generator is free to use in a supported web browser.</p></details>
         <details><summary>Does Zephyr store my birth information?</summary><p>Saved profiles are stored locally in your browser. Zephyr does not send birth details to a third-party astrology calculation API.</p></details>
         <details><summary>What makes Zephyr different?</summary><p>Zephyr is a first-of-its-kind interactive observatory bringing together a visual natal chart, approachable interpretation, and a solar harmony instrument that turns birthday spacing into musical intervals.</p></details>
+      </div>
+    </section>
+    <section class="section">
+      <div class="shell">
+        <p class="eyebrow">Zephyr Field Notes</p>
+        <h2>Learn the chart without drowning in it.</h2>
+        <div class="grid">
+          <a class="card" href="/what-makes-zephyr-different.html"><b>What makes Zephyr different?</b><p>Private charts, visible evidence, approachable storytelling, and solar harmony.</p></a>
+          <a class="card" href="/natal-chart-guide.html"><b>Big Three, houses, and aspects</b><p>A beginner guide that explains the whole chart in plain language.</p></a>
+          <a class="card" href="/natal-chart-example.html"><b>Read a sample portrait</b><p>Meet “The Velvet Scalpel”—a fictional report with warmth and teeth.</p></a>
+          <a class="card" href="/music-of-the-spheres-natal-chart.html"><b>Music of the spheres</b><p>Where celestial harmony came from and what Zephyr does with it.</p></a>
+          <a class="card" href="/birthday-musical-intervals.html"><b>How birthdays become intervals</b><p>The real math behind dates, cents, notes, and birthday chords.</p></a>
+        </div>
       </div>
     </section>
   </main>
