@@ -8,12 +8,16 @@ Files in this package:
 - natal.css
 - natal.js
 - natal-engine.bundle.js
+- pdf-export.js
+- api/interpret-chart.js
 
 Deploy:
 1. In Vercel, open the zephyr project.
 2. Create a new deployment by uploading the entire extracted folder.
-3. Confirm index.html is at the top level—not inside another nested folder.
+3. Confirm index.html and the api folder are at the top level—not inside another nested folder.
 4. Deploy to Production.
 5. Under Project Settings > Domains, attach zephyr.guru and www.zephyr.guru.
 
-No PHP runtime is required. All saved groups remain in the visitor's browser localStorage.
+No PHP runtime is required. Saved groups and natal profiles remain in the visitor's browser localStorage.
+The Expert Story Engine requires OPENAI_API_KEY in Vercel Project Settings > Environment Variables.
+Optional: set OPENAI_MODEL to override the default model.

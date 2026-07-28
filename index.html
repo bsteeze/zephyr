@@ -179,63 +179,135 @@ gtag('config', 'G-0JSD84W2V2', { anonymize_ip: true });
 <section class="panel analysis-panel"><div class="panel-heading"><div><p class="kicker">Group Analysis</p><h2 id="chordName">Solar cluster</h2></div><span class="quality-badge" id="qualityBadge">Complex</span></div><p class="analysis-lead" id="analysisLead"></p><div class="metric-grid"><article><span>Spread</span><strong id="spreadMetric">—</strong></article><article><span>Closest pair</span><strong id="closestMetric">—</strong></article><article><span>Tension</span><strong id="tensionMetric">—</strong></article></div><div id="intervalTable" class="interval-table"></div></section>
 </div></main>
 <main class="natal-app" id="natalApp" hidden>
-  <section class="panel natal-intro">
+  <section class="natal-hero">
     <div>
       <p class="kicker">THE NATAL OBSERVATORY</p>
       <h1>Your sky at the moment you arrived.</h1>
-      <p>A natal chart uses the exact date, local time, and place of birth to calculate the planets, angles, houses, and aspects.</p>
+      <p>A living celestial portrait—beautiful at first glance, precise when you choose to look deeper.</p>
     </div>
-    <div class="natal-status" id="natalStatus"><i></i><span><b>Ready</b><small>Enter or confirm the birth details.</small></span></div>
+    <div class="natal-status" id="natalStatus"><i></i><span><b>Ready</b><small>Birth details are available below.</small></span></div>
   </section>
-  <section class="natal-layout">
-    <aside class="panel natal-profile-panel">
-      <div class="panel-heading"><div><p class="kicker">Birth profile</p><h2>Chart details</h2></div><span class="natal-private">Stored only in this browser</span></div>
-      <div class="natal-form">
-        <label><span>Name</span><input id="natalName" type="text" value="Brian" autocomplete="name"></label>
-        <div class="natal-form-row">
-          <label><span>Birth date</span><input id="natalDate" type="date" value="1976-05-15"></label>
-          <label><span>Exact local time</span><input id="natalTime" type="time" value="19:04"></label>
-        </div>
-        <label><span>Birth city</span><div class="city-search-row"><input id="natalCity" type="text" value="Price, Utah, United States" autocomplete="off"><button id="findCityBtn" class="btn ghost" type="button">Find</button></div></label>
-        <div id="cityResults" class="city-results" hidden></div>
-        <details class="coordinates-panel" open>
-          <summary>Location coordinates</summary>
-          <div class="natal-form-row">
-            <label><span>Latitude</span><input id="natalLatitude" type="number" step="0.0001" value="39.5994"></label>
-            <label><span>Longitude</span><input id="natalLongitude" type="number" step="0.0001" value="-110.8107"></label>
-          </div>
-          <p id="natalTimezone">Time zone is resolved automatically from the coordinates, including historical daylight saving time.</p>
-        </details>
-        <div class="natal-form-row">
-          <label><span>House system</span><select id="natalHouseSystem"><option value="placidus">Placidus</option><option value="whole-sign">Whole Sign</option><option value="equal-house">Equal House</option><option value="koch">Koch</option><option value="campanus">Campanus</option><option value="regiomontanus">Regiomontanus</option><option value="topocentric">Topocentric</option></select></label>
-          <label><span>Zodiac</span><select id="natalZodiac"><option value="tropical">Tropical</option><option value="sidereal">Sidereal</option></select></label>
-        </div>
-        <button class="btn natal-generate" id="generateNatalBtn" type="button">Generate natal chart</button>
-        <button class="btn ghost" id="saveNatalBtn" type="button">Save birth profile</button>
+
+  <details class="panel natal-profile-panel natal-setup">
+    <summary>
+      <span><small>BIRTH PROFILE</small><strong id="natalProfileSummary">Brian · May 15, 1976 · Price, Utah</strong></span>
+      <em>Edit chart details</em>
+    </summary>
+    <div class="natal-form">
+      <label><span>Name</span><input id="natalName" type="text" value="Brian" autocomplete="name"></label>
+      <div class="natal-form-row">
+        <label><span>Birth date</span><input id="natalDate" type="date" value="1976-05-15"></label>
+        <label><span>Exact local time</span><input id="natalTime" type="time" value="19:03"></label>
       </div>
-    </aside>
-    <div class="natal-results">
-      <section class="panel natal-chart-panel">
-        <div class="panel-heading"><div><p class="kicker">Natal chart</p><h2 id="natalChartTitle">Brian’s celestial map</h2></div><div class="natal-view-options"><button class="active" data-natal-layer="aspects" type="button">Aspects</button><button class="active" data-natal-layer="houses" type="button">Houses</button><button class="active" data-natal-layer="labels" type="button">Labels</button></div></div>
-        <div class="natal-chart-wrap"><svg id="natalChart" viewBox="0 0 800 800" role="img" aria-label="Natal astrology chart"></svg><div class="natal-center"><span>NATAL</span><strong id="natalCenterName">Brian</strong><small id="natalCenterMeta">Taurus Sun</small></div></div>
-        <div class="natal-angle-strip" id="natalAngleStrip"></div>
+      <label><span>Birth city</span><div class="city-search-row"><input id="natalCity" type="text" value="Price, Utah, United States" autocomplete="off"><button id="findCityBtn" class="btn ghost" type="button">Find city</button></div></label>
+      <div id="cityResults" class="city-results" hidden></div>
+      <details class="coordinates-panel">
+        <summary>Advanced location coordinates</summary>
+        <div class="natal-form-row">
+          <label><span>Latitude</span><input id="natalLatitude" type="number" step="0.0001" value="39.5994"></label>
+          <label><span>Longitude</span><input id="natalLongitude" type="number" step="0.0001" value="-110.8107"></label>
+        </div>
+        <p id="natalTimezone">Time zone is resolved automatically from the coordinates, including historical daylight saving time.</p>
+      </details>
+      <div class="natal-form-row">
+        <label><span>House system</span><select id="natalHouseSystem"><option value="placidus">Placidus</option><option value="whole-sign">Whole Sign</option><option value="equal-house">Equal House</option><option value="koch">Koch</option><option value="campanus">Campanus</option><option value="regiomontanus">Regiomontanus</option><option value="topocentric">Topocentric</option></select></label>
+        <label><span>Zodiac</span><select id="natalZodiac"><option value="tropical">Tropical</option><option value="sidereal">Sidereal</option></select></label>
+      </div>
+      <div class="natal-form-actions"><button class="btn natal-generate" id="generateNatalBtn" type="button">Reveal my sky</button><button class="btn ghost" id="saveNatalBtn" type="button">Save in this browser</button></div>
+      <span class="natal-private">Stored only in this browser</span>
+    </div>
+  </details>
+
+  <section class="natal-glance" aria-labelledby="natalGlanceTitle">
+    <div class="glance-intro">
+      <p class="kicker">CHART AT A GLANCE</p>
+      <h2 id="natalGlanceTitle">Your pattern, before the details.</h2>
+      <div class="glance-archetypes" id="natalArchetypes"></div>
+      <p id="natalTheme">A first synthesis of the strongest patterns in this chart.</p>
+    </div>
+    <div class="glance-facts">
+      <article><span>DOMINANT ELEMENT</span><strong id="natalDominantElement">—</strong><small id="natalElementDetail">Calculating your balance</small></article>
+      <article><span>DOMINANT MODE</span><strong id="natalDominantMode">—</strong><small id="natalModeDetail">How your energy moves</small></article>
+      <article><span>CHART RULER</span><strong id="natalChartRuler">—</strong><small id="natalRulerDetail">The guide of your rising sign</small></article>
+    </div>
+  </section>
+
+  <section class="natal-exploration-flow">
+  <section class="natal-observatory-layout">
+    <section class="natal-chart-stage">
+      <div class="natal-chart-heading">
+        <div><p class="kicker">CELESTIAL MAP</p><h2 id="natalChartTitle">Brian’s celestial map</h2></div>
+        <div class="natal-view-options" aria-label="Chart layers"><button class="active" data-natal-layer="aspects" type="button">Aspects</button><button class="active" data-natal-layer="houses" type="button">Houses</button><button data-natal-layer="labels" type="button">Names</button></div>
+      </div>
+      <div class="natal-chart-wrap"><svg id="natalChart" viewBox="0 0 800 800" role="img" aria-label="Natal astrology chart"></svg><div class="natal-center"><span>NATAL</span><strong id="natalCenterName">Brian</strong><small id="natalCenterMeta">Taurus Sun</small></div></div>
+      <div class="natal-observation-toolbar">
+        <span id="natalObservingLabel">Full chart · scroll to begin exploring</span>
+        <div>
+          <button class="active" id="natalFollowReading" type="button" aria-pressed="true">Follow reading</button>
+          <button id="natalExpandChart" type="button" aria-pressed="false">Expand map</button>
+          <button id="natalClearFocus" type="button">Full chart</button>
+        </div>
+      </div>
+      <nav class="natal-explore-tabs" aria-label="Natal chart sections">
+        <button class="active" data-natal-section="story" type="button">Story</button>
+        <button data-natal-section="aspects" type="button">Aspects</button>
+        <button data-natal-section="houses" type="button">Houses</button>
+        <button data-natal-section="study" type="button">Study</button>
+      </nav>
+    </section>
+
+    <section class="natal-section-panel active" id="natalStorySection" data-natal-panel="story">
+    <aside class="natal-insight-rail">
+      <section class="natal-focus-card" id="natalFocusCard">
+        <div class="focus-orbit"><i id="natalFocusSymbol">☉</i></div>
+        <p class="kicker" id="natalFocusEyebrow">YOUR CENTER</p>
+        <h2 id="natalFocusTitle">Sun in Taurus</h2>
+        <p id="natalFocusText">Your Sun describes the qualities you grow into and consciously express.</p>
+        <div class="natal-focus-meta" id="natalFocusMeta"></div>
+        <div class="natal-focus-aspects" id="natalFocusAspects"></div>
       </section>
-      <section class="panel natal-big-three">
-        <div class="panel-heading"><div><p class="kicker">The big three</p><h2>Your primary pattern</h2></div></div>
+      <section class="natal-big-three">
+        <div class="section-mini-heading"><p class="kicker">THE BIG THREE</p><span>Your primary pattern</span></div>
         <div class="big-three-grid" id="bigThreeGrid"></div>
       </section>
-      <section class="panel natal-interpretation">
-        <div class="panel-heading"><div><p class="kicker">Interpretation</p><h2>Read the chart</h2></div><span class="interpretation-note">Original Zephyr interpretation</span></div>
-        <div class="natal-reading" id="natalReading"></div>
+      <div class="natal-angle-strip" id="natalAngleStrip"></div>
+    </aside>
+
+    <section class="natal-story-section">
+      <div class="natal-story-heading"><div><p class="kicker">YOUR STORY</p><h2>Read it. See it. Understand it.</h2><p>As each observation reaches the reading line, its evidence illuminates in the celestial map.</p></div><span class="interpretation-note">Original Zephyr interpretation</span></div>
+      <section class="expert-story-engine" id="expertStoryEngine">
+        <div class="expert-story-intro">
+          <div><p class="kicker">EXPERT STORY ENGINE</p><h3>Your chart, interpreted as a whole.</h3><p>Zephyr weighs the strongest placements, rulers, houses, and aspects together—then connects every conclusion back to visible chart evidence.</p></div>
+          <div class="expert-story-actions">
+            <button class="btn expert-generate" id="generateExpertStory" type="button">Generate expert interpretation</button>
+            <button class="btn ghost" id="downloadExpertPdf" type="button" hidden>Download portrait PDF</button>
+          </div>
+        </div>
+        <div class="expert-story-status" id="expertStoryStatus" aria-live="polite"><i></i><span><b>Ready when you are</b><small>Your curated Zephyr interpretation remains available below.</small></span></div>
+        <div class="expert-story-report" id="expertStoryReport" hidden></div>
       </section>
-      <section class="panel natal-table-panel">
-        <div class="panel-heading"><div><p class="kicker">Chart data</p><h2>Planets and houses</h2></div></div>
-        <div class="natal-data-table" id="natalDataTable"></div>
-      </section>
-    </div>
+      <div class="natal-reading" id="natalReading"></div>
+    </section>
+    </section>
+
+    <section class="natal-section-panel natal-aspects-section" id="natalAspectsSection" data-natal-panel="aspects">
+      <div class="natal-section-heading"><p class="kicker">RELATIONSHIPS IN THE CHART</p><h2>Aspects</h2><p>Scroll through the conversations between planets. Each relationship illuminates above.</p></div>
+      <div class="natal-evidence-list" id="natalAspectList"></div>
+    </section>
+
+    <section class="natal-section-panel natal-houses-section" id="natalHousesSection" data-natal-panel="houses">
+      <div class="natal-section-heading"><p class="kicker">WHERE LIFE HAPPENS</p><h2>Houses</h2><p>Explore each field of experience while its boundaries and resident planets illuminate above.</p></div>
+      <div class="natal-evidence-list" id="natalHouseList"></div>
+    </section>
+
+    <section class="natal-section-panel natal-study-section" id="natalStudySection" data-natal-panel="study">
+      <div class="natal-section-heading"><p class="kicker">STUDY MODE</p><h2>Technical chart data</h2><p>Exact degrees, houses, motion, and chart positions.</p></div>
+      <div class="natal-data-table" id="natalDataTable"></div>
+    </section>
+  </section>
   </section>
 </main>
 <footer class="mobile-nav"><button class="active" data-app-view="solar" type="button">☼<small>Harmony</small></button><button data-app-view="natal" type="button">☿<small>Natal</small></button><button data-app-view="people" type="button">♙<small>People</small></button><button data-app-view="guide" type="button">◉<small>Guide</small></button></footer>
 </div>
 <template id="personTemplate"><article class="person-card"><div class="person-head"><button class="person-index set-root" type="button" title="Make this person the root"></button><button class="make-root" type="button">Make root</button><button class="remove-person" type="button">×</button></div><div class="role-badge"><i></i><span class="role-text">MEMBER</span></div><input class="person-name" aria-label="Name" maxlength="30"><label class="date-field"><span>Birthday</span><input class="person-date" type="date"><em class="privacy-hint">Always editable here. Privacy only hides dates from shared views.</em></label><label><span>Role</span><select class="person-role"><option value="member">Member</option><option value="root">Root</option></select></label><div class="person-readout"><strong class="person-note">—</strong><span class="person-sign">—</span><span class="person-position">—</span><span class="person-interval">—</span></div><div class="person-harmonic-readout"><span class="person-solar-name">Solar Unison</span><small class="person-theory-name">Perfect unison · exact</small></div></article></template>
-<script src="ios-audio-unlock.js?v=20260719-ios1"></script><script src="harmony.js?v=20260725-root4"></script><script src="mobile-actions.js?v=20260719-mobile2"></script><script src="natal-engine.bundle.js?v=1.1.0"></script><script src="natal.js?v=20260725-v5a"></script></body></html>
+<script src="ios-audio-unlock.js?v=20260719-ios1"></script><script src="harmony.js?v=20260725-root4"></script><script src="mobile-actions.js?v=20260719-mobile2"></script><script src="natal-engine.bundle.js?v=1.1.0"></script><script src="pdf-export.js?v=20260727-restore1"></script><script src="natal.js?v=20260727-expert-restore1"></script></body></html>
