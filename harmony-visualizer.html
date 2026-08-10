@@ -651,32 +651,96 @@
     }
   }
   function drawAnalogDial(cx, faceX, faceY, faceW, faceH, state, label){
-    ctx.fillStyle='#f4ecd8'; roundRectAll(ctx,faceX,faceY,faceW,faceH,4*devicePixelRatio); ctx.fill();
     var pivotX=faceX+faceW*0.5, pivotY=faceY+faceH*1.06, radius=faceH*0.96, aMin=Math.PI*1.18, aMax=Math.PI*1.86;
-    ctx.strokeStyle='rgba(20,20,20,0.55)'; ctx.fillStyle='rgba(20,20,20,0.75)'; ctx.lineWidth=1.3;
-    ctx.font=(9.5*devicePixelRatio)+'px Georgia, serif'; ctx.textAlign='center';
+    var bezelPad = faceW*0.03;
+
+    // recessed bezel: a dark frame set slightly outside the face, with the face inset
+    // into it via a shadow, so the meter reads as a window rather than a flat sticker
+    ctx.save();
+    ctx.fillStyle = '#0a0a0c';
+    roundRectAll(ctx, faceX-bezelPad, faceY-bezelPad, faceW+bezelPad*2, faceH+bezelPad*2, 6*devicePixelRatio);
+    ctx.fill();
+    var bezelGrad = ctx.createLinearGradient(faceX-bezelPad, faceY-bezelPad, faceX-bezelPad, faceY+faceH+bezelPad);
+    bezelGrad.addColorStop(0, 'rgba(255,255,255,0.05)');
+    bezelGrad.addColorStop(0.15, 'rgba(255,255,255,0)');
+    bezelGrad.addColorStop(1, 'rgba(0,0,0,0.3)');
+    ctx.fillStyle = bezelGrad;
+    roundRectAll(ctx, faceX-bezelPad, faceY-bezelPad, faceW+bezelPad*2, faceH+bezelPad*2, 6*devicePixelRatio);
+    ctx.fill();
+    ctx.restore();
+
+    // warm backlight glow bleeding onto the housing beyond the bezel
+    ctx.save();
+    var haloR = faceH*1.6;
+    var halo = ctx.createRadialGradient(pivotX, faceY+faceH*0.85, 0, pivotX, faceY+faceH*0.85, haloR);
+    halo.addColorStop(0, 'rgba(255,170,80,0.4)');
+    halo.addColorStop(0.5, 'rgba(255,170,80,0.10)');
+    halo.addColorStop(1, 'rgba(255,170,80,0)');
+    ctx.fillStyle = halo;
+    ctx.beginPath(); ctx.arc(pivotX, faceY+faceH*0.85, haloR, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+
+    // high-contrast bulb-lit face: bright hot orange at the bulb, falling off hard to
+    // dark umber corners — this contrast is what actually reads as "backlit" rather
+    // than "painted cream"
+    ctx.save();
+    roundRectAll(ctx,faceX,faceY,faceW,faceH,4*devicePixelRatio); ctx.clip();
+    ctx.fillStyle = '#2a2013';
+    ctx.fillRect(faceX,faceY,faceW,faceH);
+    var faceGrad = ctx.createRadialGradient(pivotX, faceY+faceH*0.95, faceH*0.03, pivotX, faceY+faceH*0.95, faceH*1.5);
+    faceGrad.addColorStop(0, '#ffcf6e');
+    faceGrad.addColorStop(0.22, '#f2ac52');
+    faceGrad.addColorStop(0.48, '#c98a4a');
+    faceGrad.addColorStop(0.75, '#8a6440');
+    faceGrad.addColorStop(1, '#3d2c1e');
+    ctx.fillStyle=faceGrad; ctx.fillRect(faceX,faceY,faceW,faceH);
+    ctx.restore();
+    ctx.strokeStyle='rgba(20,15,10,0.85)'; ctx.fillStyle='rgba(20,15,10,0.92)'; ctx.lineWidth=2.2*devicePixelRatio;
+    ctx.font='700 '+(10.5*devicePixelRatio)+'px Georgia, serif'; ctx.textAlign='center';
     var labels=[{p:0.0,l:'-20'},{p:0.35,l:'-10'},{p:0.62,l:'-3'},{p:0.78,l:'0'},{p:1.0,l:'+3'}];
     for (var li=0; li<labels.length; li++){
       var a=lerp(aMin,aMax,labels[li].p);
-      var tx0=pivotX+Math.cos(a)*radius*0.86, ty0=pivotY+Math.sin(a)*radius*0.86, tx1=pivotX+Math.cos(a)*radius*0.98, ty1=pivotY+Math.sin(a)*radius*0.98;
+      var tx0=pivotX+Math.cos(a)*radius*0.84, ty0=pivotY+Math.sin(a)*radius*0.84, tx1=pivotX+Math.cos(a)*radius*0.98, ty1=pivotY+Math.sin(a)*radius*0.98;
       ctx.beginPath(); ctx.moveTo(tx0,ty0); ctx.lineTo(tx1,ty1); ctx.stroke();
-      ctx.fillText(labels[li].l, pivotX+Math.cos(a)*radius*0.72, pivotY+Math.sin(a)*radius*0.72);
+      ctx.fillText(labels[li].l, pivotX+Math.cos(a)*radius*0.70, pivotY+Math.sin(a)*radius*0.70);
     }
-    ctx.strokeStyle='rgba(200,50,40,0.65)'; ctx.lineWidth=radius*0.055;
+    ctx.strokeStyle='#b8382c'; ctx.lineWidth=radius*0.07;
     ctx.beginPath(); ctx.arc(pivotX,pivotY,radius*0.99, lerp(aMin,aMax,0.80), aMax); ctx.stroke();
-    ctx.strokeStyle='rgba(60,90,60,0.5)';
+    ctx.strokeStyle='#4d6b46';
     ctx.beginPath(); ctx.arc(pivotX,pivotY,radius*0.99, aMin, lerp(aMin,aMax,0.80)); ctx.stroke();
-    ctx.fillStyle='rgba(20,20,20,0.6)'; ctx.font=(8.5*devicePixelRatio)+'px Georgia, serif'; ctx.fillText('VU', pivotX, pivotY-radius*0.24);
-    ctx.fillStyle='rgba(20,20,20,0.45)'; ctx.font=(8*devicePixelRatio)+'px Georgia, serif'; ctx.fillText(label, pivotX, faceY+faceH*0.2);
+    ctx.fillStyle='rgba(20,15,10,0.85)'; ctx.font='700 '+(9.5*devicePixelRatio)+'px Georgia, serif'; ctx.fillText('VU', pivotX, pivotY-radius*0.24);
+    ctx.fillStyle='rgba(20,15,10,0.6)'; ctx.font='600 '+(8*devicePixelRatio)+'px Georgia, serif'; ctx.fillText(label, pivotX, faceY+faceH*0.2);
     var needleT=Math.max(0,Math.min(1,state.level)), na=lerp(aMin,aMax,needleT);
-    ctx.save(); ctx.strokeStyle='#1a1a1a'; ctx.lineWidth=1.8*devicePixelRatio;
-    ctx.beginPath(); ctx.moveTo(pivotX,pivotY); ctx.lineTo(pivotX+Math.cos(na)*radius*0.92, pivotY+Math.sin(na)*radius*0.92); ctx.stroke();
-    ctx.fillStyle='#1a1a1a'; ctx.beginPath(); ctx.arc(pivotX,pivotY,radius*0.045,0,Math.PI*2); ctx.fill(); ctx.restore();
-    // glass highlight sweep across the face
+    var needleTipX = pivotX+Math.cos(na)*radius*0.92, needleTipY = pivotY+Math.sin(na)*radius*0.92;
     ctx.save();
-    var gh = ctx.createLinearGradient(faceX,faceY,faceX+faceW*0.5,faceY+faceH);
-    gh.addColorStop(0, 'rgba(255,255,255,0.16)'); gh.addColorStop(0.35, 'rgba(255,255,255,0.02)'); gh.addColorStop(1,'rgba(255,255,255,0)');
-    ctx.fillStyle = gh; roundRectAll(ctx,faceX,faceY,faceW,faceH,4*devicePixelRatio); ctx.fill();
+    ctx.shadowColor='rgba(0,0,0,0.4)'; ctx.shadowBlur=4*devicePixelRatio; ctx.shadowOffsetX=1.6*devicePixelRatio; ctx.shadowOffsetY=2.6*devicePixelRatio;
+    ctx.strokeStyle='#1a1a1a'; ctx.lineWidth=1.8*devicePixelRatio;
+    ctx.beginPath(); ctx.moveTo(pivotX,pivotY); ctx.lineTo(needleTipX,needleTipY); ctx.stroke();
+    ctx.restore();
+    // thin metallic highlight along the needle for a raised, lit-from-above look
+    ctx.save();
+    ctx.strokeStyle='rgba(255,255,255,0.35)'; ctx.lineWidth=0.6*devicePixelRatio;
+    ctx.beginPath(); ctx.moveTo(pivotX,pivotY); ctx.lineTo(needleTipX-Math.cos(na)*2*devicePixelRatio, needleTipY-Math.sin(na)*2*devicePixelRatio); ctx.stroke();
+    ctx.restore();
+    ctx.save();
+    ctx.shadowColor='rgba(0,0,0,0.35)'; ctx.shadowBlur=3*devicePixelRatio; ctx.shadowOffsetX=1*devicePixelRatio; ctx.shadowOffsetY=1.6*devicePixelRatio;
+    ctx.fillStyle='#1a1a1a'; ctx.beginPath(); ctx.arc(pivotX,pivotY,radius*0.045,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+    ctx.save();
+    ctx.fillStyle='rgba(255,255,255,0.4)';
+    ctx.beginPath(); ctx.arc(pivotX-radius*0.012,pivotY-radius*0.012,radius*0.014,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+    // glass reflection: a diagonal streak, the way light catches curved cover glass
+    ctx.save();
+    roundRectAll(ctx,faceX,faceY,faceW,faceH,4*devicePixelRatio); ctx.clip();
+    var streakW = faceW*0.28;
+    var gh = ctx.createLinearGradient(faceX-streakW, faceY, faceX+streakW*0.4, faceY+faceH);
+    gh.addColorStop(0, 'rgba(255,255,255,0)');
+    gh.addColorStop(0.45, 'rgba(255,255,255,0.22)');
+    gh.addColorStop(0.55, 'rgba(255,255,255,0.22)');
+    gh.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = gh;
+    ctx.fillRect(faceX,faceY,faceW,faceH);
     ctx.restore();
   }
   function drawScrew(x,y,r){
