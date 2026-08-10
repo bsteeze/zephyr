@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Zephyr — Live Harmony Visualizer</title>
+<style>
+  :root{
+    --void: #050914;
+    --void-2: #0a1220;
+    --panel: rgba(12,18,32,0.72);
+    --hair: rgba(255,255,255,0.08);
+    --ink: #eef1fb;
+    --ink-dim: #8b93ad;
+    --cyan: #4EEAD0;
+    --violet: #B98EFF;
+    --gold: #F2C879;
+    --ember: #FF7A5C;
+    --glow: 0 0 24px rgba(78,234,208,0.35);
+  }
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; height:100%; overflow:hidden;
+    background: var(--void);
+    color: var(--ink);
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  }
+  #stars{
+    position:fixed; inset:0; z-index:0; opacity:0.55; pointer-events:none;
+  }
+  #stage{
+    position:fixed; inset:0; z-index:1;
+  }
+  canvas#viz{ width:100%; height:100%; display:block; }
+
+  /* ---- Top identity strip ---- */
+  #ident{
+    position:fixed; top:0; left:0; right:0; z-index:5;
+    display:flex; align-items:center; gap:10px;
+    padding: 16px 20px 0 20px;
+    pointer-events:none;
+    font-family: 'Georgia', 'Iowan Old Style', serif;
+    letter-spacing: 0.14em;
+    font-size: 12px;
+    color: var(--ink-dim);
+    text-transform: uppercase;
+  }
+  #ident .sun{ color: var(--gold); font-size:14px; }
+  #ident b{ color: var(--ink); font-weight:600; }
+
+  /* ---- Control dock ---- */
+  #dock{
+    position:fixed; left:50%; bottom:22px; transform:translateX(-50%);
+    z-index:10;
+    display:flex; align-items:center; gap:6px;
+    background: var(--panel);
+    border: 1px solid var(--hair);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    border-radius: 999px;
+    padding: 8px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+  #dock.hidden{ opacity:0; transform:translateX(-50%) translateY(14px); pointer-events:none; }
+
+  .dock-btn{
+    appearance:none; border:none; background:transparent; color: var(--ink-dim);
+    font-size: 12.5px; letter-spacing:0.02em;
+    padding: 9px 14px; border-radius: 999px;
+    cursor:pointer; display:flex; align-items:center; gap:7px;
+    transition: background 0.2s ease, color 0.2s ease;
+    white-space:nowrap;
+  }
+  .dock-btn:hover{ color: var(--ink); background: rgba(255,255,255,0.06); }
+  .dock-btn.active{ color: var(--void); background: linear-gradient(135deg, var(--cyan), var(--violet)); font-weight:600; }
+  .dock-sep{ width:1px; height:22px; background: var(--hair); margin: 0 2px; }
+
+  .dock-icon{ width:9px; height:9px; border-radius:2px; display:inline-block; }
+
+  #startOverlay{
+    position:fixed; inset:0; z-index:50;
+    display:flex; align-items:center; justify-content:center;
+    background: radial-gradient(ellipse at 50% 40%, #0d1526 0%, var(--void) 70%);
+    flex-direction:column; gap:22px; text-align:center; padding: 20px;
+  }
+  #startOverlay .mark{
+    font-family: Georgia, serif; letter-spacing:0.2em; text-transform:uppercase;
+    font-size:13px; color: var(--ink-dim);
+  }
+  #startOverlay h1{
+    margin:0; font-family: Georgia, 'Iowan Old Style', serif; font-weight:400;
+    font-size: clamp(28px, 5vw, 44px); color: var(--ink);
+    letter-spacing: 0.01em;
+  }
+  #startOverlay p{
+    margin:0; color: var(--ink-dim); font-size:14px; max-width:380px; line-height:1.6;
+  }
+  .startBtns{ display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:6px; }
+  .bigBtn{
+    appearance:none; cursor:pointer; border-radius: 999px; padding: 13px 26px;
+    font-size:14px; letter-spacing:0.03em; font-family:inherit;
+    border: 1px solid var(--hair);
+  }
+  .bigBtn.primary{
+    background: linear-gradient(135deg, var(--cyan), var(--violet));
+    color: var(--void); font-weight:600; border:none;
+    box-shadow: 0 8px 30px rgba(78,234,208,0.25);
+  }
+  .bigBtn.secondary{ background: rgba(255,255,255,0.04); color: var(--ink); }
+  .bigBtn:active{ transform: scale(0.97); }
+  #startErr{ color: var(--ember); font-size:13px; min-height:16px; }
+
+  /* Sensitivity slider */
+  #sensWrap{ display:flex; align-items:center; gap:8px; padding: 0 10px 0 6px; }
+  #sens{
+    -webkit-appearance:none; width:74px; height:3px; border-radius:3px;
+    background: linear-gradient(90deg, var(--cyan), var(--violet));
+    outline:none;
+  }
+  #sens::-webkit-slider-thumb{
+    -webkit-appearance:none; width:13px; height:13px; border-radius:50%;
+    background: var(--ink); cursor:pointer; box-shadow: 0 0 8px rgba(255,255,255,0.4);
+  }
+  #sens::-moz-range-thumb{
+    width:13px; height:13px; border-radius:50%; background: var(--ink); border:none; cursor:pointer;
+  }
+
+  .fs-only{ display:none; }
+  body.is-fullscreen .fs-only{ display:flex; }
+
+  @media (max-width:640px){
+    #dock{ max-width: 94vw; overflow-x:auto; -ms-overflow-style:none; scrollbar-width:none; }
+    #dock::-webkit-scrollbar{ display:none; }
+    #ident{ font-size:10px; letter-spacing:0.1em; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    #dock, #dock.hidden{ transition:none; }
+  }
+</style>
+</head>
+<body>
+
+<canvas id="stars"></canvas>
+<div id="stage"><canvas id="viz"></canvas></div>
+
+<div id="ident"><span class="sun">☼</span> ZEPHYR <b>— Harmony Visualizer</b></div>
+
+<div id="startOverlay">
+  <div class="mark">☼ Zephyr Observatory</div>
+  <h1>Hear the room.</h1>
+  <p>Zephyr listens through your microphone — or a browser tab's audio — and renders it live. Nothing is recorded or sent anywhere; it stays in this tab.</p>
+  <div class="startBtns">
+    <button class="bigBtn primary" id="useMic">Use Microphone</button>
+    <button class="bigBtn secondary" id="useTab">Use Tab / System Audio</button>
+  </div>
+  <div id="startErr"></div>
+</div>
+
+<div id="dock" class="hidden">
+  <button class="dock-btn active" data-mode="bars"><span class="dock-icon" style="background:var(--cyan)"></span>Bars</button>
+  <button class="dock-btn" data-mode="radial"><span class="dock-icon" style="border-radius:50%;background:var(--violet)"></span>Radial</button>
+  <button class="dock-btn" data-mode="scope"><span class="dock-icon" style="background:var(--gold)"></span>Scope</button>
+  <button class="dock-btn" data-mode="vu"><span class="dock-icon" style="background:var(--ember)"></span>VU</button>
+  <div class="dock-sep"></div>
+  <div id="sensWrap">
+    <span style="font-size:11px;color:var(--ink-dim)">Gain</span>
+    <input type="range" id="sens" min="0.4" max="3" step="0.05" value="1.2">
+  </div>
+  <div class="dock-sep"></div>
+  <button class="dock-btn" id="fsBtn">Fullscreen</button>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ---------------- Starfield backdrop ----------------
+  var starCanvas = document.getElementById('stars');
+  var sctx = starCanvas.getContext('2d');
+  var stars = [];
+  function resizeStars(){
+    starCanvas.width = window.innerWidth * devicePixelRatio;
+    starCanvas.height = window.innerHeight * devicePixelRatio;
+    starCanvas.style.width = window.innerWidth + 'px';
+    starCanvas.style.height = window.innerHeight + 'px';
+    var n = Math.floor((window.innerWidth * window.innerHeight) / 9000);
+    stars = [];
+    for (var i=0;i<n;i++){
+      stars.push({
+        x: Math.random()*starCanvas.width,
+        y: Math.random()*starCanvas.height,
+        r: Math.random()*1.4*devicePixelRatio + 0.2,
+        p: Math.random()*Math.PI*2,
+        s: 0.3 + Math.random()*0.9
+      });
+    }
+  }
+  function drawStars(t){
+    sctx.clearRect(0,0,starCanvas.width, starCanvas.height);
+    for (var i=0;i<stars.length;i++){
+      var st = stars[i];
+      var tw = 0.5 + 0.5*Math.sin(t*0.0006*st.s + st.p);
+      sctx.globalAlpha = 0.15 + tw*0.55;
+      sctx.fillStyle = '#eaf2ff';
+      sctx.beginPath();
+      sctx.arc(st.x, st.y, st.r, 0, Math.PI*2);
+      sctx.fill();
+    }
+    sctx.globalAlpha = 1;
+  }
+
+  // ---------------- Main viz canvas ----------------
+  var canvas = document.getElementById('viz');
+  var ctx = canvas.getContext('2d');
+  function resizeMain(){
+    canvas.width = window.innerWidth * devicePixelRatio;
+    canvas.height = window.innerHeight * devicePixelRatio;
+    canvas.style.width = window.innerWidth + 'px';
+    canvas.style.height = window.innerHeight + 'px';
+  }
+  function resizeAll(){ resizeStars(); resizeMain(); }
+  window.addEventListener('resize', resizeAll);
+  resizeAll();
+
+  // ---------------- Audio graph ----------------
+  var audioCtx = null;
+  var analyser = null;
+  var gainNode = null;
+  var freqData = null;
+  var timeData = null;
+  var sourceStream = null;
+  var started = false;
+
+  function initAudio(stream){
+    sourceStream = stream;
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    var src = audioCtx.createMediaStreamSource(stream);
+    gainNode = audioCtx.createGain();
+    gainNode.gain.value = parseFloat(document.getElementById('sens').value);
+    analyser = audioCtx.createAnalyser();
+    analyser.fftSize = 2048;
+    analyser.smoothingTimeConstant = 0.82;
+    src.connect(gainNode);
+    gainNode.connect(analyser);
+    freqData = new Uint8Array(analyser.frequencyBinCount);
+    timeData = new Uint8Array(analyser.fftSize);
+    started = true;
+    document.getElementById('startOverlay').style.display = 'none';
+    document.getElementById('dock').classList.remove('hidden');
+    requestAnimationFrame(loop);
+  }
+
+  function showErr(msg){
+    document.getElementById('startErr').textContent = msg;
+  }
+
+  document.getElementById('useMic').addEventListener('click', function(){
+    showErr('');
+    navigator.mediaDevices.getUserMedia({ audio: {
+        echoCancellation:false, noiseSuppression:false, autoGainControl:false
+      }, video:false })
+      .then(initAudio)
+      .catch(function(e){ showErr('Mic access denied or unavailable (' + e.name + ').'); });
+  });
+
+  document.getElementById('useTab').addEventListener('click', function(){
+    showErr('');
+    if (!navigator.mediaDevices.getDisplayMedia){
+      showErr('This browser does not support tab-audio capture — try Microphone.');
+      return;
+    }
+    navigator.mediaDevices.getDisplayMedia({ video:true, audio:true })
+      .then(function(stream){
+        var hasAudio = stream.getAudioTracks().length > 0;
+        stream.getVideoTracks().forEach(function(t){ t.stop(); });
+        if (!hasAudio){
+          showErr('No audio track was shared — when prompted, tick "Share tab audio".');
+          return;
+        }
+        initAudio(stream);
+      })
+      .catch(function(e){ showErr('Screen/tab share was cancelled or blocked.'); });
+  });
+
+  document.getElementById('sens').addEventListener('input', function(e){
+    if (gainNode) gainNode.gain.value = parseFloat(e.target.value);
+  });
+
+  // ---------------- Mode switching ----------------
+  var mode = 'bars';
+  var dockBtns = document.querySelectorAll('.dock-btn[data-mode]');
+  dockBtns.forEach(function(btn){
+    btn.addEventListener('click', function(){
+      dockBtns.forEach(function(b){ b.classList.remove('active'); });
+      btn.classList.add('active');
+      mode = btn.getAttribute('data-mode');
+    });
+  });
+
+  document.getElementById('fsBtn').addEventListener('click', function(){
+    if (!document.fullscreenElement){
+      document.documentElement.requestFullscreen().catch(function(){});
+    } else {
+      document.exitFullscreen();
+    }
+  });
+
+  // auto-hide dock after inactivity
+  var dockEl = document.getElementById('dock');
+  var hideTimer = null;
+  function bumpDock(){
+    dockEl.classList.remove('hidden');
+    clearTimeout(hideTimer);
+    hideTimer = setTimeout(function(){
+      if (started) dockEl.classList.add('hidden');
+    }, 4200);
+  }
+  window.addEventListener('mousemove', bumpDock);
+  window.addEventListener('touchstart', bumpDock);
+  bumpDock();
+
+  // ---------------- Helpers ----------------
+  function lerp(a,b,t){ return a + (b-a)*t; }
+
+  // peak-hold state for bars
+  var barPeaks = null;
+  var barPeakVel = null;
+  var vuLevel = 0;
+  var vuPeak = 0;
+  var vuPeakHold = 0;
+  var radialSmoothed = null;
+
+  function bandEnergy(startBin, endBin){
+    var sum = 0, n = 0;
+    for (var i=startBin; i<endBin && i<freqData.length; i++){ sum += freqData[i]; n++; }
+    return n ? sum/n : 0;
+  }
+
+  // ---------------- Draw: Bars ----------------
+  function drawBars(w,h){
+    var barCount = 56;
+    var binCount = analyser.frequencyBinCount;
+    // log-ish grouping so low end isn't crushed
+    if (!barPeaks || barPeaks.length !== barCount){
+      barPeaks = new Array(barCount).fill(0);
+      barPeakVel = new Array(barCount).fill(0);
+    }
+    var gap = w * 0.006;
+    var barW = (w - gap*(barCount-1)) / barCount;
+    var baseY = h*0.86;
+    var maxBarH = h*0.62;
+
+    ctx.save();
+    for (var i=0;i<barCount;i++){
+      var t0 = i / barCount, t1 = (i+1)/barCount;
+      var b0 = Math.floor(Math.pow(t0, 2.1) * binCount);
+      var b1 = Math.max(b0+1, Math.floor(Math.pow(t1, 2.1) * binCount));
+      var e = bandEnergy(b0,b1) / 255; // 0..1
+      var barH = Math.pow(e, 0.85) * maxBarH;
+
+      if (barH > barPeaks[i]){
+        barPeaks[i] = barH; barPeakVel[i] = 0;
+      } else {
+        barPeakVel[i] += 0.35;
+        barPeaks[i] = Math.max(barH, barPeaks[i] - barPeakVel[i]);
+      }
+
+      var x = i*(barW+gap);
+      var grad = ctx.createLinearGradient(0, baseY-maxBarH, 0, baseY);
+      grad.addColorStop(0, '#B98EFF');
+      grad.addColorStop(0.55, '#4EEAD0');
+      grad.addColorStop(1, '#1c2a3d');
+      ctx.fillStyle = grad;
+      ctx.shadowColor = 'rgba(78,234,208,0.45)';
+      ctx.shadowBlur = 14;
+      roundRectTop(ctx, x, baseY-barH, barW, barH, Math.min(4, barW/2));
+      ctx.fill();
+
+      // peak cap
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = '#F2C879';
+      var capY = baseY - barPeaks[i] - 3;
+      ctx.fillRect(x, capY, barW, 2*devicePixelRatio);
+    }
+    ctx.restore();
+
+    // baseline
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, baseY+1);
+    ctx.lineTo(w, baseY+1);
+    ctx.stroke();
+  }
+  function roundRectTop(ctx,x,y,w,h,r){
+    if (h < r) r = h;
+    if (w < r*2) r = w/2;
+    ctx.beginPath();
+    ctx.moveTo(x, y+h);
+    ctx.lineTo(x, y+r);
+    ctx.arcTo(x,y,x+r,y,r);
+    ctx.lineTo(x+w-r,y);
+    ctx.arcTo(x+w,y,x+w,y+r,r);
+    ctx.lineTo(x+w,y+h);
+    ctx.closePath();
+  }
+
+  // ---------------- Draw: Radial (chart-wheel) ----------------
+  function drawRadial(w,h,t){
+    var cx = w/2, cy = h/2;
+    var baseR = Math.min(w,h) * 0.14;
+    var maxLen = Math.min(w,h) * 0.30;
+    var spokes = 90;
+    var binCount = analyser.frequencyBinCount;
+    if (!radialSmoothed || radialSmoothed.length !== spokes){
+      radialSmoothed = new Array(spokes).fill(0);
+    }
+
+    // faint zodiac-style tick ring
+    ctx.save();
+    ctx.translate(cx,cy);
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.lineWidth = 1;
+    for (var k=0;k<36;k++){
+      var a = (k/36)*Math.PI*2;
+      var r0 = baseR*0.86, r1 = baseR*0.98;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(a)*r0, Math.sin(a)*r0);
+      ctx.lineTo(Math.cos(a)*r1, Math.sin(a)*r1);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(cx,cy);
+    ctx.rotate(t*0.00006);
+    for (var i=0;i<spokes;i++){
+      var t0 = i/spokes, t1=(i+1)/spokes;
+      var b0 = Math.floor(Math.pow(t0,2.0)*binCount);
+      var b1 = Math.max(b0+1, Math.floor(Math.pow(t1,2.0)*binCount));
+      var e = bandEnergy(b0,b1)/255;
+      var target = Math.pow(e,0.9)*maxLen;
+      radialSmoothed[i] = lerp(radialSmoothed[i], target, 0.35);
+      var len = radialSmoothed[i];
+
+      var ang = (i/spokes) * Math.PI*2;
+      var x0 = Math.cos(ang)*baseR, y0 = Math.sin(ang)*baseR;
+      var x1 = Math.cos(ang)*(baseR+len), y1 = Math.sin(ang)*(baseR+len);
+
+      var hue = lerp(190, 280, i/spokes);
+      ctx.strokeStyle = 'hsla(' + hue + ', 85%, 68%, 0.9)';
+      ctx.lineWidth = Math.max(1.4, (Math.PI*2*(baseR+len)/spokes)*0.55);
+      ctx.lineCap = 'round';
+      ctx.shadowColor = 'rgba(78,234,208,0.5)';
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.moveTo(x0,y0);
+      ctx.lineTo(x1,y1);
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // center hub — solar disc
+    ctx.save();
+    ctx.translate(cx,cy);
+    var pulse = 1 + 0.04*Math.sin(t*0.004);
+    var hubR = baseR*0.62*pulse;
+    var g = ctx.createRadialGradient(0,0,0,0,0,hubR);
+    g.addColorStop(0, '#fff6df');
+    g.addColorStop(0.4, '#F2C879');
+    g.addColorStop(1, 'rgba(242,200,121,0)');
+    ctx.fillStyle = g;
+    ctx.shadowColor = 'rgba(242,200,121,0.6)';
+    ctx.shadowBlur = 30;
+    ctx.beginPath();
+    ctx.arc(0,0,hubR,0,Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // ---------------- Draw: Scope ----------------
+  function drawScope(w,h){
+    analyser.getByteTimeDomainData(timeData);
+    var midY = h*0.5;
+    ctx.save();
+    ctx.lineWidth = 2.2*devicePixelRatio;
+    ctx.strokeStyle = '#4EEAD0';
+    ctx.shadowColor = 'rgba(78,234,208,0.7)';
+    ctx.shadowBlur = 18;
+    ctx.beginPath();
+    var sliceW = w / timeData.length;
+    var x = 0;
+    for (var i=0;i<timeData.length;i++){
+      var v = timeData[i]/128.0 - 1.0; // -1..1
+      var y = midY + v * h * 0.32;
+      if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      x += sliceW;
+    }
+    ctx.stroke();
+
+    // faint mirrored echo for depth
+    ctx.globalAlpha = 0.18;
+    ctx.strokeStyle = '#B98EFF';
+    ctx.shadowBlur = 0;
+    ctx.beginPath();
+    x = 0;
+    for (var j=0;j<timeData.length;j++){
+      var v2 = timeData[j]/128.0 - 1.0;
+      var y2 = midY - v2 * h * 0.32;
+      if (j===0) ctx.moveTo(x,y2); else ctx.lineTo(x,y2);
+      x += sliceW;
+    }
+    ctx.stroke();
+    ctx.restore();
+
+    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+    ctx.beginPath();
+    ctx.moveTo(0,midY); ctx.lineTo(w,midY);
+    ctx.stroke();
+  }
+
+  // ---------------- Draw: VU (audiophile) ----------------
+  function drawVU(w,h){
+    // RMS of time-domain for level, peak-hold from frequency max
+    analyser.getByteTimeDomainData(timeData);
+    var sumSq = 0;
+    for (var i=0;i<timeData.length;i++){
+      var v = (timeData[i]-128)/128;
+      sumSq += v*v;
+    }
+    var rms = Math.sqrt(sumSq/timeData.length); // 0..~1
+    var db = 20*Math.log10(Math.max(rms, 0.0001)); // negative typically
+    var norm = (db + 40) / 40; // map -40..0dB to 0..1
+    norm = Math.max(0, Math.min(1.15, norm));
+
+    vuLevel = lerp(vuLevel, norm, 0.18);
+    vuPeak = Math.max(vuPeak - 0.010, vuLevel);
+    if (vuLevel > 0.98) vuPeakHold = 26; else if (vuPeakHold>0) vuPeakHold--;
+
+    var meterW = Math.min(w*0.82, 900*devicePixelRatio);
+    var meterH = meterW * 0.30;
+    var mx = (w-meterW)/2, my = h*0.5 - meterH*0.55;
+
+    // housing
+    ctx.save();
+    var hg = ctx.createLinearGradient(0,my,0,my+meterH);
+    hg.addColorStop(0, '#141c2c');
+    hg.addColorStop(1, '#0a0f1a');
+    ctx.fillStyle = hg;
+    roundRectAll(ctx, mx, my, meterW, meterH, 14*devicePixelRatio);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // dial face
+    var faceM = meterW*0.045;
+    var fx=mx+faceM, fy=my+faceM, fw=meterW-faceM*2, fh=meterH-faceM*2.6;
+    ctx.fillStyle = '#f4ecd8';
+    roundRectAll(ctx, fx, fy, fw, fh*0.86, 4*devicePixelRatio);
+    ctx.fill();
+
+    // arc geometry
+    var pivotX = fx+fw*0.5, pivotY = fy+fh*1.02;
+    var radius = fh*0.92;
+    var aMin = Math.PI*1.18, aMax = Math.PI*1.86; // sweep
+    // scale ticks
+    ctx.strokeStyle = 'rgba(20,20,20,0.55)';
+    ctx.fillStyle = 'rgba(20,20,20,0.75)';
+    ctx.lineWidth = 1.3;
+    ctx.font = (10*devicePixelRatio) + 'px Georgia, serif';
+    ctx.textAlign = 'center';
+    var labels = [{p:0.0,l:'-20'},{p:0.35,l:'-10'},{p:0.62,l:'-3'},{p:0.78,l:'0'},{p:1.0,l:'+3'}];
+    for (var li=0; li<labels.length; li++){
+      var a = lerp(aMin,aMax,labels[li].p);
+      var tx0 = pivotX+Math.cos(a)*radius*0.86, ty0=pivotY+Math.sin(a)*radius*0.86;
+      var tx1 = pivotX+Math.cos(a)*radius*0.98, ty1=pivotY+Math.sin(a)*radius*0.98;
+      ctx.beginPath(); ctx.moveTo(tx0,ty0); ctx.lineTo(tx1,ty1); ctx.stroke();
+      var lx = pivotX+Math.cos(a)*radius*0.72, ly=pivotY+Math.sin(a)*radius*0.72;
+      ctx.fillText(labels[li].l, lx, ly);
+    }
+    // red zone
+    ctx.strokeStyle = 'rgba(200,50,40,0.65)';
+    ctx.lineWidth = radius*0.06;
+    ctx.beginPath();
+    ctx.arc(pivotX,pivotY,radius*0.99, lerp(aMin,aMax,0.80), aMax);
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(60,90,60,0.5)';
+    ctx.beginPath();
+    ctx.arc(pivotX,pivotY,radius*0.99, aMin, lerp(aMin,aMax,0.80));
+    ctx.stroke();
+
+    ctx.fillStyle = 'rgba(20,20,20,0.6)';
+    ctx.font = (9*devicePixelRatio) + 'px Georgia, serif';
+    ctx.fillText('VU', pivotX, pivotY - radius*0.28);
+
+    // needle
+    var needleT = Math.max(0, Math.min(1, vuLevel));
+    var na = lerp(aMin,aMax,needleT);
+    ctx.save();
+    ctx.strokeStyle = '#1a1a1a';
+    ctx.lineWidth = 2*devicePixelRatio;
+    ctx.beginPath();
+    ctx.moveTo(pivotX,pivotY);
+    ctx.lineTo(pivotX+Math.cos(na)*radius*0.92, pivotY+Math.sin(na)*radius*0.92);
+    ctx.stroke();
+    ctx.fillStyle = '#1a1a1a';
+    ctx.beginPath();
+    ctx.arc(pivotX,pivotY, radius*0.05, 0, Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+
+    // peak LED
+    ctx.fillStyle = vuPeakHold>0 ? '#ff5a4d' : 'rgba(255,90,77,0.18)';
+    ctx.shadowColor = vuPeakHold>0 ? 'rgba(255,90,77,0.9)' : 'transparent';
+    ctx.shadowBlur = vuPeakHold>0 ? 14 : 0;
+    ctx.beginPath();
+    ctx.arc(fx+fw-16*devicePixelRatio, fy+14*devicePixelRatio, 5*devicePixelRatio, 0, Math.PI*2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // brand plate
+    ctx.fillStyle = 'rgba(20,20,20,0.55)';
+    ctx.font = (8.5*devicePixelRatio) + 'px Georgia, serif';
+    ctx.fillText('ZEPHYR   ·   SOLAR HARMONY', pivotX, my+meterH-10*devicePixelRatio);
+
+    ctx.restore();
+
+    // small peak dB readout under meter
+    ctx.fillStyle = 'rgba(238,241,251,0.55)';
+    ctx.font = (11*devicePixelRatio) + 'px Georgia, serif';
+    ctx.textAlign='center';
+    ctx.fillText((db>-39? db.toFixed(1):'-∞') + ' dB RMS', w/2, my+meterH+30*devicePixelRatio);
+  }
+
+  function roundRectAll(ctx,x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r);
+    ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);
+    ctx.arcTo(x,y,x+w,y,r);
+    ctx.closePath();
+  }
+
+  // ---------------- Main loop ----------------
+  function loop(t){
+    requestAnimationFrame(loop);
+    drawStars(t);
+
+    var w = canvas.width, h = canvas.height;
+    ctx.clearRect(0,0,w,h);
+
+    if (!started || !analyser) return;
+    analyser.getByteFrequencyData(freqData);
+
+    if (mode === 'bars') drawBars(w,h);
+    else if (mode === 'radial') drawRadial(w,h,t);
+    else if (mode === 'scope') drawScope(w,h);
+    else if (mode === 'vu') drawVU(w,h);
+  }
+
+  // idle star animation even before audio starts
+  (function idlePreview(){
+    if (started) return;
+    drawStars(performance.now());
+    requestAnimationFrame(idlePreview);
+  })();
+
+  document.addEventListener('fullscreenchange', function(){
+    document.body.classList.toggle('is-fullscreen', !!document.fullscreenElement);
+  });
+
+})();
+</script>
+</body>
+</html>
