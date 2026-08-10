@@ -1382,7 +1382,7 @@
   }
 
   // ---- LAVA LAMP: rising/merging metaballs ----
-  var lavaBuf=null, lavaCtx=null, lavaImageData=null, lavaBlobs=null, lavaFieldBuf=null;
+  var lavaBuf=null, lavaCtx=null, lavaImageData=null, lavaBlobs=null, lavaFieldBuf=null, lavaPulse=0;
   function smoothstepFn(e0,e1,x){ var tt=Math.max(0,Math.min(1,(x-e0)/(e1-e0))); return tt*tt*(3-tt*2); }
   function stopLerpRGB(stops,t){
     var segF = t*(stops.length-1);
@@ -1401,14 +1401,14 @@
     }
     if (!lavaBlobs){
       lavaBlobs = [];
-      for (var i=0;i<7;i++){
+      for (var i=0;i<6;i++){
         lavaBlobs.push({
-          xBase: 0.14 + Math.random()*0.72,
-          xAmp: 0.05 + Math.random()*0.09,
+          xBase: 0.16 + Math.random()*0.68,
+          xAmp: 0.04 + Math.random()*0.06,
           xPhase: Math.random()*Math.PI*2,
-          period: 15000 + Math.random()*11000,
+          period: 32000 + Math.random()*22000,
           phaseOffset: Math.random()*400000,
-          baseR: 0.085 + Math.random()*0.055
+          baseR: 0.15 + Math.random()*0.08
         });
       }
     }
@@ -1419,6 +1419,8 @@
     var data = lavaImageData.data;
     var binCount = FREQ_BIN_COUNT;
     var bass = overallEnergy(0, Math.floor(binCount*0.12));
+    var overall = overallEnergy(0, Math.floor(binCount*0.5));
+    lavaPulse = lerp(lavaPulse, overall, 0.05);
     var stops = [hexToRgb(currentPalette.shadow), hexToRgb(currentPalette.primary), hexToRgb(currentPalette.secondary), hexToRgb(currentPalette.tertiary)];
 
     var blobsPx = [];
@@ -1428,10 +1430,27 @@
       var tri = cyclePos < 0.5 ? cyclePos*2 : (1-cyclePos)*2;
       var eased = tri*tri*(3-2*tri);
       var yNorm = lerp(0.94, 0.06, eased);
-      var xNorm = bl.xBase + Math.sin(t*0.00013 + bl.xPhase)*bl.xAmp;
+      var xNorm = bl.xBase + Math.sin(t*0.00006 + bl.xPhase)*bl.xAmp;
       var rNorm = bl.baseR * (1 + bass*0.55);
-      blobsPx.push({ x: xNorm*bw, y: yNorm*bh, r: rNorm*bh });
+      blobsPx.push({ x: xNorm*bw, y: yNorm*bh, r: rNorm*bh, xNorm:xNorm, yNorm:yNorm, rNorm:rNorm });
     }
+
+    // pulsing aura, drawn on the main (full-res) canvas so it stays soft and crisp
+    // rather than being baked into the small metaball buffer
+    ctx.save();
+    for (var ai=0; ai<blobsPx.length; ai++){
+      var ab = blobsPx[ai];
+      var acx = ab.xNorm*w, acy = ab.yNorm*h;
+      var baseAuraR = ab.rNorm*h*1.9;
+      var auraR = baseAuraR * (1 + lavaPulse*0.6);
+      var auraAlpha = 0.16 + lavaPulse*0.30;
+      var ag = ctx.createRadialGradient(acx,acy,0,acx,acy,auraR);
+      ag.addColorStop(0, hexToRgba(currentPalette.primary, auraAlpha));
+      ag.addColorStop(1, hexToRgba(currentPalette.primary, 0));
+      ctx.fillStyle = ag;
+      ctx.beginPath(); ctx.arc(acx,acy,auraR,0,Math.PI*2); ctx.fill();
+    }
+    ctx.restore();
 
     var Lx=-0.5, Ly=-0.62, Lz=0.61;
     var Hx=Lx, Hy=Ly, Hz=Lz+1, Hlen=Math.sqrt(Hx*Hx+Hy*Hy+Hz*Hz);
@@ -1473,14 +1492,16 @@
         var nlen = Math.sqrt(nx*nx+ny*ny+nz*nz);
         nx/=nlen; ny/=nlen; nz/=nlen;
 
-        var diffuse = Math.max(0, nx*Lx+ny*Ly+nz*Lz);
+        var rawDot = nx*Lx+ny*Ly+nz*Lz;
+        var halfLambert = rawDot*0.5+0.5;
+        var diffuse = halfLambert*halfLambert;
         var specDot = Math.max(0, nx*Hx+ny*Hy+nz*Hz);
-        var specular = Math.pow(specDot, 30);
+        var specular = Math.pow(specDot, 22);
 
         var innerT = smoothstepFn(0.30, 22, field);
         var baseCol = stopLerpRGB(stops, innerT);
-        var lit = 0.32 + 0.8*diffuse;
-        var specAmt = specular*innerT*220;
+        var lit = 0.42 + 0.62*diffuse;
+        var specAmt = specular*innerT*160;
         data[idx]   = Math.min(255, baseCol.r*lit + specAmt);
         data[idx+1] = Math.min(255, baseCol.g*lit + specAmt);
         data[idx+2] = Math.min(255, baseCol.b*lit + specAmt);
