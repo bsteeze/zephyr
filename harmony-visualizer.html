@@ -1382,7 +1382,7 @@
   }
 
   // ---- LAVA LAMP: rising/merging metaballs ----
-  var lavaBuf=null, lavaCtx=null, lavaImageData=null, lavaBlobs=null, lavaPrevRow=null;
+  var lavaBuf=null, lavaCtx=null, lavaImageData=null, lavaBlobs=null, lavaFieldBuf=null;
   function smoothstepFn(e0,e1,x){ var tt=Math.max(0,Math.min(1,(x-e0)/(e1-e0))); return tt*tt*(3-tt*2); }
   function stopLerpRGB(stops,t){
     var segF = t*(stops.length-1);
@@ -1397,7 +1397,7 @@
       lavaBuf.width = 400; lavaBuf.height = 250;
       lavaCtx = lavaBuf.getContext('2d');
       lavaImageData = lavaCtx.createImageData(400,250);
-      lavaPrevRow = new Float32Array(400);
+      lavaFieldBuf = new Float32Array(400*250);
     }
     if (!lavaBlobs){
       lavaBlobs = [];
@@ -1436,22 +1436,38 @@
     var Lx=-0.5, Ly=-0.62, Lz=0.61;
     var Hx=Lx, Hy=Ly, Hz=Lz+1, Hlen=Math.sqrt(Hx*Hx+Hy*Hy+Hz*Hz);
     Hx/=Hlen; Hy/=Hlen; Hz/=Hlen;
-    var normalStrength = 2.3;
+    var normalStrength = 2.6;
 
+    // Pass 1: compute the metaball field for every pixel first. A centered gradient
+    // (needed for a symmetric, round highlight instead of a biased, wedge-shaped one)
+    // requires knowing the neighbor on both sides, so the field has to exist everywhere
+    // before any shading is computed.
+    var fieldIdx = 0;
+    for (var y0=0;y0<bh;y0++){
+      for (var x0=0;x0<bw;x0++){
+        var field0 = 0;
+        for (var bi0=0;bi0<blobsPx.length;bi0++){
+          var b0 = blobsPx[bi0];
+          var ddx=x0-b0.x, ddy=y0-b0.y;
+          field0 += (b0.r*b0.r)/(ddx*ddx+ddy*ddy+1);
+        }
+        lavaFieldBuf[fieldIdx] = field0;
+        fieldIdx++;
+      }
+    }
+
+    // Pass 2: centered-difference gradient + lighting
     var idx=0;
     for (var y=0;y<bh;y++){
-      var leftField = 0;
+      var rowBase = y*bw;
       for (var x=0;x<bw;x++){
-        var field = 0;
-        for (var bi=0;bi<blobsPx.length;bi++){
-          var b = blobsPx[bi];
-          var dx=x-b.x, dy=y-b.y;
-          field += (b.r*b.r)/(dx*dx+dy*dy+1);
-        }
-        var dFdx = (x===0) ? 0 : field-leftField;
-        var dFdy = (y===0) ? 0 : field-lavaPrevRow[x];
-        leftField = field;
-        lavaPrevRow[x] = field;
+        var field = lavaFieldBuf[rowBase+x];
+        var fL = (x>0) ? lavaFieldBuf[rowBase+x-1] : field;
+        var fR = (x<bw-1) ? lavaFieldBuf[rowBase+x+1] : field;
+        var fU = (y>0) ? lavaFieldBuf[rowBase-bw+x] : field;
+        var fD = (y<bh-1) ? lavaFieldBuf[rowBase+bw+x] : field;
+        var dFdx = (fR-fL)*0.5;
+        var dFdy = (fD-fU)*0.5;
 
         var nx = -dFdx*normalStrength, ny = -dFdy*normalStrength, nz = 1.0;
         var nlen = Math.sqrt(nx*nx+ny*ny+nz*nz);
