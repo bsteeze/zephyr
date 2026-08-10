@@ -162,6 +162,8 @@
       <div class="style-menu" id="styleMenu" role="menu">
         <div class="style-group-label">Classic</div>
         <button data-mode="bars" role="menuitem">Bars</button>
+        <button data-mode="vbarmirror" role="menuitem">VBar Mirror</button>
+        <button data-mode="hbarmirror" role="menuitem">HBar Mirror</button>
         <button data-mode="radial" role="menuitem">Radial</button>
         <button data-mode="scope" role="menuitem">Scope</button>
         <button data-mode="vu" role="menuitem">VU Meter</button>
@@ -381,7 +383,7 @@
 
   // ---------------- Element + style state ----------------
   var MODE_LABELS = {
-    bars:'Bars', radial:'Radial', scope:'Scope', vu:'VU Meter',
+    bars:'Bars', vbarmirror:'VBar Mirror', hbarmirror:'HBar Mirror', radial:'Radial', scope:'Scope', vu:'VU Meter',
     kaleidoscope:'Kaleidoscope', tunnel:'Tunnel', plasma:'Plasma', spectro:'3D Grid', starfield:'Starfield Warp', fractal:'Fractal', lavalamp:'Lava Lamp',
     embers:'Embers', terrain:'Terrain', streams:'Streamlines', liquid:'Liquid'
   };
@@ -549,6 +551,8 @@
       var t0=i/barCount, t1=(i+1)/barCount;
       var b0=Math.floor(Math.pow(t0,2.1)*binCount), b1=Math.max(b0+1, Math.floor(Math.pow(t1,2.1)*binCount));
       var e = bandEnergy(b0,b1)/255;
+      var tiltComp = 1 + t0*2.2; // real spectra roll off toward treble; compensate for display so the whole width reads actively, not just the bass end
+      e = Math.min(1, e*tiltComp);
       var barH = Math.pow(e,0.85)*maxBarH;
       if (barH>barPeaks[i]){ barPeaks[i]=barH; barPeakVel[i]=0; } else { barPeakVel[i]+=0.35; barPeaks[i]=Math.max(barH, barPeaks[i]-barPeakVel[i]); }
       var x = i*(barW+gap);
@@ -573,6 +577,78 @@
     if (h<r) r=h; if (w<r*2) r=w/2;
     ctx.beginPath(); ctx.moveTo(x,y+h); ctx.lineTo(x,y+r); ctx.arcTo(x,y,x+r,y,r);
     ctx.lineTo(x+w-r,y); ctx.arcTo(x+w,y,x+w,y+r,r); ctx.lineTo(x+w,y+h); ctx.closePath();
+  }
+
+  var vbarPeakTop=null, vbarPeakBot=null, vbarVelTop=null, vbarVelBot=null;
+  function drawVBarMirror(w,h){
+    var barCount = 56, binCount = FREQ_BIN_COUNT;
+    if (!vbarPeakTop || vbarPeakTop.length !== barCount){
+      vbarPeakTop=new Array(barCount).fill(0); vbarVelTop=new Array(barCount).fill(0);
+      vbarPeakBot=new Array(barCount).fill(0); vbarVelBot=new Array(barCount).fill(0);
+    }
+    var gap = w*0.006, barW = (w-gap*(barCount-1))/barCount, centerY = h*0.5, maxHalfH = h*0.42;
+    ctx.save();
+    for (var i=0;i<barCount;i++){
+      var t0=i/barCount, t1=(i+1)/barCount;
+      var b0=Math.floor(Math.pow(t0,2.1)*binCount), b1=Math.max(b0+1, Math.floor(Math.pow(t1,2.1)*binCount));
+      var e = bandEnergy(b0,b1)/255;
+      var tiltComp = 1 + t0*2.2;
+      e = Math.min(1, e*tiltComp);
+      var halfH = Math.pow(e,0.85)*maxHalfH;
+      if (halfH>vbarPeakTop[i]){ vbarPeakTop[i]=halfH; vbarVelTop[i]=0; } else { vbarVelTop[i]+=0.35; vbarPeakTop[i]=Math.max(halfH, vbarPeakTop[i]-vbarVelTop[i]); }
+      if (halfH>vbarPeakBot[i]){ vbarPeakBot[i]=halfH; vbarVelBot[i]=0; } else { vbarVelBot[i]+=0.35; vbarPeakBot[i]=Math.max(halfH, vbarPeakBot[i]-vbarVelBot[i]); }
+      var x = i*(barW+gap);
+      var grad = ctx.createLinearGradient(0, centerY-maxHalfH, 0, centerY+maxHalfH);
+      grad.addColorStop(0, currentPalette.secondary);
+      grad.addColorStop(0.5, currentPalette.primary);
+      grad.addColorStop(1, currentPalette.secondary);
+      ctx.fillStyle = grad;
+      ctx.shadowColor = currentPalette.glow; ctx.shadowBlur = 14;
+      ctx.fillRect(x, centerY-halfH, barW, halfH*2);
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = currentPalette.tertiary;
+      ctx.fillRect(x, centerY-vbarPeakTop[i]-2, barW, 2*devicePixelRatio);
+      ctx.fillRect(x, centerY+vbarPeakBot[i], barW, 2*devicePixelRatio);
+    }
+    ctx.restore();
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(0, centerY); ctx.lineTo(w, centerY); ctx.stroke();
+  }
+
+  var hbarPeakL=null, hbarPeakR=null, hbarVelL=null, hbarVelR=null;
+  function drawHBarMirror(w,h){
+    var barCount = 40, binCount = FREQ_BIN_COUNT;
+    if (!hbarPeakL || hbarPeakL.length !== barCount){
+      hbarPeakL=new Array(barCount).fill(0); hbarVelL=new Array(barCount).fill(0);
+      hbarPeakR=new Array(barCount).fill(0); hbarVelR=new Array(barCount).fill(0);
+    }
+    var gap = h*0.008, barH = (h-gap*(barCount-1))/barCount, centerX = w*0.5, maxHalfW = w*0.42;
+    ctx.save();
+    for (var i=0;i<barCount;i++){
+      var t0=i/barCount, t1=(i+1)/barCount;
+      var b0=Math.floor(Math.pow(t0,2.1)*binCount), b1=Math.max(b0+1, Math.floor(Math.pow(t1,2.1)*binCount));
+      var e = bandEnergy(b0,b1)/255;
+      var tiltComp = 1 + t0*2.2;
+      e = Math.min(1, e*tiltComp);
+      var halfW = Math.pow(e,0.85)*maxHalfW;
+      if (halfW>hbarPeakL[i]){ hbarPeakL[i]=halfW; hbarVelL[i]=0; } else { hbarVelL[i]+=0.35*(maxHalfW/h); hbarPeakL[i]=Math.max(halfW, hbarPeakL[i]-hbarVelL[i]); }
+      if (halfW>hbarPeakR[i]){ hbarPeakR[i]=halfW; hbarVelR[i]=0; } else { hbarVelR[i]+=0.35*(maxHalfW/h); hbarPeakR[i]=Math.max(halfW, hbarPeakR[i]-hbarVelR[i]); }
+      var y = i*(barH+gap);
+      var grad = ctx.createLinearGradient(centerX-maxHalfW, 0, centerX+maxHalfW, 0);
+      grad.addColorStop(0, currentPalette.secondary);
+      grad.addColorStop(0.5, currentPalette.primary);
+      grad.addColorStop(1, currentPalette.secondary);
+      ctx.fillStyle = grad;
+      ctx.shadowColor = currentPalette.glow; ctx.shadowBlur = 14;
+      ctx.fillRect(centerX-halfW, y, halfW*2, barH);
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = currentPalette.tertiary;
+      ctx.fillRect(centerX-hbarPeakL[i]-2, y, 2*devicePixelRatio, barH);
+      ctx.fillRect(centerX+hbarPeakR[i], y, 2*devicePixelRatio, barH);
+    }
+    ctx.restore();
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(centerX, 0); ctx.lineTo(centerX, h); ctx.stroke();
   }
 
   var radialSmoothed=null;
@@ -607,18 +683,29 @@
   }
   function hexToHexSafe(hex){ return hex.indexOf('#')===0 ? hex : '#ffffff'; }
 
+  var scopeGain = 1.0;
   function drawScope(w,h,t){
     pullTimeFrame(t);
     var midY=h*0.5;
+    // auto-gain: track the signal's actual peak and scale the display up when it's
+    // quiet, the way a real oscilloscope's autoscale works — otherwise a quiet room
+    // just renders as a flat line even though the visualizer itself is working fine
+    var peak = 0;
+    for (var p=0;p<timeData.length;p+=4){ var av=Math.abs(timeData[p]-128); if (av>peak) peak=av; }
+    var peakNorm = peak/128;
+    var targetGain = Math.min(9, Math.max(1, 0.62/Math.max(peakNorm,0.03)));
+    var rate = (targetGain < scopeGain) ? 0.15 : 0.02;
+    scopeGain = lerp(scopeGain, targetGain, rate);
+
     ctx.save(); ctx.lineWidth=2.2*devicePixelRatio; ctx.strokeStyle=currentPalette.primary;
     ctx.shadowColor=currentPalette.glow; ctx.shadowBlur=18;
     ctx.beginPath();
     var sliceW=w/timeData.length, x=0;
-    for (var i=0;i<timeData.length;i++){ var v=timeData[i]/128.0-1.0, y=midY+v*h*0.32; if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); x+=sliceW; }
+    for (var i=0;i<timeData.length;i++){ var v=(timeData[i]/128.0-1.0)*scopeGain, y=midY+Math.max(-1,Math.min(1,v))*h*0.32; if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); x+=sliceW; }
     ctx.stroke();
     ctx.globalAlpha=0.18; ctx.strokeStyle=currentPalette.secondary; ctx.shadowBlur=0;
     ctx.beginPath(); x=0;
-    for (var j=0;j<timeData.length;j++){ var v2=timeData[j]/128.0-1.0, y2=midY-v2*h*0.32; if (j===0) ctx.moveTo(x,y2); else ctx.lineTo(x,y2); x+=sliceW; }
+    for (var j=0;j<timeData.length;j++){ var v2=(timeData[j]/128.0-1.0)*scopeGain, y2=midY-Math.max(-1,Math.min(1,v2))*h*0.32; if (j===0) ctx.moveTo(x,y2); else ctx.lineTo(x,y2); x+=sliceW; }
     ctx.stroke(); ctx.restore();
     ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.beginPath(); ctx.moveTo(0,midY); ctx.lineTo(w,midY); ctx.stroke();
   }
@@ -1671,6 +1758,8 @@
     pullAudioFrame(t);
 
     if (state.mode === 'bars') drawBars(w,h);
+    else if (state.mode === 'vbarmirror') drawVBarMirror(w,h);
+    else if (state.mode === 'hbarmirror') drawHBarMirror(w,h);
     else if (state.mode === 'radial') drawRadial(w,h,t);
     else if (state.mode === 'scope') drawScope(w,h,t);
     else if (state.mode === 'vu') drawVU(w,h,t);
