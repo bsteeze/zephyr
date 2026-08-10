@@ -433,6 +433,23 @@
   }
   function overallEnergy(loBins, hiBins){ return bandEnergy(loBins, hiBins) / 255; }
 
+  // ---- fractal value noise (for terrain) ----
+  var NOISE_N = 64;
+  var noiseLat = (function(){ var arr = new Float32Array(NOISE_N*NOISE_N); for (var i=0;i<arr.length;i++) arr[i] = Math.random(); return arr; })();
+  function noiseAt(ix,iy){ ix=((ix%NOISE_N)+NOISE_N)%NOISE_N; iy=((iy%NOISE_N)+NOISE_N)%NOISE_N; return noiseLat[iy*NOISE_N+ix]; }
+  function smooth5(t){ return t*t*t*(t*(t*6-15)+10); }
+  function valueNoise2D(x,y){
+    var xi=Math.floor(x), yi=Math.floor(y), xf=x-xi, yf=y-yi;
+    var v00=noiseAt(xi,yi), v10=noiseAt(xi+1,yi), v01=noiseAt(xi,yi+1), v11=noiseAt(xi+1,yi+1);
+    var sx=smooth5(xf), sy=smooth5(yf);
+    return lerp(lerp(v00,v10,sx), lerp(v01,v11,sx), sy);
+  }
+  function fbmNoise(x,y){
+    var amp=0.55, freq=1, total=0, norm=0;
+    for (var o=0;o<4;o++){ total += valueNoise2D(x*freq, y*freq)*amp; norm += amp; amp*=0.52; freq*=2.15; }
+    return total/norm;
+  }
+
   // ================= CLASSIC MODES =================
   var barPeaks=null, barPeakVel=null;
   function drawBars(w,h){
@@ -652,73 +669,76 @@
     ctx.restore();
   }
 
-  // ---- EARTH: Terrain ----
-  var terrainHistory = [], terrainBack = [];
-  var terrainFrame = 0;
+  // ---- EARTH: Terrain (fractal receding ridges, flying forward) ----
+  var earthFlightOffset = 0;
   function drawTerrain(w,h,t){
     var binCount = analyser.frequencyBinCount;
-    var raw = Math.pow(bandEnergy(1, Math.floor(binCount*0.5))/255, 0.85);
-    var idle = 0.16 + 0.10*Math.sin(t*0.0009) + 0.05*Math.sin(t*0.0023+1.7);
-    var e = Math.min(1, raw*0.82 + idle);
-    terrainHistory.push(e);
-    if (terrainHistory.length > 240) terrainHistory.shift();
-    terrainFrame++;
-    if (terrainFrame % 3 === 0){
-      terrainBack.push(Math.min(1, e*0.85 + 0.05*Math.sin(t*0.0006+2.3)));
-      if (terrainBack.length > 160) terrainBack.shift();
-    }
+    var bass = overallEnergy(0, Math.floor(binCount*0.15));
+    earthFlightOffset += 0.0055 + bass*0.018;
 
-    var sway = Math.sin(t*0.00035) * w*0.015;
-    var baseY = h*0.80, maxH = h*0.42;
+    var horizonY = h*0.40, groundY = h*0.86;
+    var LAYERS = 14, PTS = 48;
 
-    function renderLayer(arr, opts){
-      if (arr.length < 2) return;
-      ctx.save();
+    // atmospheric horizon glow
+    ctx.save();
+    var hg = ctx.createLinearGradient(0, horizonY-h*0.12, 0, horizonY+h*0.06);
+    hg.addColorStop(0, hexToRgba(currentPalette.tertiary, 0));
+    hg.addColorStop(1, hexToRgba(currentPalette.tertiary, 0.22));
+    ctx.fillStyle = hg;
+    ctx.fillRect(0, horizonY-h*0.12, w, h*0.18);
+    ctx.restore();
+
+    var nearPoints = null;
+    ctx.save();
+    for (var L=LAYERS-1; L>=0; L--){
+      var tL = L/(LAYERS-1);
+      var baseY = lerp(groundY, horizonY, tL);
+      var amp = lerp(h*0.16, h*0.015, tL);
+      var depthZ = earthFlightOffset + L*0.9;
+      var freqScale = lerp(0.9, 0.3, tL);
+      var isNear = (L === 0);
+      if (isNear) nearPoints = [];
+
       ctx.beginPath();
       ctx.moveTo(0, h);
-      for (var i=0;i<arr.length;i++){
-        var x = (i/(arr.length-1))*w + opts.sway;
-        var y = opts.baseY - arr[i]*opts.amp - opts.lift;
+      for (var i=0;i<=PTS;i++){
+        var frac = i/PTS;
+        var worldX = (frac-0.5)*10;
+        var nz = fbmNoise(worldX*freqScale + 3.7*L, depthZ);
+        var heightVal = nz;
+        if (L < 2){
+          var b0 = Math.floor(frac*binCount*0.5);
+          var audioV = bandEnergy(b0, b0+4)/255;
+          heightVal = heightVal*0.5 + audioV*0.65;
+        }
+        var x = frac*w, y = baseY - heightVal*amp;
         ctx.lineTo(x,y);
+        if (isNear) nearPoints.push([x,y]);
       }
       ctx.lineTo(w,h); ctx.closePath();
-      ctx.fillStyle = opts.fill;
-      ctx.globalAlpha = opts.alpha;
+
+      var nearRGB = hexToRgb(currentPalette.primary);
+      var farRGB = hexToRgb(currentPalette.tertiary);
+      var mixT = Math.pow(tL, 0.7);
+      var rr = lerp(nearRGB.r, farRGB.r, mixT), gg = lerp(nearRGB.g, farRGB.g, mixT), bb = lerp(nearRGB.b, farRGB.b, mixT);
+      var alpha = lerp(0.95, 0.20, mixT);
+      ctx.fillStyle = 'rgba(' + Math.round(rr) + ',' + Math.round(gg) + ',' + Math.round(bb) + ',' + alpha + ')';
+      ctx.shadowBlur = 0;
       ctx.fill();
-      ctx.restore();
-      // ridge line
+    }
+    ctx.restore();
+
+    // crisp highlight along the nearest ridge
+    if (nearPoints){
       ctx.save();
       ctx.beginPath();
-      for (var j=0;j<arr.length;j++){
-        var xx = (j/(arr.length-1))*w + opts.sway, yy = opts.baseY - arr[j]*opts.amp - opts.lift;
-        if (j===0) ctx.moveTo(xx,yy); else ctx.lineTo(xx,yy);
-      }
-      ctx.strokeStyle = opts.ridge; ctx.lineWidth = 1.6*devicePixelRatio;
-      ctx.shadowColor = currentPalette.glow; ctx.shadowBlur = opts.glow;
-      ctx.globalAlpha = opts.ridgeAlpha;
+      for (var j=0;j<nearPoints.length;j++){ var p=nearPoints[j]; if (j===0) ctx.moveTo(p[0],p[1]); else ctx.lineTo(p[0],p[1]); }
+      ctx.strokeStyle = currentPalette.tertiary;
+      ctx.lineWidth = 1.8*devicePixelRatio;
+      ctx.shadowColor = currentPalette.glow; ctx.shadowBlur = 14;
+      ctx.globalAlpha = 0.85;
       ctx.stroke();
       ctx.restore();
-    }
-
-    renderLayer(terrainBack, { baseY: baseY-18*devicePixelRatio, amp: maxH*0.7, lift: 30*devicePixelRatio, fill: currentPalette.shadow, alpha: 0.55, ridge: currentPalette.secondary, ridgeAlpha: 0.25, glow: 0, sway: -sway*0.6 });
-    renderLayer(terrainHistory, { baseY: baseY, amp: maxH, lift: 0, fill: currentPalette.primary, alpha: 0.85, ridge: currentPalette.tertiary, ridgeAlpha: 0.9, glow: 12, sway: sway });
-
-    // crystal spikes on strong recent transient
-    var lastIdx = terrainHistory.length-1;
-    if (lastIdx > 2){
-      var v = terrainHistory[lastIdx], prevV = terrainHistory[lastIdx-2];
-      if (v > 0.78 && v > prevV){
-        var x = w, y = baseY - v*maxH;
-        ctx.save();
-        ctx.fillStyle = currentPalette.tertiary;
-        ctx.shadowColor = currentPalette.glow; ctx.shadowBlur = 16;
-        ctx.beginPath();
-        ctx.moveTo(x-8*devicePixelRatio, y);
-        ctx.lineTo(x, y-20*devicePixelRatio);
-        ctx.lineTo(x+2*devicePixelRatio, y);
-        ctx.closePath(); ctx.fill();
-        ctx.restore();
-      }
     }
   }
 
