@@ -718,15 +718,36 @@
       }
       ctx.lineTo(w,h); ctx.closePath();
 
-      var nearRGB = hexToRgb(currentPalette.primary);
-      var farRGB = hexToRgb(currentPalette.tertiary);
-      var mixT = Math.pow(tL, 0.7);
-      var rr = lerp(nearRGB.r, farRGB.r, mixT), gg = lerp(nearRGB.g, farRGB.g, mixT), bb = lerp(nearRGB.b, farRGB.b, mixT);
-      var alpha = lerp(0.95, 0.20, mixT);
+      var primaryRGB = hexToRgb(currentPalette.primary);
+      var secondaryRGB = hexToRgb(currentPalette.secondary);
+      var tertiaryRGB = hexToRgb(currentPalette.tertiary);
+      var mistRGB = { r: lerp(tertiaryRGB.r,255,0.4), g: lerp(tertiaryRGB.g,255,0.4), b: lerp(tertiaryRGB.b,255,0.4) };
+      var mixT = Math.pow(tL, 0.75);
+      var rr, gg, bb;
+      if (mixT < 0.5){
+        var f1 = mixT*2;
+        rr = lerp(primaryRGB.r, secondaryRGB.r, f1); gg = lerp(primaryRGB.g, secondaryRGB.g, f1); bb = lerp(primaryRGB.b, secondaryRGB.b, f1);
+      } else if (mixT < 0.82){
+        var f2 = (mixT-0.5)/0.32;
+        rr = lerp(secondaryRGB.r, tertiaryRGB.r, f2); gg = lerp(secondaryRGB.g, tertiaryRGB.g, f2); bb = lerp(secondaryRGB.b, tertiaryRGB.b, f2);
+      } else {
+        var f3 = (mixT-0.82)/0.18;
+        rr = lerp(tertiaryRGB.r, mistRGB.r, f3); gg = lerp(tertiaryRGB.g, mistRGB.g, f3); bb = lerp(tertiaryRGB.b, mistRGB.b, f3);
+      }
+      var alpha = lerp(0.95, 0.16, mixT);
       ctx.fillStyle = 'rgba(' + Math.round(rr) + ',' + Math.round(gg) + ',' + Math.round(bb) + ',' + alpha + ')';
       ctx.shadowBlur = 0;
       ctx.fill();
     }
+    ctx.restore();
+
+    // extra mist wash right at the horizon line for a soft, hazy blend into sky
+    ctx.save();
+    var mistG = ctx.createLinearGradient(0, horizonY-h*0.05, 0, horizonY+h*0.10);
+    mistG.addColorStop(0, hexToRgba('#ffffff', 0));
+    mistG.addColorStop(1, hexToRgba('#ffffff', 0.14));
+    ctx.fillStyle = mistG;
+    ctx.fillRect(0, horizonY-h*0.05, w, h*0.15);
     ctx.restore();
 
     // crisp highlight along the nearest ridge
@@ -795,12 +816,22 @@
   // ---- WATER: Liquid ----
   var bubbles = [];
   var liquidSurface = null, liquidPoints = 72;
+  var liquidBars = null, LIQUID_BAR_COLS = 24;
   function drawLiquid(w,h,t){
     analyser.getByteTimeDomainData(timeData);
     var waterLevel = h*0.58;
     var binCount = analyser.frequencyBinCount;
     var energy = overallEnergy(1, Math.floor(binCount*0.5));
     if (!liquidSurface) liquidSurface = new Array(liquidPoints).fill(0);
+    if (!liquidBars) liquidBars = new Array(LIQUID_BAR_COLS).fill(0);
+
+    // per-column spectrum energy — drives both the seafloor light columns and where bubbles rise
+    for (var bcI=0; bcI<LIQUID_BAR_COLS; bcI++){
+      var bt0=bcI/LIQUID_BAR_COLS, bt1=(bcI+1)/LIQUID_BAR_COLS;
+      var bb0=Math.floor(Math.pow(bt0,2.1)*binCount), bb1=Math.max(bb0+1, Math.floor(Math.pow(bt1,2.1)*binCount));
+      var barTarget = Math.pow(bandEnergy(bb0,bb1)/255, 0.8);
+      liquidBars[bcI] = lerp(liquidBars[bcI], barTarget, 0.16);
+    }
 
     // sample raw waveform down to liquidPoints, smoothed
     var n = timeData.length;
@@ -873,10 +904,28 @@
     ctx.stroke();
     ctx.restore();
 
-    // bubbles
-    var bass = overallEnergy(0, Math.floor(binCount*0.12));
-    if (bubbles.length < 130 && Math.random() < (0.05 + bass*0.9)){
-      bubbles.push({ x: Math.random()*w, y: h+10, vy: -(0.6+Math.random()*1.4)*devicePixelRatio, size: (1.5+Math.random()*3)*devicePixelRatio, phase: Math.random()*Math.PI*2, life: 320 });
+    // seafloor light columns — the spectrum, glowing up through the water
+    ctx.save();
+    var colW = w/LIQUID_BAR_COLS;
+    for (var lc=0; lc<LIQUID_BAR_COLS; lc++){
+      var lcH = liquidBars[lc] * h*0.5;
+      if (lcH < 2) continue;
+      var lx = lc*colW;
+      var lg = ctx.createLinearGradient(0, h, 0, h-lcH);
+      lg.addColorStop(0, hexToRgba(currentPalette.tertiary, 0.38));
+      lg.addColorStop(1, hexToRgba(currentPalette.tertiary, 0));
+      ctx.fillStyle = lg;
+      ctx.fillRect(lx+colW*0.12, h-lcH, colW*0.76, lcH);
+    }
+    ctx.restore();
+
+    // bubbles — spawn rate follows each column's own energy, so louder frequencies bubble more
+    for (var sc=0; sc<LIQUID_BAR_COLS; sc++){
+      var colEnergy = liquidBars[sc];
+      if (bubbles.length < 220 && Math.random() < (0.012 + colEnergy*0.16)){
+        var colX = (sc + 0.15 + Math.random()*0.7) * (w/LIQUID_BAR_COLS);
+        bubbles.push({ x: colX, y: h+10, vy: -(0.6+Math.random()*1.4)*devicePixelRatio, size: (1.5+Math.random()*3)*devicePixelRatio, phase: Math.random()*Math.PI*2, life: 320 });
+      }
     }
     ctx.save();
     for (var b = bubbles.length-1; b>=0; b--){
