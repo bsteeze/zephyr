@@ -7,141 +7,91 @@
 <style>
   :root{
     --void: #050914;
-    --void-2: #0a1220;
     --panel: rgba(12,18,32,0.72);
     --hair: rgba(255,255,255,0.08);
     --ink: #eef1fb;
     --ink-dim: #8b93ad;
-    --cyan: #4EEAD0;
-    --violet: #B98EFF;
-    --gold: #F2C879;
-    --ember: #FF7A5C;
-    --glow: 0 0 24px rgba(78,234,208,0.35);
+    --p-primary: #4EEAD0;
+    --p-secondary: #B98EFF;
+    --p-tertiary: #F2C879;
+    --p-glow: rgba(78,234,208,0.45);
+    --p-ambient: rgba(90,110,200,0.10);
   }
   *{box-sizing:border-box;}
-  html,body{
-    margin:0; height:100%; overflow:hidden;
-    background: var(--void);
-    color: var(--ink);
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  html,body{ margin:0; height:100%; overflow:hidden; background: var(--void); color: var(--ink); font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
+  #ambient{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background: radial-gradient(ellipse 70% 55% at 50% 62%, var(--p-ambient), transparent 70%);
+    transition: background 1.1s ease;
   }
-  #stars{
-    position:fixed; inset:0; z-index:0; opacity:0.55; pointer-events:none;
-  }
-  #stage{
-    position:fixed; inset:0; z-index:1;
-  }
+  #stars{ position:fixed; inset:0; z-index:0; opacity:0.5; pointer-events:none; }
+  #stage{ position:fixed; inset:0; z-index:1; }
   canvas#viz{ width:100%; height:100%; display:block; }
 
-  /* ---- Top identity strip ---- */
   #ident{
     position:fixed; top:0; left:0; right:0; z-index:5;
-    display:flex; align-items:center; gap:10px;
-    padding: 16px 20px 0 20px;
-    pointer-events:none;
-    font-family: 'Georgia', 'Iowan Old Style', serif;
-    letter-spacing: 0.14em;
-    font-size: 12px;
-    color: var(--ink-dim);
-    text-transform: uppercase;
+    display:flex; align-items:center; gap:10px; padding: 16px 20px 0 20px;
+    pointer-events:none; font-family: Georgia, 'Iowan Old Style', serif;
+    letter-spacing: 0.14em; font-size: 12px; color: var(--ink-dim); text-transform: uppercase;
   }
-  #ident .sun{ color: var(--gold); font-size:14px; }
+  #ident .sun{ color: var(--p-tertiary); font-size:14px; transition: color 0.6s ease; }
   #ident b{ color: var(--ink); font-weight:600; }
 
-  /* ---- Control dock ---- */
-  #dock{
-    position:fixed; left:50%; bottom:22px; transform:translateX(-50%);
-    z-index:10;
-    display:flex; align-items:center; gap:6px;
-    background: var(--panel);
-    border: 1px solid var(--hair);
-    backdrop-filter: blur(18px) saturate(140%);
-    -webkit-backdrop-filter: blur(18px) saturate(140%);
-    border-radius: 999px;
-    padding: 8px;
-    box-shadow: 0 12px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04);
-    transition: opacity 0.4s ease, transform 0.4s ease;
+  #dockWrap{
+    position:fixed; left:50%; bottom:20px; transform:translateX(-50%);
+    z-index:10; display:flex; flex-direction:column; gap:8px; align-items:center;
+    transition: opacity 0.4s ease, transform 0.4s ease; max-width: 96vw;
   }
-  #dock.hidden{ opacity:0; transform:translateX(-50%) translateY(14px); pointer-events:none; }
+  #dockWrap.hidden{ opacity:0; transform:translateX(-50%) translateY(14px); pointer-events:none; }
+
+  .dock{
+    display:flex; align-items:center; gap:4px;
+    background: var(--panel); border: 1px solid var(--hair);
+    backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%);
+    border-radius: 999px; padding: 7px; box-shadow: 0 12px 40px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.04);
+    max-width: 100%; overflow-x:auto; -ms-overflow-style:none; scrollbar-width:none;
+  }
+  .dock::-webkit-scrollbar{ display:none; }
 
   .dock-btn{
     appearance:none; border:none; background:transparent; color: var(--ink-dim);
-    font-size: 12.5px; letter-spacing:0.02em;
-    padding: 9px 14px; border-radius: 999px;
-    cursor:pointer; display:flex; align-items:center; gap:7px;
-    transition: background 0.2s ease, color 0.2s ease;
+    font-size: 12px; letter-spacing:0.02em; padding: 8px 13px; border-radius: 999px;
+    cursor:pointer; display:flex; align-items:center; gap:6px; transition: background 0.2s ease, color 0.2s ease;
     white-space:nowrap;
   }
   .dock-btn:hover{ color: var(--ink); background: rgba(255,255,255,0.06); }
-  .dock-btn.active{ color: var(--void); background: linear-gradient(135deg, var(--cyan), var(--violet)); font-weight:600; }
-  .dock-sep{ width:1px; height:22px; background: var(--hair); margin: 0 2px; }
+  .dock-btn.active{ color: var(--void); background: linear-gradient(135deg, var(--p-primary), var(--p-secondary)); font-weight:600; }
+  .dock-btn svg{ width:14px; height:14px; display:block; }
+  .dock-btn.active svg{ filter: none; }
+  .dock-sep{ width:1px; height:20px; background: var(--hair); margin: 0 2px; flex-shrink:0; }
 
-  .dock-icon{ width:9px; height:9px; border-radius:2px; display:inline-block; }
+  #sensWrap{ display:flex; align-items:center; gap:8px; padding: 0 10px 0 6px; flex-shrink:0; }
+  #sens{ -webkit-appearance:none; width:70px; height:3px; border-radius:3px; background: linear-gradient(90deg, var(--p-primary), var(--p-secondary)); outline:none; }
+  #sens::-webkit-slider-thumb{ -webkit-appearance:none; width:13px; height:13px; border-radius:50%; background: var(--ink); cursor:pointer; box-shadow: 0 0 8px rgba(255,255,255,0.4); }
+  #sens::-moz-range-thumb{ width:13px; height:13px; border-radius:50%; background: var(--ink); border:none; cursor:pointer; }
 
   #startOverlay{
-    position:fixed; inset:0; z-index:50;
-    display:flex; align-items:center; justify-content:center;
+    position:fixed; inset:0; z-index:50; display:flex; align-items:center; justify-content:center;
     background: radial-gradient(ellipse at 50% 40%, #0d1526 0%, var(--void) 70%);
     flex-direction:column; gap:22px; text-align:center; padding: 20px;
   }
-  #startOverlay .mark{
-    font-family: Georgia, serif; letter-spacing:0.2em; text-transform:uppercase;
-    font-size:13px; color: var(--ink-dim);
-  }
-  #startOverlay h1{
-    margin:0; font-family: Georgia, 'Iowan Old Style', serif; font-weight:400;
-    font-size: clamp(28px, 5vw, 44px); color: var(--ink);
-    letter-spacing: 0.01em;
-  }
-  #startOverlay p{
-    margin:0; color: var(--ink-dim); font-size:14px; max-width:380px; line-height:1.6;
-  }
+  #startOverlay .mark{ font-family: Georgia, serif; letter-spacing:0.2em; text-transform:uppercase; font-size:13px; color: var(--ink-dim); }
+  #startOverlay h1{ margin:0; font-family: Georgia, 'Iowan Old Style', serif; font-weight:400; font-size: clamp(28px, 5vw, 44px); color: var(--ink); }
+  #startOverlay p{ margin:0; color: var(--ink-dim); font-size:14px; max-width:380px; line-height:1.6; }
   .startBtns{ display:flex; gap:12px; flex-wrap:wrap; justify-content:center; margin-top:6px; }
-  .bigBtn{
-    appearance:none; cursor:pointer; border-radius: 999px; padding: 13px 26px;
-    font-size:14px; letter-spacing:0.03em; font-family:inherit;
-    border: 1px solid var(--hair);
-  }
-  .bigBtn.primary{
-    background: linear-gradient(135deg, var(--cyan), var(--violet));
-    color: var(--void); font-weight:600; border:none;
-    box-shadow: 0 8px 30px rgba(78,234,208,0.25);
-  }
+  .bigBtn{ appearance:none; cursor:pointer; border-radius: 999px; padding: 13px 26px; font-size:14px; letter-spacing:0.03em; font-family:inherit; border: 1px solid var(--hair); }
+  .bigBtn.primary{ background: linear-gradient(135deg, #4EEAD0, #B98EFF); color: var(--void); font-weight:600; border:none; box-shadow: 0 8px 30px rgba(78,234,208,0.25); }
   .bigBtn.secondary{ background: rgba(255,255,255,0.04); color: var(--ink); }
   .bigBtn:active{ transform: scale(0.97); }
-  #startErr{ color: var(--ember); font-size:13px; min-height:16px; }
+  #startErr{ color: #FF7A5C; font-size:13px; min-height:16px; }
 
-  /* Sensitivity slider */
-  #sensWrap{ display:flex; align-items:center; gap:8px; padding: 0 10px 0 6px; }
-  #sens{
-    -webkit-appearance:none; width:74px; height:3px; border-radius:3px;
-    background: linear-gradient(90deg, var(--cyan), var(--violet));
-    outline:none;
-  }
-  #sens::-webkit-slider-thumb{
-    -webkit-appearance:none; width:13px; height:13px; border-radius:50%;
-    background: var(--ink); cursor:pointer; box-shadow: 0 0 8px rgba(255,255,255,0.4);
-  }
-  #sens::-moz-range-thumb{
-    width:13px; height:13px; border-radius:50%; background: var(--ink); border:none; cursor:pointer;
-  }
-
-  .fs-only{ display:none; }
-  body.is-fullscreen .fs-only{ display:flex; }
-
-  @media (max-width:640px){
-    #dock{ max-width: 94vw; overflow-x:auto; -ms-overflow-style:none; scrollbar-width:none; }
-    #dock::-webkit-scrollbar{ display:none; }
-    #ident{ font-size:10px; letter-spacing:0.1em; }
-  }
-
-  @media (prefers-reduced-motion: reduce){
-    #dock, #dock.hidden{ transition:none; }
-  }
+  @media (max-width:640px){ #ident{ font-size:10px; letter-spacing:0.1em; } #dockWrap{ bottom:14px; } }
+  @media (prefers-reduced-motion: reduce){ #dockWrap, #dockWrap.hidden{ transition:none; } }
 </style>
 </head>
 <body>
 
+<div id="ambient"></div>
 <canvas id="stars"></canvas>
 <div id="stage"><canvas id="viz"></canvas></div>
 
@@ -150,7 +100,7 @@
 <div id="startOverlay">
   <div class="mark">☼ Zephyr Observatory</div>
   <h1>Hear the room.</h1>
-  <p>Zephyr listens through your microphone — or a browser tab's audio — and renders it live. Nothing is recorded or sent anywhere; it stays in this tab.</p>
+  <p>Zephyr listens through your microphone — or a browser tab's audio — and renders it live as one of four elements. Nothing is recorded or sent anywhere; it stays in this tab.</p>
   <div class="startBtns">
     <button class="bigBtn primary" id="useMic">Use Microphone</button>
     <button class="bigBtn secondary" id="useTab">Use Tab / System Audio</button>
@@ -158,23 +108,67 @@
   <div id="startErr"></div>
 </div>
 
-<div id="dock" class="hidden">
-  <button class="dock-btn active" data-mode="bars"><span class="dock-icon" style="background:var(--cyan)"></span>Bars</button>
-  <button class="dock-btn" data-mode="radial"><span class="dock-icon" style="border-radius:50%;background:var(--violet)"></span>Radial</button>
-  <button class="dock-btn" data-mode="scope"><span class="dock-icon" style="background:var(--gold)"></span>Scope</button>
-  <button class="dock-btn" data-mode="vu"><span class="dock-icon" style="background:var(--ember)"></span>VU</button>
-  <div class="dock-sep"></div>
-  <div id="sensWrap">
-    <span style="font-size:11px;color:var(--ink-dim)">Gain</span>
-    <input type="range" id="sens" min="0.4" max="3" step="0.05" value="1.2">
+<div id="dockWrap" class="hidden">
+  <div class="dock" id="elementDock">
+    <button class="dock-btn" data-element="aurora"><svg viewBox="0 0 16 16"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.4"/><circle cx="8" cy="8" r="2" fill="currentColor"/></svg><span>Aurora</span></button>
+    <button class="dock-btn" data-element="fire"><svg viewBox="0 0 16 16"><polygon points="8,2 14,13 2,13" fill="currentColor"/></svg><span>Fire</span></button>
+    <button class="dock-btn" data-element="air"><svg viewBox="0 0 16 16"><polygon points="8,2 14,13 2,13" fill="none" stroke="currentColor" stroke-width="1.3"/><line x1="4.3" y1="9.3" x2="11.7" y2="9.3" stroke="currentColor" stroke-width="1.3"/></svg><span>Air</span></button>
+    <button class="dock-btn" data-element="water"><svg viewBox="0 0 16 16"><polygon points="8,14 2,3 14,3" fill="currentColor"/></svg><span>Water</span></button>
+    <button class="dock-btn" data-element="earth"><svg viewBox="0 0 16 16"><polygon points="8,14 2,3 14,3" fill="none" stroke="currentColor" stroke-width="1.3"/><line x1="4.3" y1="6.7" x2="11.7" y2="6.7" stroke="currentColor" stroke-width="1.3"/></svg><span>Earth</span></button>
   </div>
-  <div class="dock-sep"></div>
-  <button class="dock-btn" id="fsBtn">Fullscreen</button>
+  <div class="dock" id="mainDock">
+    <button class="dock-btn" data-mode="bars"><span>Bars</span></button>
+    <button class="dock-btn" data-mode="radial"><span>Radial</span></button>
+    <button class="dock-btn" data-mode="scope"><span>Scope</span></button>
+    <button class="dock-btn" data-mode="vu"><span>VU</span></button>
+    <div class="dock-sep"></div>
+    <div id="sensWrap">
+      <span style="font-size:11px;color:var(--ink-dim)">Gain</span>
+      <input type="range" id="sens" min="0.4" max="3" step="0.05" value="1.2">
+    </div>
+    <div class="dock-sep"></div>
+    <button class="dock-btn" id="fsBtn">Fullscreen</button>
+  </div>
 </div>
 
 <script>
 (function(){
   "use strict";
+
+  // ---------------- Palettes ----------------
+  var PALETTES = {
+    aurora: { primary:'#4EEAD0', secondary:'#B98EFF', tertiary:'#F2C879', shadow:'#1c2a3d', glow:'rgba(78,234,208,0.45)', ambient:'rgba(90,110,200,0.10)' },
+    fire:   { primary:'#FF6A3D', secondary:'#FFB347', tertiary:'#FFE9A8', shadow:'#3d0f06', glow:'rgba(255,106,61,0.55)', ambient:'rgba(255,90,50,0.16)' },
+    earth:  { primary:'#7FA65C', secondary:'#C08552', tertiary:'#E8DCC4', shadow:'#241a12', glow:'rgba(140,168,110,0.4)', ambient:'rgba(120,140,90,0.14)' },
+    air:    { primary:'#CFE8FF', secondary:'#8FB6DE', tertiary:'#FFFFFF', shadow:'#0d1b2b', glow:'rgba(207,232,255,0.4)', ambient:'rgba(180,210,255,0.12)' },
+    water:  { primary:'#2E8FA3', secondary:'#7BD3E0', tertiary:'#D9F6F2', shadow:'#04222c', glow:'rgba(46,143,163,0.5)', ambient:'rgba(40,140,170,0.16)' }
+  };
+  var ELEMENT_MODE = { aurora:'bars', fire:'embers', earth:'terrain', air:'streams', water:'liquid' };
+  var currentPalette = PALETTES.aurora;
+
+  function hexToRgb(hex){
+    hex = hex.replace('#','');
+    if (hex.length===3){ hex = hex.split('').map(function(c){return c+c;}).join(''); }
+    var num = parseInt(hex,16);
+    return { r:(num>>16)&255, g:(num>>8)&255, b:num&255 };
+  }
+  function lerpColor(hexA,hexB,t){
+    var a=hexToRgb(hexA), b=hexToRgb(hexB);
+    return 'rgb(' + Math.round(lerp(a.r,b.r,t)) + ',' + Math.round(lerp(a.g,b.g,t)) + ',' + Math.round(lerp(a.b,b.b,t)) + ')';
+  }
+  function hexToRgba(hex, alpha){
+    var c = hexToRgb(hex);
+    return 'rgba(' + c.r + ',' + c.g + ',' + c.b + ',' + alpha + ')';
+  }
+
+  function applyPaletteToCSS(p){
+    var root = document.documentElement.style;
+    root.setProperty('--p-primary', p.primary);
+    root.setProperty('--p-secondary', p.secondary);
+    root.setProperty('--p-tertiary', p.tertiary);
+    root.setProperty('--p-glow', p.glow);
+    root.setProperty('--p-ambient', p.ambient);
+  }
 
   // ---------------- Starfield backdrop ----------------
   var starCanvas = document.getElementById('stars');
@@ -188,13 +182,7 @@
     var n = Math.floor((window.innerWidth * window.innerHeight) / 9000);
     stars = [];
     for (var i=0;i<n;i++){
-      stars.push({
-        x: Math.random()*starCanvas.width,
-        y: Math.random()*starCanvas.height,
-        r: Math.random()*1.4*devicePixelRatio + 0.2,
-        p: Math.random()*Math.PI*2,
-        s: 0.3 + Math.random()*0.9
-      });
+      stars.push({ x: Math.random()*starCanvas.width, y: Math.random()*starCanvas.height, r: Math.random()*1.4*devicePixelRatio + 0.2, p: Math.random()*Math.PI*2, s: 0.3 + Math.random()*0.9 });
     }
   }
   function drawStars(t){
@@ -225,16 +213,10 @@
   resizeAll();
 
   // ---------------- Audio graph ----------------
-  var audioCtx = null;
-  var analyser = null;
-  var gainNode = null;
-  var freqData = null;
-  var timeData = null;
-  var sourceStream = null;
-  var started = false;
+  var audioCtx = null, analyser = null, gainNode = null;
+  var freqData = null, timeData = null, started = false;
 
   function initAudio(stream){
-    sourceStream = stream;
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
     var src = audioCtx.createMediaStreamSource(stream);
     gainNode = audioCtx.createGain();
@@ -248,74 +230,67 @@
     timeData = new Uint8Array(analyser.fftSize);
     started = true;
     document.getElementById('startOverlay').style.display = 'none';
-    document.getElementById('dock').classList.remove('hidden');
+    document.getElementById('dockWrap').classList.remove('hidden');
     requestAnimationFrame(loop);
   }
-
-  function showErr(msg){
-    document.getElementById('startErr').textContent = msg;
-  }
+  function showErr(msg){ document.getElementById('startErr').textContent = msg; }
 
   document.getElementById('useMic').addEventListener('click', function(){
     showErr('');
-    navigator.mediaDevices.getUserMedia({ audio: {
-        echoCancellation:false, noiseSuppression:false, autoGainControl:false
-      }, video:false })
+    navigator.mediaDevices.getUserMedia({ audio: { echoCancellation:false, noiseSuppression:false, autoGainControl:false }, video:false })
       .then(initAudio)
       .catch(function(e){ showErr('Mic access denied or unavailable (' + e.name + ').'); });
   });
-
   document.getElementById('useTab').addEventListener('click', function(){
     showErr('');
-    if (!navigator.mediaDevices.getDisplayMedia){
-      showErr('This browser does not support tab-audio capture — try Microphone.');
-      return;
-    }
+    if (!navigator.mediaDevices.getDisplayMedia){ showErr('This browser does not support tab-audio capture — try Microphone.'); return; }
     navigator.mediaDevices.getDisplayMedia({ video:true, audio:true })
       .then(function(stream){
         var hasAudio = stream.getAudioTracks().length > 0;
         stream.getVideoTracks().forEach(function(t){ t.stop(); });
-        if (!hasAudio){
-          showErr('No audio track was shared — when prompted, tick "Share tab audio".');
-          return;
-        }
+        if (!hasAudio){ showErr('No audio track was shared — when prompted, tick "Share tab audio".'); return; }
         initAudio(stream);
       })
-      .catch(function(e){ showErr('Screen/tab share was cancelled or blocked.'); });
+      .catch(function(){ showErr('Screen/tab share was cancelled or blocked.'); });
   });
+  document.getElementById('sens').addEventListener('input', function(e){ if (gainNode) gainNode.gain.value = parseFloat(e.target.value); });
 
-  document.getElementById('sens').addEventListener('input', function(e){
-    if (gainNode) gainNode.gain.value = parseFloat(e.target.value);
-  });
+  // ---------------- Element + mode state ----------------
+  var state = { element: 'aurora', mode: 'bars' };
+  var elementBtns = document.querySelectorAll('#elementDock [data-element]');
+  var modeBtns = document.querySelectorAll('#mainDock [data-mode]');
 
-  // ---------------- Mode switching ----------------
-  var mode = 'bars';
-  var dockBtns = document.querySelectorAll('.dock-btn[data-mode]');
-  dockBtns.forEach(function(btn){
+  function syncButtons(){
+    elementBtns.forEach(function(b){ b.classList.toggle('active', b.dataset.element === state.element); });
+    modeBtns.forEach(function(b){ b.classList.toggle('active', b.dataset.mode === state.mode); });
+  }
+  elementBtns.forEach(function(btn){
     btn.addEventListener('click', function(){
-      dockBtns.forEach(function(b){ b.classList.remove('active'); });
-      btn.classList.add('active');
-      mode = btn.getAttribute('data-mode');
+      var el = btn.dataset.element;
+      state.element = el;
+      currentPalette = PALETTES[el];
+      applyPaletteToCSS(currentPalette);
+      state.mode = ELEMENT_MODE[el];
+      syncButtons();
     });
   });
+  modeBtns.forEach(function(btn){
+    btn.addEventListener('click', function(){ state.mode = btn.dataset.mode; syncButtons(); });
+  });
+  // default active state
+  currentPalette = PALETTES.aurora; applyPaletteToCSS(currentPalette); syncButtons();
 
   document.getElementById('fsBtn').addEventListener('click', function(){
-    if (!document.fullscreenElement){
-      document.documentElement.requestFullscreen().catch(function(){});
-    } else {
-      document.exitFullscreen();
-    }
+    if (!document.fullscreenElement){ document.documentElement.requestFullscreen().catch(function(){}); }
+    else { document.exitFullscreen(); }
   });
 
-  // auto-hide dock after inactivity
-  var dockEl = document.getElementById('dock');
+  var dockEl = document.getElementById('dockWrap');
   var hideTimer = null;
   function bumpDock(){
     dockEl.classList.remove('hidden');
     clearTimeout(hideTimer);
-    hideTimer = setTimeout(function(){
-      if (started) dockEl.classList.add('hidden');
-    }, 4200);
+    hideTimer = setTimeout(function(){ if (started) dockEl.classList.add('hidden'); }, 4500);
   }
   window.addEventListener('mousemove', bumpDock);
   window.addEventListener('touchstart', bumpDock);
@@ -323,355 +298,413 @@
 
   // ---------------- Helpers ----------------
   function lerp(a,b,t){ return a + (b-a)*t; }
-
-  // peak-hold state for bars
-  var barPeaks = null;
-  var barPeakVel = null;
-  var vuLevel = 0;
-  var vuPeak = 0;
-  var vuPeakHold = 0;
-  var radialSmoothed = null;
-
   function bandEnergy(startBin, endBin){
     var sum = 0, n = 0;
     for (var i=startBin; i<endBin && i<freqData.length; i++){ sum += freqData[i]; n++; }
     return n ? sum/n : 0;
   }
+  function overallEnergy(loBins, hiBins){ return bandEnergy(loBins, hiBins) / 255; }
 
-  // ---------------- Draw: Bars ----------------
+  // ================= CLASSIC MODES =================
+  var barPeaks=null, barPeakVel=null;
   function drawBars(w,h){
-    var barCount = 56;
-    var binCount = analyser.frequencyBinCount;
-    // log-ish grouping so low end isn't crushed
-    if (!barPeaks || barPeaks.length !== barCount){
-      barPeaks = new Array(barCount).fill(0);
-      barPeakVel = new Array(barCount).fill(0);
-    }
-    var gap = w * 0.006;
-    var barW = (w - gap*(barCount-1)) / barCount;
-    var baseY = h*0.86;
-    var maxBarH = h*0.62;
-
+    var barCount = 56, binCount = analyser.frequencyBinCount;
+    if (!barPeaks || barPeaks.length !== barCount){ barPeaks=new Array(barCount).fill(0); barPeakVel=new Array(barCount).fill(0); }
+    var gap = w*0.006, barW = (w-gap*(barCount-1))/barCount, baseY = h*0.86, maxBarH = h*0.62;
     ctx.save();
     for (var i=0;i<barCount;i++){
-      var t0 = i / barCount, t1 = (i+1)/barCount;
-      var b0 = Math.floor(Math.pow(t0, 2.1) * binCount);
-      var b1 = Math.max(b0+1, Math.floor(Math.pow(t1, 2.1) * binCount));
-      var e = bandEnergy(b0,b1) / 255; // 0..1
-      var barH = Math.pow(e, 0.85) * maxBarH;
-
-      if (barH > barPeaks[i]){
-        barPeaks[i] = barH; barPeakVel[i] = 0;
-      } else {
-        barPeakVel[i] += 0.35;
-        barPeaks[i] = Math.max(barH, barPeaks[i] - barPeakVel[i]);
-      }
-
+      var t0=i/barCount, t1=(i+1)/barCount;
+      var b0=Math.floor(Math.pow(t0,2.1)*binCount), b1=Math.max(b0+1, Math.floor(Math.pow(t1,2.1)*binCount));
+      var e = bandEnergy(b0,b1)/255;
+      var barH = Math.pow(e,0.85)*maxBarH;
+      if (barH>barPeaks[i]){ barPeaks[i]=barH; barPeakVel[i]=0; } else { barPeakVel[i]+=0.35; barPeaks[i]=Math.max(barH, barPeaks[i]-barPeakVel[i]); }
       var x = i*(barW+gap);
       var grad = ctx.createLinearGradient(0, baseY-maxBarH, 0, baseY);
-      grad.addColorStop(0, '#B98EFF');
-      grad.addColorStop(0.55, '#4EEAD0');
-      grad.addColorStop(1, '#1c2a3d');
+      grad.addColorStop(0, currentPalette.secondary);
+      grad.addColorStop(0.55, currentPalette.primary);
+      grad.addColorStop(1, currentPalette.shadow);
       ctx.fillStyle = grad;
-      ctx.shadowColor = 'rgba(78,234,208,0.45)';
+      ctx.shadowColor = currentPalette.glow;
       ctx.shadowBlur = 14;
       roundRectTop(ctx, x, baseY-barH, barW, barH, Math.min(4, barW/2));
       ctx.fill();
-
-      // peak cap
       ctx.shadowBlur = 0;
-      ctx.fillStyle = '#F2C879';
-      var capY = baseY - barPeaks[i] - 3;
-      ctx.fillRect(x, capY, barW, 2*devicePixelRatio);
+      ctx.fillStyle = currentPalette.tertiary;
+      ctx.fillRect(x, baseY-barPeaks[i]-3, barW, 2*devicePixelRatio);
     }
     ctx.restore();
-
-    // baseline
-    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(0, baseY+1);
-    ctx.lineTo(w, baseY+1);
-    ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,0.08)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(0, baseY+1); ctx.lineTo(w, baseY+1); ctx.stroke();
   }
   function roundRectTop(ctx,x,y,w,h,r){
-    if (h < r) r = h;
-    if (w < r*2) r = w/2;
-    ctx.beginPath();
-    ctx.moveTo(x, y+h);
-    ctx.lineTo(x, y+r);
-    ctx.arcTo(x,y,x+r,y,r);
-    ctx.lineTo(x+w-r,y);
-    ctx.arcTo(x+w,y,x+w,y+r,r);
-    ctx.lineTo(x+w,y+h);
-    ctx.closePath();
+    if (h<r) r=h; if (w<r*2) r=w/2;
+    ctx.beginPath(); ctx.moveTo(x,y+h); ctx.lineTo(x,y+r); ctx.arcTo(x,y,x+r,y,r);
+    ctx.lineTo(x+w-r,y); ctx.arcTo(x+w,y,x+w,y+r,r); ctx.lineTo(x+w,y+h); ctx.closePath();
   }
 
-  // ---------------- Draw: Radial (chart-wheel) ----------------
+  var radialSmoothed=null;
   function drawRadial(w,h,t){
-    var cx = w/2, cy = h/2;
-    var baseR = Math.min(w,h) * 0.14;
-    var maxLen = Math.min(w,h) * 0.30;
-    var spokes = 90;
-    var binCount = analyser.frequencyBinCount;
-    if (!radialSmoothed || radialSmoothed.length !== spokes){
-      radialSmoothed = new Array(spokes).fill(0);
-    }
-
-    // faint zodiac-style tick ring
-    ctx.save();
-    ctx.translate(cx,cy);
-    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
-    ctx.lineWidth = 1;
-    for (var k=0;k<36;k++){
-      var a = (k/36)*Math.PI*2;
-      var r0 = baseR*0.86, r1 = baseR*0.98;
-      ctx.beginPath();
-      ctx.moveTo(Math.cos(a)*r0, Math.sin(a)*r0);
-      ctx.lineTo(Math.cos(a)*r1, Math.sin(a)*r1);
-      ctx.stroke();
-    }
+    var cx=w/2, cy=h/2, baseR=Math.min(w,h)*0.14, maxLen=Math.min(w,h)*0.30, spokes=90, binCount=analyser.frequencyBinCount;
+    if (!radialSmoothed || radialSmoothed.length!==spokes) radialSmoothed=new Array(spokes).fill(0);
+    ctx.save(); ctx.translate(cx,cy);
+    ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=1;
+    for (var k=0;k<36;k++){ var a=(k/36)*Math.PI*2, r0=baseR*0.86, r1=baseR*0.98;
+      ctx.beginPath(); ctx.moveTo(Math.cos(a)*r0, Math.sin(a)*r0); ctx.lineTo(Math.cos(a)*r1, Math.sin(a)*r1); ctx.stroke(); }
     ctx.restore();
-
-    ctx.save();
-    ctx.translate(cx,cy);
-    ctx.rotate(t*0.00006);
+    ctx.save(); ctx.translate(cx,cy); ctx.rotate(t*0.00006);
     for (var i=0;i<spokes;i++){
-      var t0 = i/spokes, t1=(i+1)/spokes;
-      var b0 = Math.floor(Math.pow(t0,2.0)*binCount);
-      var b1 = Math.max(b0+1, Math.floor(Math.pow(t1,2.0)*binCount));
-      var e = bandEnergy(b0,b1)/255;
-      var target = Math.pow(e,0.9)*maxLen;
-      radialSmoothed[i] = lerp(radialSmoothed[i], target, 0.35);
-      var len = radialSmoothed[i];
-
-      var ang = (i/spokes) * Math.PI*2;
-      var x0 = Math.cos(ang)*baseR, y0 = Math.sin(ang)*baseR;
-      var x1 = Math.cos(ang)*(baseR+len), y1 = Math.sin(ang)*(baseR+len);
-
-      var hue = lerp(190, 280, i/spokes);
-      ctx.strokeStyle = 'hsla(' + hue + ', 85%, 68%, 0.9)';
+      var t0=i/spokes, t1=(i+1)/spokes;
+      var b0=Math.floor(Math.pow(t0,2.0)*binCount), b1=Math.max(b0+1, Math.floor(Math.pow(t1,2.0)*binCount));
+      var e=bandEnergy(b0,b1)/255, target=Math.pow(e,0.9)*maxLen;
+      radialSmoothed[i]=lerp(radialSmoothed[i], target, 0.35);
+      var len=radialSmoothed[i], ang=(i/spokes)*Math.PI*2;
+      var x0=Math.cos(ang)*baseR, y0=Math.sin(ang)*baseR, x1=Math.cos(ang)*(baseR+len), y1=Math.sin(ang)*(baseR+len);
+      ctx.strokeStyle = lerpColor(currentPalette.primary, currentPalette.secondary, i/spokes);
       ctx.lineWidth = Math.max(1.4, (Math.PI*2*(baseR+len)/spokes)*0.55);
-      ctx.lineCap = 'round';
-      ctx.shadowColor = 'rgba(78,234,208,0.5)';
-      ctx.shadowBlur = 10;
-      ctx.beginPath();
-      ctx.moveTo(x0,y0);
-      ctx.lineTo(x1,y1);
-      ctx.stroke();
+      ctx.lineCap='round'; ctx.shadowColor=currentPalette.glow; ctx.shadowBlur=10;
+      ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1,y1); ctx.stroke();
     }
     ctx.restore();
-
-    // center hub — solar disc
-    ctx.save();
-    ctx.translate(cx,cy);
-    var pulse = 1 + 0.04*Math.sin(t*0.004);
-    var hubR = baseR*0.62*pulse;
-    var g = ctx.createRadialGradient(0,0,0,0,0,hubR);
-    g.addColorStop(0, '#fff6df');
-    g.addColorStop(0.4, '#F2C879');
-    g.addColorStop(1, 'rgba(242,200,121,0)');
-    ctx.fillStyle = g;
-    ctx.shadowColor = 'rgba(242,200,121,0.6)';
-    ctx.shadowBlur = 30;
-    ctx.beginPath();
-    ctx.arc(0,0,hubR,0,Math.PI*2);
-    ctx.fill();
-    ctx.restore();
+    ctx.save(); ctx.translate(cx,cy);
+    var pulse=1+0.04*Math.sin(t*0.004), hubR=baseR*0.62*pulse;
+    var g=ctx.createRadialGradient(0,0,0,0,0,hubR);
+    g.addColorStop(0, '#fff6df'); g.addColorStop(0.4, currentPalette.tertiary); g.addColorStop(1, hexToRgba(hexToHexSafe(currentPalette.tertiary), 0));
+    ctx.fillStyle=g; ctx.shadowColor=currentPalette.glow; ctx.shadowBlur=30;
+    ctx.beginPath(); ctx.arc(0,0,hubR,0,Math.PI*2); ctx.fill(); ctx.restore();
   }
+  function hexToHexSafe(hex){ return hex.indexOf('#')===0 ? hex : '#ffffff'; }
 
-  // ---------------- Draw: Scope ----------------
   function drawScope(w,h){
     analyser.getByteTimeDomainData(timeData);
-    var midY = h*0.5;
-    ctx.save();
-    ctx.lineWidth = 2.2*devicePixelRatio;
-    ctx.strokeStyle = '#4EEAD0';
-    ctx.shadowColor = 'rgba(78,234,208,0.7)';
-    ctx.shadowBlur = 18;
+    var midY=h*0.5;
+    ctx.save(); ctx.lineWidth=2.2*devicePixelRatio; ctx.strokeStyle=currentPalette.primary;
+    ctx.shadowColor=currentPalette.glow; ctx.shadowBlur=18;
     ctx.beginPath();
-    var sliceW = w / timeData.length;
-    var x = 0;
-    for (var i=0;i<timeData.length;i++){
-      var v = timeData[i]/128.0 - 1.0; // -1..1
-      var y = midY + v * h * 0.32;
-      if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
-      x += sliceW;
-    }
+    var sliceW=w/timeData.length, x=0;
+    for (var i=0;i<timeData.length;i++){ var v=timeData[i]/128.0-1.0, y=midY+v*h*0.32; if (i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); x+=sliceW; }
     ctx.stroke();
-
-    // faint mirrored echo for depth
-    ctx.globalAlpha = 0.18;
-    ctx.strokeStyle = '#B98EFF';
-    ctx.shadowBlur = 0;
-    ctx.beginPath();
-    x = 0;
-    for (var j=0;j<timeData.length;j++){
-      var v2 = timeData[j]/128.0 - 1.0;
-      var y2 = midY - v2 * h * 0.32;
-      if (j===0) ctx.moveTo(x,y2); else ctx.lineTo(x,y2);
-      x += sliceW;
-    }
-    ctx.stroke();
-    ctx.restore();
-
-    ctx.strokeStyle = 'rgba(255,255,255,0.06)';
-    ctx.beginPath();
-    ctx.moveTo(0,midY); ctx.lineTo(w,midY);
-    ctx.stroke();
+    ctx.globalAlpha=0.18; ctx.strokeStyle=currentPalette.secondary; ctx.shadowBlur=0;
+    ctx.beginPath(); x=0;
+    for (var j=0;j<timeData.length;j++){ var v2=timeData[j]/128.0-1.0, y2=midY-v2*h*0.32; if (j===0) ctx.moveTo(x,y2); else ctx.lineTo(x,y2); x+=sliceW; }
+    ctx.stroke(); ctx.restore();
+    ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.beginPath(); ctx.moveTo(0,midY); ctx.lineTo(w,midY); ctx.stroke();
   }
 
-  // ---------------- Draw: VU (audiophile) ----------------
+  var vuLevel=0, vuPeak=0, vuPeakHold=0;
   function drawVU(w,h){
-    // RMS of time-domain for level, peak-hold from frequency max
     analyser.getByteTimeDomainData(timeData);
-    var sumSq = 0;
-    for (var i=0;i<timeData.length;i++){
-      var v = (timeData[i]-128)/128;
-      sumSq += v*v;
-    }
-    var rms = Math.sqrt(sumSq/timeData.length); // 0..~1
-    var db = 20*Math.log10(Math.max(rms, 0.0001)); // negative typically
-    var norm = (db + 40) / 40; // map -40..0dB to 0..1
-    norm = Math.max(0, Math.min(1.15, norm));
-
-    vuLevel = lerp(vuLevel, norm, 0.18);
-    vuPeak = Math.max(vuPeak - 0.010, vuLevel);
-    if (vuLevel > 0.98) vuPeakHold = 26; else if (vuPeakHold>0) vuPeakHold--;
-
-    var meterW = Math.min(w*0.82, 900*devicePixelRatio);
-    var meterH = meterW * 0.30;
-    var mx = (w-meterW)/2, my = h*0.5 - meterH*0.55;
-
-    // housing
+    var sumSq=0;
+    for (var i=0;i<timeData.length;i++){ var v=(timeData[i]-128)/128; sumSq+=v*v; }
+    var rms=Math.sqrt(sumSq/timeData.length), db=20*Math.log10(Math.max(rms,0.0001));
+    var norm=Math.max(0, Math.min(1.15, (db+40)/40));
+    vuLevel=lerp(vuLevel, norm, 0.18); vuPeak=Math.max(vuPeak-0.010, vuLevel);
+    if (vuLevel>0.98) vuPeakHold=26; else if (vuPeakHold>0) vuPeakHold--;
+    var meterW=Math.min(w*0.82, 900*devicePixelRatio), meterH=meterW*0.30, mx=(w-meterW)/2, my=h*0.5-meterH*0.55;
     ctx.save();
-    var hg = ctx.createLinearGradient(0,my,0,my+meterH);
-    hg.addColorStop(0, '#141c2c');
-    hg.addColorStop(1, '#0a0f1a');
-    ctx.fillStyle = hg;
-    roundRectAll(ctx, mx, my, meterW, meterH, 14*devicePixelRatio);
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(255,255,255,0.08)';
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-
-    // dial face
-    var faceM = meterW*0.045;
-    var fx=mx+faceM, fy=my+faceM, fw=meterW-faceM*2, fh=meterH-faceM*2.6;
-    ctx.fillStyle = '#f4ecd8';
-    roundRectAll(ctx, fx, fy, fw, fh*0.86, 4*devicePixelRatio);
-    ctx.fill();
-
-    // arc geometry
-    var pivotX = fx+fw*0.5, pivotY = fy+fh*1.02;
-    var radius = fh*0.92;
-    var aMin = Math.PI*1.18, aMax = Math.PI*1.86; // sweep
-    // scale ticks
-    ctx.strokeStyle = 'rgba(20,20,20,0.55)';
-    ctx.fillStyle = 'rgba(20,20,20,0.75)';
-    ctx.lineWidth = 1.3;
-    ctx.font = (10*devicePixelRatio) + 'px Georgia, serif';
-    ctx.textAlign = 'center';
-    var labels = [{p:0.0,l:'-20'},{p:0.35,l:'-10'},{p:0.62,l:'-3'},{p:0.78,l:'0'},{p:1.0,l:'+3'}];
+    var hg=ctx.createLinearGradient(0,my,0,my+meterH); hg.addColorStop(0,'#141c2c'); hg.addColorStop(1,'#0a0f1a');
+    ctx.fillStyle=hg; roundRectAll(ctx,mx,my,meterW,meterH,14*devicePixelRatio); ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.08)'; ctx.lineWidth=1.5; ctx.stroke();
+    var faceM=meterW*0.045, fx=mx+faceM, fy=my+faceM, fw=meterW-faceM*2, fh=meterH-faceM*2.6;
+    ctx.fillStyle='#f4ecd8'; roundRectAll(ctx,fx,fy,fw,fh*0.86,4*devicePixelRatio); ctx.fill();
+    var pivotX=fx+fw*0.5, pivotY=fy+fh*1.02, radius=fh*0.92, aMin=Math.PI*1.18, aMax=Math.PI*1.86;
+    ctx.strokeStyle='rgba(20,20,20,0.55)'; ctx.fillStyle='rgba(20,20,20,0.75)'; ctx.lineWidth=1.3;
+    ctx.font=(10*devicePixelRatio)+'px Georgia, serif'; ctx.textAlign='center';
+    var labels=[{p:0.0,l:'-20'},{p:0.35,l:'-10'},{p:0.62,l:'-3'},{p:0.78,l:'0'},{p:1.0,l:'+3'}];
     for (var li=0; li<labels.length; li++){
-      var a = lerp(aMin,aMax,labels[li].p);
-      var tx0 = pivotX+Math.cos(a)*radius*0.86, ty0=pivotY+Math.sin(a)*radius*0.86;
-      var tx1 = pivotX+Math.cos(a)*radius*0.98, ty1=pivotY+Math.sin(a)*radius*0.98;
+      var a=lerp(aMin,aMax,labels[li].p);
+      var tx0=pivotX+Math.cos(a)*radius*0.86, ty0=pivotY+Math.sin(a)*radius*0.86, tx1=pivotX+Math.cos(a)*radius*0.98, ty1=pivotY+Math.sin(a)*radius*0.98;
       ctx.beginPath(); ctx.moveTo(tx0,ty0); ctx.lineTo(tx1,ty1); ctx.stroke();
-      var lx = pivotX+Math.cos(a)*radius*0.72, ly=pivotY+Math.sin(a)*radius*0.72;
-      ctx.fillText(labels[li].l, lx, ly);
+      ctx.fillText(labels[li].l, pivotX+Math.cos(a)*radius*0.72, pivotY+Math.sin(a)*radius*0.72);
     }
-    // red zone
-    ctx.strokeStyle = 'rgba(200,50,40,0.65)';
-    ctx.lineWidth = radius*0.06;
-    ctx.beginPath();
-    ctx.arc(pivotX,pivotY,radius*0.99, lerp(aMin,aMax,0.80), aMax);
-    ctx.stroke();
-    ctx.strokeStyle = 'rgba(60,90,60,0.5)';
-    ctx.beginPath();
-    ctx.arc(pivotX,pivotY,radius*0.99, aMin, lerp(aMin,aMax,0.80));
-    ctx.stroke();
-
-    ctx.fillStyle = 'rgba(20,20,20,0.6)';
-    ctx.font = (9*devicePixelRatio) + 'px Georgia, serif';
-    ctx.fillText('VU', pivotX, pivotY - radius*0.28);
-
-    // needle
-    var needleT = Math.max(0, Math.min(1, vuLevel));
-    var na = lerp(aMin,aMax,needleT);
-    ctx.save();
-    ctx.strokeStyle = '#1a1a1a';
-    ctx.lineWidth = 2*devicePixelRatio;
-    ctx.beginPath();
-    ctx.moveTo(pivotX,pivotY);
-    ctx.lineTo(pivotX+Math.cos(na)*radius*0.92, pivotY+Math.sin(na)*radius*0.92);
-    ctx.stroke();
-    ctx.fillStyle = '#1a1a1a';
-    ctx.beginPath();
-    ctx.arc(pivotX,pivotY, radius*0.05, 0, Math.PI*2);
-    ctx.fill();
-    ctx.restore();
-
-    // peak LED
-    ctx.fillStyle = vuPeakHold>0 ? '#ff5a4d' : 'rgba(255,90,77,0.18)';
-    ctx.shadowColor = vuPeakHold>0 ? 'rgba(255,90,77,0.9)' : 'transparent';
-    ctx.shadowBlur = vuPeakHold>0 ? 14 : 0;
-    ctx.beginPath();
-    ctx.arc(fx+fw-16*devicePixelRatio, fy+14*devicePixelRatio, 5*devicePixelRatio, 0, Math.PI*2);
-    ctx.fill();
-    ctx.shadowBlur = 0;
-
-    // brand plate
-    ctx.fillStyle = 'rgba(20,20,20,0.55)';
-    ctx.font = (8.5*devicePixelRatio) + 'px Georgia, serif';
+    ctx.strokeStyle='rgba(200,50,40,0.65)'; ctx.lineWidth=radius*0.06;
+    ctx.beginPath(); ctx.arc(pivotX,pivotY,radius*0.99, lerp(aMin,aMax,0.80), aMax); ctx.stroke();
+    ctx.strokeStyle='rgba(60,90,60,0.5)';
+    ctx.beginPath(); ctx.arc(pivotX,pivotY,radius*0.99, aMin, lerp(aMin,aMax,0.80)); ctx.stroke();
+    ctx.fillStyle='rgba(20,20,20,0.6)'; ctx.font=(9*devicePixelRatio)+'px Georgia, serif'; ctx.fillText('VU', pivotX, pivotY-radius*0.28);
+    var needleT=Math.max(0,Math.min(1,vuLevel)), na=lerp(aMin,aMax,needleT);
+    ctx.save(); ctx.strokeStyle='#1a1a1a'; ctx.lineWidth=2*devicePixelRatio;
+    ctx.beginPath(); ctx.moveTo(pivotX,pivotY); ctx.lineTo(pivotX+Math.cos(na)*radius*0.92, pivotY+Math.sin(na)*radius*0.92); ctx.stroke();
+    ctx.fillStyle='#1a1a1a'; ctx.beginPath(); ctx.arc(pivotX,pivotY,radius*0.05,0,Math.PI*2); ctx.fill(); ctx.restore();
+    ctx.fillStyle = vuPeakHold>0 ? currentPalette.primary : hexToRgba(hexToHexSafe(currentPalette.primary), 0.18);
+    ctx.shadowColor = vuPeakHold>0 ? currentPalette.glow : 'transparent'; ctx.shadowBlur = vuPeakHold>0 ? 14 : 0;
+    ctx.beginPath(); ctx.arc(fx+fw-16*devicePixelRatio, fy+14*devicePixelRatio, 5*devicePixelRatio, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur=0;
+    ctx.fillStyle='rgba(20,20,20,0.55)'; ctx.font=(8.5*devicePixelRatio)+'px Georgia, serif';
     ctx.fillText('ZEPHYR   ·   SOLAR HARMONY', pivotX, my+meterH-10*devicePixelRatio);
-
     ctx.restore();
-
-    // small peak dB readout under meter
-    ctx.fillStyle = 'rgba(238,241,251,0.55)';
-    ctx.font = (11*devicePixelRatio) + 'px Georgia, serif';
-    ctx.textAlign='center';
+    ctx.fillStyle='rgba(238,241,251,0.55)'; ctx.font=(11*devicePixelRatio)+'px Georgia, serif'; ctx.textAlign='center';
     ctx.fillText((db>-39? db.toFixed(1):'-∞') + ' dB RMS', w/2, my+meterH+30*devicePixelRatio);
   }
-
   function roundRectAll(ctx,x,y,w,h,r){
+    ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+  }
+
+  // ================= ELEMENT MODES =================
+
+  // ---- FIRE: Embers ----
+  var emberParticles = [];
+  function drawEmbers(w,h,t){
+    var cols = 40, binCount = analyser.frequencyBinCount, baseY = h*0.90, maxFlameH = h*0.5;
+    var envelope = [];
+    for (var i=0;i<cols;i++){
+      var t0=i/cols, t1=(i+1)/cols;
+      var b0=Math.floor(Math.pow(t0,2.0)*binCount), b1=Math.max(b0+1, Math.floor(Math.pow(t1,2.0)*binCount));
+      envelope.push(Math.pow(bandEnergy(b0,b1)/255, 0.8));
+    }
+    // flame silhouette
+    ctx.save();
     ctx.beginPath();
-    ctx.moveTo(x+r,y);
-    ctx.arcTo(x+w,y,x+w,y+h,r);
-    ctx.arcTo(x+w,y+h,x,y+h,r);
-    ctx.arcTo(x,y+h,x,y,r);
-    ctx.arcTo(x,y,x+w,y,r);
-    ctx.closePath();
+    ctx.moveTo(0, h);
+    ctx.lineTo(0, baseY);
+    for (var c=0;c<cols;c++){
+      var x = (c/(cols-1))*w;
+      var flicker = Math.sin(t*0.006 + c*0.7)*0.05;
+      var y = baseY - (envelope[c]+flicker) * maxFlameH;
+      var xPrev = c===0 ? x : ((c-1)/(cols-1))*w;
+      var xMid = (x+xPrev)/2;
+      ctx.quadraticCurveTo(xMid, y, x, y);
+    }
+    ctx.lineTo(w, h); ctx.closePath();
+    var fg = ctx.createLinearGradient(0, baseY-maxFlameH, 0, h);
+    fg.addColorStop(0, currentPalette.tertiary);
+    fg.addColorStop(0.35, currentPalette.secondary);
+    fg.addColorStop(0.75, currentPalette.primary);
+    fg.addColorStop(1, currentPalette.shadow);
+    ctx.fillStyle = fg;
+    ctx.shadowColor = currentPalette.glow; ctx.shadowBlur = 28;
+    ctx.fill();
+    ctx.restore();
+
+    // particles
+    var energy = overallEnergy(2, Math.floor(binCount*0.35));
+    var spawnCount = Math.floor(energy * 3.2);
+    for (var s=0; s<spawnCount && emberParticles.length < 240; s++){
+      var col = Math.floor(Math.random()*cols);
+      var wx = (col/(cols-1))*w + (Math.random()-0.5)*10*devicePixelRatio;
+      var wy = baseY - envelope[col]*maxFlameH;
+      emberParticles.push({
+        x: wx, y: wy,
+        vx: (Math.random()-0.5)*0.4,
+        vy: -(0.6 + Math.random()*1.4) * devicePixelRatio,
+        size: (1.2 + Math.random()*2.2) * devicePixelRatio,
+        life: 60 + Math.random()*50, maxLife: 100,
+        phase: Math.random()*Math.PI*2,
+        colorPick: Math.random()
+      });
+    }
+    ctx.save();
+    for (var p = emberParticles.length-1; p>=0; p--){
+      var ep = emberParticles[p];
+      ep.x += ep.vx + Math.sin(t*0.004 + ep.phase)*0.5;
+      ep.y += ep.vy; ep.vy *= 0.992; ep.life--;
+      if (ep.life<=0 || ep.y < -20){ emberParticles.splice(p,1); continue; }
+      var alpha = Math.max(0, ep.life/ep.maxLife);
+      var col = ep.colorPick < 0.33 ? currentPalette.tertiary : (ep.colorPick<0.66 ? currentPalette.secondary : currentPalette.primary);
+      ctx.globalAlpha = alpha;
+      ctx.fillStyle = col;
+      ctx.shadowColor = currentPalette.glow; ctx.shadowBlur = 10;
+      ctx.beginPath(); ctx.arc(ep.x, ep.y, ep.size*alpha, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // ---- EARTH: Terrain ----
+  var terrainHistory = [], terrainBack = [];
+  var terrainFrame = 0;
+  function drawTerrain(w,h,t){
+    var binCount = analyser.frequencyBinCount;
+    var e = Math.pow(bandEnergy(1, Math.floor(binCount*0.5))/255, 0.85);
+    terrainHistory.push(e);
+    if (terrainHistory.length > 240) terrainHistory.shift();
+    terrainFrame++;
+    if (terrainFrame % 3 === 0){
+      terrainBack.push(e);
+      if (terrainBack.length > 160) terrainBack.shift();
+    }
+
+    var baseY = h*0.80, maxH = h*0.42;
+
+    function renderLayer(arr, opts){
+      if (arr.length < 2) return;
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(0, h);
+      for (var i=0;i<arr.length;i++){
+        var x = (i/(arr.length-1))*w;
+        var y = opts.baseY - arr[i]*opts.amp - opts.lift;
+        if (i===0) ctx.lineTo(x,y); else ctx.lineTo(x,y);
+      }
+      ctx.lineTo(w,h); ctx.closePath();
+      ctx.fillStyle = opts.fill;
+      ctx.globalAlpha = opts.alpha;
+      ctx.fill();
+      ctx.restore();
+      // ridge line
+      ctx.save();
+      ctx.beginPath();
+      for (var j=0;j<arr.length;j++){
+        var xx = (j/(arr.length-1))*w, yy = opts.baseY - arr[j]*opts.amp - opts.lift;
+        if (j===0) ctx.moveTo(xx,yy); else ctx.lineTo(xx,yy);
+      }
+      ctx.strokeStyle = opts.ridge; ctx.lineWidth = 1.6*devicePixelRatio;
+      ctx.shadowColor = currentPalette.glow; ctx.shadowBlur = opts.glow;
+      ctx.globalAlpha = opts.ridgeAlpha;
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    renderLayer(terrainBack, { baseY: baseY-18*devicePixelRatio, amp: maxH*0.7, lift: 30*devicePixelRatio, fill: currentPalette.shadow, alpha: 0.55, ridge: currentPalette.secondary, ridgeAlpha: 0.25, glow: 0 });
+    renderLayer(terrainHistory, { baseY: baseY, amp: maxH, lift: 0, fill: currentPalette.primary, alpha: 0.85, ridge: currentPalette.tertiary, ridgeAlpha: 0.9, glow: 12 });
+
+    // crystal spikes on strong recent transient
+    var lastIdx = terrainHistory.length-1;
+    if (lastIdx > 2){
+      var v = terrainHistory[lastIdx], prevV = terrainHistory[lastIdx-2];
+      if (v > 0.78 && v > prevV){
+        var x = w, y = baseY - v*maxH;
+        ctx.save();
+        ctx.fillStyle = currentPalette.tertiary;
+        ctx.shadowColor = currentPalette.glow; ctx.shadowBlur = 16;
+        ctx.beginPath();
+        ctx.moveTo(x-8*devicePixelRatio, y);
+        ctx.lineTo(x, y-20*devicePixelRatio);
+        ctx.lineTo(x+2*devicePixelRatio, y);
+        ctx.closePath(); ctx.fill();
+        ctx.restore();
+      }
+    }
+  }
+
+  // ---- AIR: Streamlines ----
+  var wisps = [];
+  function drawStreams(w,h,t){
+    var streamCount = 6, binCount = analyser.frequencyBinCount;
+    ctx.save();
+    for (var i=0;i<streamCount;i++){
+      var lo = Math.floor(Math.pow(i/streamCount, 1.6)*binCount);
+      var hi = Math.max(lo+1, Math.floor(Math.pow((i+1)/streamCount, 1.6)*binCount));
+      var amp = (bandEnergy(lo,hi)/255) * h*0.16 + h*0.02;
+      var baseline = h*(0.22 + i*(0.6/streamCount));
+      var dir = (i%2===0) ? 1 : -1;
+      ctx.beginPath();
+      var steps = 70;
+      for (var s=0;s<=steps;s++){
+        var x = (s/steps)*w;
+        var y = baseline + Math.sin(x*0.0035 + t*0.0011*dir + i*1.3) * amp;
+        if (s===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      }
+      var grad = ctx.createLinearGradient(0,0,w,0);
+      grad.addColorStop(0, hexToRgba(currentPalette.primary, 0.05));
+      grad.addColorStop(0.5, hexToRgba(currentPalette.secondary, 0.75));
+      grad.addColorStop(1, hexToRgba(currentPalette.primary, 0.05));
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = (1.6 + (i%3)*0.6) * devicePixelRatio;
+      ctx.shadowColor = currentPalette.glow; ctx.shadowBlur = 10;
+      ctx.lineCap = 'round';
+      ctx.stroke();
+    }
+    ctx.restore();
+
+    // wisps
+    var energy = overallEnergy(2, Math.floor(binCount*0.4));
+    if (wisps.length < 90 && Math.random() < 0.25 + energy*0.4){
+      wisps.push({ x: -10, y: Math.random()*h, speed: (0.8+Math.random()*2.2)*devicePixelRatio, size: (1+Math.random()*1.8)*devicePixelRatio, phase: Math.random()*Math.PI*2, life: 300+Math.random()*200 });
+    }
+    ctx.save();
+    for (var wI = wisps.length-1; wI>=0; wI--){
+      var wp = wisps[wI];
+      wp.x += wp.speed; wp.life--;
+      var yy = wp.y + Math.sin(t*0.003 + wp.phase)*10*devicePixelRatio;
+      if (wp.x > w+10 || wp.life<=0){ wisps.splice(wI,1); continue; }
+      ctx.globalAlpha = 0.5;
+      ctx.fillStyle = currentPalette.tertiary;
+      ctx.shadowColor = currentPalette.glow; ctx.shadowBlur = 6;
+      ctx.beginPath(); ctx.arc(wp.x, yy, wp.size, 0, Math.PI*2); ctx.fill();
+    }
+    ctx.restore();
+  }
+
+  // ---- WATER: Liquid ----
+  var bubbles = [];
+  function drawLiquid(w,h,t){
+    analyser.getByteTimeDomainData(timeData);
+    var waterLevel = h*0.60;
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(0, h);
+    var n = timeData.length, step = Math.max(1, Math.floor(n/160));
+    var firstY = null;
+    for (var i=0;i<n;i+=step){
+      var v = timeData[i]/128.0 - 1.0;
+      var x = (i/n)*w;
+      var y = waterLevel + v*h*0.16;
+      if (firstY===null){ firstY=y; ctx.lineTo(x,y); } else { ctx.lineTo(x,y); }
+    }
+    ctx.lineTo(w,h); ctx.closePath();
+    var lg = ctx.createLinearGradient(0, waterLevel-40*devicePixelRatio, 0, h);
+    lg.addColorStop(0, hexToRgba(currentPalette.secondary, 0.9));
+    lg.addColorStop(0.4, hexToRgba(currentPalette.primary, 0.85));
+    lg.addColorStop(1, currentPalette.shadow);
+    ctx.fillStyle = lg;
+    ctx.shadowColor = currentPalette.glow; ctx.shadowBlur = 20;
+    ctx.fill();
+    ctx.restore();
+
+    // surface highlight line
+    ctx.save();
+    ctx.beginPath();
+    for (var j=0;j<n;j+=step){
+      var v2 = timeData[j]/128.0 - 1.0, x2=(j/n)*w, y2=waterLevel+v2*h*0.16;
+      if (j===0) ctx.moveTo(x2,y2); else ctx.lineTo(x2,y2);
+    }
+    ctx.strokeStyle = currentPalette.tertiary;
+    ctx.lineWidth = 1.8*devicePixelRatio;
+    ctx.shadowColor = currentPalette.glow; ctx.shadowBlur = 14;
+    ctx.globalAlpha = 0.8;
+    ctx.stroke();
+    ctx.restore();
+
+    // bubbles
+    var binCount = analyser.frequencyBinCount;
+    var bass = overallEnergy(0, Math.floor(binCount*0.12));
+    if (bubbles.length < 120 && Math.random() < bass*0.9){
+      bubbles.push({ x: Math.random()*w, y: h+10, vy: -(0.6+Math.random()*1.3)*devicePixelRatio, size: (1.5+Math.random()*3)*devicePixelRatio, phase: Math.random()*Math.PI*2, life: 300 });
+    }
+    ctx.save();
+    for (var b = bubbles.length-1; b>=0; b--){
+      var bb = bubbles[b];
+      bb.y += bb.vy; bb.life--;
+      var bx = bb.x + Math.sin(t*0.005+bb.phase)*3*devicePixelRatio;
+      if (bb.y < waterLevel - 10 || bb.life<=0){ bubbles.splice(b,1); continue; }
+      ctx.globalAlpha = 0.55;
+      ctx.strokeStyle = currentPalette.tertiary;
+      ctx.lineWidth = 1*devicePixelRatio;
+      ctx.beginPath(); ctx.arc(bx, bb.y, bb.size, 0, Math.PI*2); ctx.stroke();
+    }
+    ctx.restore();
   }
 
   // ---------------- Main loop ----------------
   function loop(t){
     requestAnimationFrame(loop);
     drawStars(t);
-
     var w = canvas.width, h = canvas.height;
     ctx.clearRect(0,0,w,h);
-
     if (!started || !analyser) return;
     analyser.getByteFrequencyData(freqData);
 
-    if (mode === 'bars') drawBars(w,h);
-    else if (mode === 'radial') drawRadial(w,h,t);
-    else if (mode === 'scope') drawScope(w,h);
-    else if (mode === 'vu') drawVU(w,h);
+    if (state.mode === 'bars') drawBars(w,h);
+    else if (state.mode === 'radial') drawRadial(w,h,t);
+    else if (state.mode === 'scope') drawScope(w,h);
+    else if (state.mode === 'vu') drawVU(w,h);
+    else if (state.mode === 'embers') drawEmbers(w,h,t);
+    else if (state.mode === 'terrain') drawTerrain(w,h,t);
+    else if (state.mode === 'streams') drawStreams(w,h,t);
+    else if (state.mode === 'liquid') drawLiquid(w,h,t);
   }
 
-  // idle star animation even before audio starts
-  (function idlePreview(){
-    if (started) return;
-    drawStars(performance.now());
-    requestAnimationFrame(idlePreview);
-  })();
+  (function idlePreview(){ if (started) return; drawStars(performance.now()); requestAnimationFrame(idlePreview); })();
 
-  document.addEventListener('fullscreenchange', function(){
-    document.body.classList.toggle('is-fullscreen', !!document.fullscreenElement);
-  });
+  document.addEventListener('fullscreenchange', function(){ document.body.classList.toggle('is-fullscreen', !!document.fullscreenElement); });
 
 })();
 </script>
