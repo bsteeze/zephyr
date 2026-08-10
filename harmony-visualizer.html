@@ -70,11 +70,12 @@
   .style-toggle .chev{ width:9px; height:6px; opacity:0.6; transition: transform 0.2s ease; }
   .style-toggle.open .chev{ transform: rotate(180deg); }
   .style-menu{
-    position:absolute; bottom: calc(100% + 10px); left:50%; transform:translateX(-50%);
+    position:fixed; transform:translateX(-50%);
     background: rgba(10,15,28,0.96); border: 1px solid var(--hair); border-radius: 14px;
     backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%);
     padding: 8px; min-width: 168px; box-shadow: 0 16px 44px rgba(0,0,0,0.55);
     display:none; flex-direction:column; gap:1px; max-height: 60vh; overflow-y:auto;
+    z-index: 100;
   }
   .style-menu.open{ display:flex; }
   .style-group-label{ font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color: var(--ink-dim); padding: 8px 10px 4px; }
@@ -327,15 +328,22 @@
   elementBtns.forEach(function(btn){ btn.addEventListener('click', function(){ setElement(btn.dataset.element); }); });
   styleMenuBtns.forEach(function(btn){ btn.addEventListener('click', function(){ setMode(btn.dataset.mode); closeStyleMenu(); }); });
 
-  function openStyleMenu(){ styleMenu.classList.add('open'); styleToggle.classList.add('open'); styleToggle.setAttribute('aria-expanded','true'); }
+  document.body.appendChild(styleMenu);
+  function positionStyleMenu(){
+    var rect = styleToggle.getBoundingClientRect();
+    styleMenu.style.left = (rect.left + rect.width/2) + 'px';
+    styleMenu.style.bottom = (window.innerHeight - rect.top + 10) + 'px';
+  }
+  function openStyleMenu(){ positionStyleMenu(); styleMenu.classList.add('open'); styleToggle.classList.add('open'); styleToggle.setAttribute('aria-expanded','true'); }
   function closeStyleMenu(){ styleMenu.classList.remove('open'); styleToggle.classList.remove('open'); styleToggle.setAttribute('aria-expanded','false'); }
   styleToggle.addEventListener('click', function(e){
     e.stopPropagation();
     if (styleMenu.classList.contains('open')) closeStyleMenu(); else openStyleMenu();
   });
   document.addEventListener('click', function(e){
-    if (!document.getElementById('stylePicker').contains(e.target)) closeStyleMenu();
+    if (!document.getElementById('stylePicker').contains(e.target) && !styleMenu.contains(e.target)) closeStyleMenu();
   });
+  window.addEventListener('resize', function(){ if (styleMenu.classList.contains('open')) positionStyleMenu(); });
   document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeStyleMenu(); });
 
   // default active state
