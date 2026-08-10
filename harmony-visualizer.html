@@ -105,6 +105,20 @@
   .bigBtn.secondary{ background: rgba(255,255,255,0.04); color: var(--ink); }
   .bigBtn:active{ transform: scale(0.97); }
   #startErr{ color: #FF7A5C; font-size:13px; min-height:16px; }
+  .textBtn{
+    appearance:none; background:transparent; border:none; color: var(--ink-dim);
+    font-size:13px; text-decoration:underline; text-underline-offset:3px; cursor:pointer;
+    font-family:inherit; margin-top:2px;
+  }
+  .textBtn:hover{ color: var(--ink); }
+  #ambientBadge{
+    position:fixed; top:16px; right:20px; z-index:6;
+    background: rgba(12,18,32,0.78); border:1px solid var(--hair); border-radius:999px;
+    padding:7px 14px; font-size:11px; letter-spacing:0.04em; color: var(--ink-dim);
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    opacity:0; transform:translateY(-6px); pointer-events:none; transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+  #ambientBadge.show{ opacity:1; transform:translateY(0); }
 
   @media (max-width:640px){ #ident{ font-size:10px; letter-spacing:0.1em; } #dockWrap{ bottom:14px; } }
   @media (prefers-reduced-motion: reduce){ #dockWrap, #dockWrap.hidden{ transition:none; } }
@@ -117,6 +131,7 @@
 <div id="stage"><canvas id="viz"></canvas></div>
 
 <div id="ident"><span class="sun">☼</span> ZEPHYR <b>— Harmony Visualizer</b></div>
+<div id="ambientBadge">Ambient patterns — no audio detected</div>
 
 <div id="startOverlay">
   <div class="mark">☼ Zephyr Observatory</div>
@@ -126,6 +141,7 @@
     <button class="bigBtn primary" id="useMic">Use Microphone</button>
     <button class="bigBtn secondary" id="useTab">Use Tab / System Audio</button>
   </div>
+  <button class="textBtn" id="useAmbient">Skip audio — just show ambient patterns</button>
   <div id="startErr"></div>
 </div>
 
@@ -156,6 +172,7 @@
         <button data-mode="spectro" role="menuitem">Spectrogram</button>
         <button data-mode="starfield" role="menuitem">Starfield Warp</button>
         <button data-mode="fractal" role="menuitem">Fractal</button>
+        <button data-mode="lavalamp" role="menuitem">Lava Lamp</button>
         <div class="style-group-label">Elemental</div>
         <button data-mode="embers" role="menuitem">Embers</button>
         <button data-mode="terrain" role="menuitem">Terrain</button>
@@ -258,8 +275,64 @@
   resizeAll();
 
   // ---------------- Audio graph ----------------
+  var FREQ_BIN_COUNT = 1024, TIME_LEN = 2048;
   var audioCtx = null, analyser = null, gainNode = null;
-  var freqData = null, timeData = null, started = false;
+  var freqData = new Uint8Array(FREQ_BIN_COUNT), timeData = new Uint8Array(TIME_LEN);
+  var started = false;
+  var usingAmbientFallback = false, silenceFrames = 0;
+  var SILENCE_EPS = 3, SILENCE_FRAMES_TRIGGER = 210, RECOVERY_FRAMES = 20, recoveryFrames = 0;
+
+  // Procedural stand-in signal used when there's no real audio (explicit ambient start,
+  // or a granted source — like a DRM-protected Spotify tab — that comes through silent).
+  function fillSyntheticFreq(arr, tMs){
+    var n = arr.length;
+    var beat = 0.5 + 0.5*Math.sin(tMs*0.0022);
+    var beat2 = 0.5 + 0.5*Math.sin(tMs*0.0007 + 1.3);
+    for (var i=0;i<n;i++){
+      var f = i/n;
+      var v = Math.max(0, Math.sin(f*Math.PI*3 + tMs*0.0009)) * 0.5;
+      v += Math.max(0, Math.sin(f*Math.PI*7 - tMs*0.0006 + 2)) * 0.3;
+      v *= (0.35 + beat*0.65);
+      v += Math.exp(-f*8) * (0.4 + beat2*0.5);
+      arr[i] = Math.min(255, Math.floor(Math.min(1,v)*255));
+    }
+  }
+  function fillSyntheticTime(arr, tMs){
+    var n = arr.length;
+    var beat = 0.5 + 0.5*Math.sin(tMs*0.0022);
+    for (var j=0;j<n;j++){
+      var ph = (j/n)*Math.PI*2;
+      var s = Math.sin(ph*3 + tMs*0.004)*0.4 + Math.sin(ph*7 - tMs*0.0025)*0.2;
+      s *= (0.4 + beat*0.5);
+      arr[j] = Math.max(0, Math.min(255, Math.floor(128 + s*100)));
+    }
+  }
+  function pullAudioFrame(tMs){
+    if (!analyser){ fillSyntheticFreq(freqData, tMs); return; }
+    analyser.getByteFrequencyData(freqData);
+    var sum=0; for (var i=0;i<freqData.length;i+=8) sum += freqData[i];
+    var avg = sum/(freqData.length/8);
+    if (avg < SILENCE_EPS){
+      silenceFrames++; recoveryFrames = 0;
+      if (silenceFrames > SILENCE_FRAMES_TRIGGER) setAmbientFallback(true);
+    } else {
+      silenceFrames = 0;
+      recoveryFrames++;
+      if (recoveryFrames > RECOVERY_FRAMES) setAmbientFallback(false);
+    }
+    if (usingAmbientFallback) fillSyntheticFreq(freqData, tMs);
+  }
+  function pullTimeFrame(tMs){
+    if (!analyser || usingAmbientFallback){ fillSyntheticTime(timeData, tMs); return; }
+    analyser.getByteTimeDomainData(timeData);
+  }
+  var ambientBadge = document.getElementById('ambientBadge');
+  function setAmbientFallback(on){
+    if (on === usingAmbientFallback) return;
+    usingAmbientFallback = on;
+    if (!ambientBadge) return;
+    ambientBadge.classList.toggle('show', on && !!analyser);
+  }
 
   function initAudio(stream){
     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -267,12 +340,13 @@
     gainNode = audioCtx.createGain();
     gainNode.gain.value = parseFloat(document.getElementById('sens').value);
     analyser = audioCtx.createAnalyser();
-    analyser.fftSize = 2048;
+    analyser.fftSize = TIME_LEN;
     analyser.smoothingTimeConstant = 0.82;
     src.connect(gainNode);
     gainNode.connect(analyser);
-    freqData = new Uint8Array(analyser.frequencyBinCount);
-    timeData = new Uint8Array(analyser.fftSize);
+    startVisualizer();
+  }
+  function startVisualizer(){
     started = true;
     document.getElementById('startOverlay').style.display = 'none';
     document.getElementById('dockWrap').classList.remove('hidden');
@@ -298,12 +372,17 @@
       })
       .catch(function(){ showErr('Screen/tab share was cancelled or blocked.'); });
   });
+  document.getElementById('useAmbient').addEventListener('click', function(){
+    analyser = null;
+    usingAmbientFallback = true;
+    startVisualizer();
+  });
   document.getElementById('sens').addEventListener('input', function(e){ if (gainNode) gainNode.gain.value = parseFloat(e.target.value); });
 
   // ---------------- Element + style state ----------------
   var MODE_LABELS = {
     bars:'Bars', radial:'Radial', scope:'Scope', vu:'VU Meter',
-    kaleidoscope:'Kaleidoscope', tunnel:'Tunnel', plasma:'Plasma', spectro:'Spectrogram', starfield:'Starfield Warp', fractal:'Fractal',
+    kaleidoscope:'Kaleidoscope', tunnel:'Tunnel', plasma:'Plasma', spectro:'Spectrogram', starfield:'Starfield Warp', fractal:'Fractal', lavalamp:'Lava Lamp',
     embers:'Embers', terrain:'Terrain', streams:'Streamlines', liquid:'Liquid'
   };
   var state = { element: 'aurora', mode: 'bars' };
@@ -462,7 +541,7 @@
   // ================= CLASSIC MODES =================
   var barPeaks=null, barPeakVel=null;
   function drawBars(w,h){
-    var barCount = 56, binCount = analyser.frequencyBinCount;
+    var barCount = 56, binCount = FREQ_BIN_COUNT;
     if (!barPeaks || barPeaks.length !== barCount){ barPeaks=new Array(barCount).fill(0); barPeakVel=new Array(barCount).fill(0); }
     var gap = w*0.006, barW = (w-gap*(barCount-1))/barCount, baseY = h*0.86, maxBarH = h*0.62;
     ctx.save();
@@ -498,7 +577,7 @@
 
   var radialSmoothed=null;
   function drawRadial(w,h,t){
-    var cx=w/2, cy=h/2, baseR=Math.min(w,h)*0.14, maxLen=Math.min(w,h)*0.30, spokes=90, binCount=analyser.frequencyBinCount;
+    var cx=w/2, cy=h/2, baseR=Math.min(w,h)*0.14, maxLen=Math.min(w,h)*0.30, spokes=90, binCount=FREQ_BIN_COUNT;
     if (!radialSmoothed || radialSmoothed.length!==spokes) radialSmoothed=new Array(spokes).fill(0);
     ctx.save(); ctx.translate(cx,cy);
     ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.lineWidth=1;
@@ -528,8 +607,8 @@
   }
   function hexToHexSafe(hex){ return hex.indexOf('#')===0 ? hex : '#ffffff'; }
 
-  function drawScope(w,h){
-    analyser.getByteTimeDomainData(timeData);
+  function drawScope(w,h,t){
+    pullTimeFrame(t);
     var midY=h*0.5;
     ctx.save(); ctx.lineWidth=2.2*devicePixelRatio; ctx.strokeStyle=currentPalette.primary;
     ctx.shadowColor=currentPalette.glow; ctx.shadowBlur=18;
@@ -545,8 +624,8 @@
   }
 
   var vuLevel=0, vuPeak=0, vuPeakHold=0;
-  function drawVU(w,h){
-    analyser.getByteTimeDomainData(timeData);
+  function drawVU(w,h,t){
+    pullTimeFrame(t);
     var sumSq=0;
     for (var i=0;i<timeData.length;i++){ var v=(timeData[i]-128)/128; sumSq+=v*v; }
     var rms=Math.sqrt(sumSq/timeData.length), db=20*Math.log10(Math.max(rms,0.0001));
@@ -599,7 +678,7 @@
   var emberEnvelope = null;
   var EMBER_COLS = 40;
   function drawEmbers(w,h,t){
-    var cols = EMBER_COLS, binCount = analyser.frequencyBinCount, baseY = h*0.90, maxFlameH = h*0.5;
+    var cols = EMBER_COLS, binCount = FREQ_BIN_COUNT, baseY = h*0.90, maxFlameH = h*0.5;
     if (!emberEnvelope) emberEnvelope = new Array(cols).fill(0);
 
     var raw = [];
@@ -681,7 +760,7 @@
   // ---- EARTH: Terrain (fractal receding ridges, flying forward) ----
   var earthFlightOffset = 0;
   function drawTerrain(w,h,t){
-    var binCount = analyser.frequencyBinCount;
+    var binCount = FREQ_BIN_COUNT;
     var bass = overallEnergy(0, Math.floor(binCount*0.15));
     earthFlightOffset += 0.0055 + bass*0.018;
 
@@ -775,7 +854,7 @@
   // ---- AIR: Streamlines ----
   var wisps = [];
   function drawStreams(w,h,t){
-    var streamCount = 6, binCount = analyser.frequencyBinCount;
+    var streamCount = 6, binCount = FREQ_BIN_COUNT;
     ctx.save();
     for (var i=0;i<streamCount;i++){
       var lo = Math.floor(Math.pow(i/streamCount, 1.6)*binCount);
@@ -826,9 +905,9 @@
   var liquidSurface = null, liquidPoints = 72;
   var liquidBars = null, LIQUID_BAR_COLS = 24;
   function drawLiquid(w,h,t){
-    analyser.getByteTimeDomainData(timeData);
+    pullTimeFrame(t);
     var waterLevel = h*0.58;
-    var binCount = analyser.frequencyBinCount;
+    var binCount = FREQ_BIN_COUNT;
     var energy = overallEnergy(1, Math.floor(binCount*0.5));
     if (!liquidSurface) liquidSurface = new Array(liquidPoints).fill(0);
     if (!liquidBars) liquidBars = new Array(LIQUID_BAR_COLS).fill(0);
@@ -977,7 +1056,7 @@
     ctx.stroke();
   }
   function drawKaleidoscope(w,h,t){
-    var cx=w/2, cy=h/2, segments=10, maxR=Math.min(w,h)*0.5, binCount=analyser.frequencyBinCount;
+    var cx=w/2, cy=h/2, segments=10, maxR=Math.min(w,h)*0.5, binCount=FREQ_BIN_COUNT;
     var wedgeAngle = (Math.PI*2/segments)/2;
     ctx.save();
     ctx.translate(cx,cy);
@@ -1004,7 +1083,7 @@
 
   // ---- TUNNEL: warping rings ----
   function drawTunnel(w,h,t){
-    var cx=w/2, cy=h/2, maxR=Math.hypot(w,h)*0.62, ringCount=16, binCount=analyser.frequencyBinCount;
+    var cx=w/2, cy=h/2, maxR=Math.hypot(w,h)*0.62, ringCount=16, binCount=FREQ_BIN_COUNT;
     var bass = overallEnergy(0, Math.floor(binCount*0.12));
     var speed = 0.00018 + bass*0.00055;
     ctx.save(); ctx.translate(cx,cy);
@@ -1041,30 +1120,36 @@
   function ensurePlasmaBuf(){
     if (!plasmaBuf){
       plasmaBuf = document.createElement('canvas');
-      plasmaBuf.width = 128; plasmaBuf.height = 72;
+      plasmaBuf.width = 480; plasmaBuf.height = 300;
       plasmaCtx = plasmaBuf.getContext('2d');
-      plasmaImageData = plasmaCtx.createImageData(128,72);
+      plasmaImageData = plasmaCtx.createImageData(480,300);
     }
   }
   function drawPlasma(w,h,t){
     ensurePlasmaBuf();
     var bw = plasmaBuf.width, bh = plasmaBuf.height;
     var data = plasmaImageData.data;
-    var binCount = analyser.frequencyBinCount;
+    var binCount = FREQ_BIN_COUNT;
     var bass = overallEnergy(0, Math.floor(binCount*0.12));
     var mid = overallEnergy(Math.floor(binCount*0.12), Math.floor(binCount*0.4));
-    var f1 = 0.10 + bass*0.06, f2 = 0.09 + mid*0.05, f3 = 0.045, f4 = 0.12;
-    var speed = 0.0016 + bass*0.0028;
+    var treble = overallEnergy(Math.floor(binCount*0.4), Math.floor(binCount*0.8));
+    var speed = 0.0017 + bass*0.0026;
+    var rot = t*0.00004;
+    var cosR = Math.cos(rot), sinR = Math.sin(rot);
+    var f1 = 0.032 + bass*0.012, f2 = 0.027 + mid*0.010, f3 = 0.011, f4 = 0.040 + treble*0.02, f5 = 0.09, f6 = 0.021;
     var stops = [hexToRgb(currentPalette.shadow), hexToRgb(currentPalette.primary), hexToRgb(currentPalette.secondary), hexToRgb(currentPalette.tertiary)];
     var idx = 0, cx = bw/2, cy = bh/2;
     for (var y=0;y<bh;y++){
       for (var x=0;x<bw;x++){
-        var dx = x-cx, dy = y-cy;
+        var dx0 = x-cx, dy0 = y-cy;
+        var dx = dx0*cosR - dy0*sinR, dy = dx0*sinR + dy0*cosR;
         var v = Math.sin(x*f1 + t*speed)
               + Math.sin(y*f2 - t*speed*1.3)
               + Math.sin((x+y)*f3 + t*speed*0.7)
-              + Math.sin(Math.sqrt(dx*dx+dy*dy)*f4 - t*speed*1.6);
-        var norm = (v+4)/8;
+              + Math.sin(Math.sqrt(dx*dx+dy*dy)*f4 - t*speed*1.6)
+              + Math.sin(dx*f5 - dy*f6 + t*speed*0.55)*0.7
+              + Math.sin(Math.sin(x*0.014 + t*speed*0.3)*9 + y*f2*0.4 - t*speed*0.9)*0.6;
+        var norm = (v+5.3)/10.6;
         var phase = ((norm + t*0.00004) % 1 + 1) % 1;
         var segF = phase*stops.length;
         var si = Math.floor(segF) % stops.length, sj = (si+1) % stops.length, f = segF-Math.floor(segF);
@@ -1088,7 +1173,7 @@
   var spectroHistory = [], spectroFrameCounter = 0;
   var SPECTRO_BARS = 40, SPECTRO_ROWS = 22;
   function drawSpectro(w,h,t){
-    var binCount = analyser.frequencyBinCount;
+    var binCount = FREQ_BIN_COUNT;
     spectroFrameCounter++;
     if (spectroFrameCounter % 2 === 0){
       var row = [];
@@ -1141,7 +1226,7 @@
   }
   function drawStarfield(w,h,t){
     ensureWarpStars(w,h);
-    var cx=w/2, cy=h/2, binCount=analyser.frequencyBinCount;
+    var cx=w/2, cy=h/2, binCount=FREQ_BIN_COUNT;
     var bass = overallEnergy(0, Math.floor(binCount*0.12));
     var speed = (2 + bass*22) * devicePixelRatio;
     ctx.save();
@@ -1176,6 +1261,80 @@
     ctx.restore();
   }
 
+  // ---- LAVA LAMP: rising/merging metaballs ----
+  var lavaBuf=null, lavaCtx=null, lavaImageData=null, lavaBlobs=null;
+  function smoothstepFn(e0,e1,x){ var tt=Math.max(0,Math.min(1,(x-e0)/(e1-e0))); return tt*tt*(3-tt*2); }
+  function stopLerpRGB(stops,t){
+    var segF = t*(stops.length-1);
+    var si = Math.floor(segF); if (si>=stops.length-1) si = stops.length-2; if (si<0) si=0;
+    var f = segF-si;
+    var a=stops[si], b=stops[si+1];
+    return { r:a.r+(b.r-a.r)*f, g:a.g+(b.g-a.g)*f, b:a.b+(b.b-a.b)*f };
+  }
+  function ensureLavaBuf(){
+    if (!lavaBuf){
+      lavaBuf = document.createElement('canvas');
+      lavaBuf.width = 400; lavaBuf.height = 250;
+      lavaCtx = lavaBuf.getContext('2d');
+      lavaImageData = lavaCtx.createImageData(400,250);
+    }
+    if (!lavaBlobs){
+      lavaBlobs = [];
+      for (var i=0;i<7;i++){
+        lavaBlobs.push({
+          xBase: 0.14 + Math.random()*0.72,
+          xAmp: 0.05 + Math.random()*0.09,
+          xPhase: Math.random()*Math.PI*2,
+          period: 15000 + Math.random()*11000,
+          phaseOffset: Math.random()*400000,
+          baseR: 0.085 + Math.random()*0.055
+        });
+      }
+    }
+  }
+  function drawLavaLamp(w,h,t){
+    ensureLavaBuf();
+    var bw = lavaBuf.width, bh = lavaBuf.height;
+    var data = lavaImageData.data;
+    var binCount = FREQ_BIN_COUNT;
+    var bass = overallEnergy(0, Math.floor(binCount*0.12));
+    var stops = [hexToRgb(currentPalette.shadow), hexToRgb(currentPalette.primary), hexToRgb(currentPalette.secondary), hexToRgb(currentPalette.tertiary)];
+
+    var blobsPx = [];
+    for (var i=0;i<lavaBlobs.length;i++){
+      var bl = lavaBlobs[i];
+      var cyclePos = ((t + bl.phaseOffset) % bl.period) / bl.period;
+      var tri = cyclePos < 0.5 ? cyclePos*2 : (1-cyclePos)*2;
+      var eased = tri*tri*(3-2*tri);
+      var yNorm = lerp(0.94, 0.06, eased);
+      var xNorm = bl.xBase + Math.sin(t*0.00013 + bl.xPhase)*bl.xAmp;
+      var rNorm = bl.baseR * (1 + bass*0.55);
+      blobsPx.push({ x: xNorm*bw, y: yNorm*bh, r: rNorm*bh });
+    }
+
+    var idx=0;
+    for (var y=0;y<bh;y++){
+      for (var x=0;x<bw;x++){
+        var field = 0;
+        for (var bi=0;bi<blobsPx.length;bi++){
+          var b = blobsPx[bi];
+          var dx=x-b.x, dy=y-b.y;
+          field += (b.r*b.r)/(dx*dx+dy*dy+1);
+        }
+        var innerT = smoothstepFn(0.32, 2.6, field);
+        var col = stopLerpRGB(stops, innerT);
+        data[idx]=col.r; data[idx+1]=col.g; data[idx+2]=col.b; data[idx+3]=255;
+        idx+=4;
+      }
+    }
+    lavaCtx.putImageData(lavaImageData, 0, 0);
+    ctx.save();
+    ctx.imageSmoothingEnabled = true;
+    if ('imageSmoothingQuality' in ctx) ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(lavaBuf, 0,0,bw,bh, 0,0,w,h);
+    ctx.restore();
+  }
+
   // ---- FRACTAL: Julia set (Mandelbrot family, animated) ----
   // Using an animated Julia set rather than a fixed Mandelbrot zoom: the Mandelbrot
   // set's own shape never changes (only the camera would move), while a Julia set's
@@ -1185,29 +1344,40 @@
   function ensureFractalBuf(){
     if (!fractalBuf){
       fractalBuf = document.createElement('canvas');
-      fractalBuf.width = 320; fractalBuf.height = 200;
+      fractalBuf.width = 640; fractalBuf.height = 400;
       fractalCtx = fractalBuf.getContext('2d');
-      fractalImageData = fractalCtx.createImageData(320,200);
+      fractalImageData = fractalCtx.createImageData(640,400);
     }
   }
   function drawFractal(w,h,t){
     ensureFractalBuf();
     var bw = fractalBuf.width, bh = fractalBuf.height;
     var data = fractalImageData.data;
-    var binCount = analyser.frequencyBinCount;
+    var binCount = FREQ_BIN_COUNT;
     var bass = overallEnergy(0, Math.floor(binCount*0.12));
     var mid = overallEnergy(Math.floor(binCount*0.12), Math.floor(binCount*0.4));
     var angle = t*0.00016 + bass*0.0025;
     var radius = 0.72 + 0.14*Math.sin(t*0.00027) + mid*0.18;
     var cx = radius*Math.cos(angle), cy = radius*Math.sin(angle);
-    var scale = 2.6 + 0.35*Math.sin(t*0.00021) - bass*0.3;
-    var maxIter = 34;
+
+    // slow cinematic zoom: breathes from a wide view into deep structure and back,
+    // panning gently toward a shifting point of interest near the fractal boundary
+    var zoomCycle = 0.5 + 0.5*Math.sin(t*0.000085);
+    var zoomPhase = Math.pow(zoomCycle, 1.6);
+    var baseScale = 2.7;
+    var scale = lerp(baseScale, 0.10, zoomPhase) - bass*0.06;
+    scale = Math.max(0.06, scale);
+    var panAngle = t*0.00011 + 2.1;
+    var panRadius = 0.55 * zoomPhase;
+    var panX = Math.cos(panAngle) * panRadius;
+    var panY = Math.sin(panAngle*1.3) * panRadius;
+    var maxIter = Math.min(140, Math.floor(30 + zoomPhase*95));
     var stops = [hexToRgb(currentPalette.shadow), hexToRgb(currentPalette.primary), hexToRgb(currentPalette.secondary), hexToRgb(currentPalette.tertiary)];
     var idx = 0, aspect = bw/bh;
     for (var py=0; py<bh; py++){
-      var y0 = ((py/bh)-0.5)*scale;
+      var y0 = ((py/bh)-0.5)*scale + panY;
       for (var px=0; px<bw; px++){
-        var x0 = ((px/bw)-0.5)*scale*aspect;
+        var x0 = ((px/bw)-0.5)*scale*aspect + panX;
         var zr=x0, zi=y0, iter=0;
         while (iter<maxIter && zr*zr+zi*zi<4){
           var zr2 = zr*zr - zi*zi + cx;
@@ -1244,13 +1414,13 @@
     drawStars(t);
     var w = canvas.width, h = canvas.height;
     ctx.clearRect(0,0,w,h);
-    if (!started || !analyser) return;
-    analyser.getByteFrequencyData(freqData);
+    if (!started) return;
+    pullAudioFrame(t);
 
     if (state.mode === 'bars') drawBars(w,h);
     else if (state.mode === 'radial') drawRadial(w,h,t);
-    else if (state.mode === 'scope') drawScope(w,h);
-    else if (state.mode === 'vu') drawVU(w,h);
+    else if (state.mode === 'scope') drawScope(w,h,t);
+    else if (state.mode === 'vu') drawVU(w,h,t);
     else if (state.mode === 'embers') drawEmbers(w,h,t);
     else if (state.mode === 'terrain') drawTerrain(w,h,t);
     else if (state.mode === 'streams') drawStreams(w,h,t);
@@ -1261,6 +1431,7 @@
     else if (state.mode === 'spectro') drawSpectro(w,h,t);
     else if (state.mode === 'starfield') drawStarfield(w,h,t);
     else if (state.mode === 'fractal') drawFractal(w,h,t);
+    else if (state.mode === 'lavalamp') drawLavaLamp(w,h,t);
   }
 
   (function idlePreview(){ if (started) return; drawStars(performance.now()); requestAnimationFrame(idlePreview); })();
