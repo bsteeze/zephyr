@@ -623,25 +623,38 @@
     ctx.strokeStyle='rgba(255,255,255,0.06)'; ctx.beginPath(); ctx.moveTo(0,midY); ctx.lineTo(w,midY); ctx.stroke();
   }
 
-  var vuLevel=0, vuPeak=0, vuPeakHold=0;
-  function drawVU(w,h,t){
-    pullTimeFrame(t);
-    var sumSq=0;
-    for (var i=0;i<timeData.length;i++){ var v=(timeData[i]-128)/128; sumSq+=v*v; }
-    var rms=Math.sqrt(sumSq/timeData.length), db=20*Math.log10(Math.max(rms,0.0001));
-    var norm=Math.max(0, Math.min(1.15, (db+40)/40));
-    vuLevel=lerp(vuLevel, norm, 0.18); vuPeak=Math.max(vuPeak-0.010, vuLevel);
-    if (vuLevel>0.98) vuPeakHold=26; else if (vuPeakHold>0) vuPeakHold--;
-    var meterW=Math.min(w*0.82, 900*devicePixelRatio), meterH=meterW*0.30, mx=(w-meterW)/2, my=h*0.5-meterH*0.55;
-    ctx.save();
-    var hg=ctx.createLinearGradient(0,my,0,my+meterH); hg.addColorStop(0,'#141c2c'); hg.addColorStop(1,'#0a0f1a');
-    ctx.fillStyle=hg; roundRectAll(ctx,mx,my,meterW,meterH,14*devicePixelRatio); ctx.fill();
-    ctx.strokeStyle='rgba(255,255,255,0.08)'; ctx.lineWidth=1.5; ctx.stroke();
-    var faceM=meterW*0.045, fx=mx+faceM, fy=my+faceM, fw=meterW-faceM*2, fh=meterH-faceM*2.6;
-    ctx.fillStyle='#f4ecd8'; roundRectAll(ctx,fx,fy,fw,fh*0.86,4*devicePixelRatio); ctx.fill();
-    var pivotX=fx+fw*0.5, pivotY=fy+fh*1.02, radius=fh*0.92, aMin=Math.PI*1.18, aMax=Math.PI*1.86;
+  var vuL = {level:0, vel:0, ledPeak:0, peakHold:0};
+  var vuR = {level:0, vel:0, ledPeak:0, peakHold:0};
+  function springNeedle(state, target, springK, damping){
+    var accel = (target-state.level)*springK - state.vel*damping;
+    state.vel += accel;
+    state.level += state.vel;
+    if (state.level > 1.18){ state.level = 1.18; state.vel *= -0.35; }
+    if (state.level < 0){ state.level = 0; state.vel *= -0.35; }
+  }
+  function drawLEDBar(x,y,w,h,level,peakLevel){
+    var segs = 26, gap = w/segs*0.22, segW = w/segs - gap;
+    for (var i=0;i<segs;i++){
+      var segT = i/(segs-1);
+      var sx = x + i*(w/segs);
+      var zoneCol = segT < 0.6 ? '#5fbf6e' : (segT < 0.82 ? '#e8c95a' : '#e2554a');
+      var lit = level >= segT;
+      var isPeak = Math.abs(peakLevel-segT) < (1/segs)*0.65;
+      ctx.fillStyle = lit ? zoneCol : 'rgba(255,255,255,0.05)';
+      if (lit){ ctx.shadowColor = zoneCol; ctx.shadowBlur = 6; } else { ctx.shadowBlur = 0; }
+      ctx.fillRect(sx, y, segW, h);
+      ctx.shadowBlur = 0;
+      if (isPeak){
+        ctx.strokeStyle = 'rgba(255,255,255,0.85)'; ctx.lineWidth = 1*devicePixelRatio;
+        ctx.strokeRect(sx, y, segW, h);
+      }
+    }
+  }
+  function drawAnalogDial(cx, faceX, faceY, faceW, faceH, state, label){
+    ctx.fillStyle='#f4ecd8'; roundRectAll(ctx,faceX,faceY,faceW,faceH,4*devicePixelRatio); ctx.fill();
+    var pivotX=faceX+faceW*0.5, pivotY=faceY+faceH*1.06, radius=faceH*0.96, aMin=Math.PI*1.18, aMax=Math.PI*1.86;
     ctx.strokeStyle='rgba(20,20,20,0.55)'; ctx.fillStyle='rgba(20,20,20,0.75)'; ctx.lineWidth=1.3;
-    ctx.font=(10*devicePixelRatio)+'px Georgia, serif'; ctx.textAlign='center';
+    ctx.font=(9.5*devicePixelRatio)+'px Georgia, serif'; ctx.textAlign='center';
     var labels=[{p:0.0,l:'-20'},{p:0.35,l:'-10'},{p:0.62,l:'-3'},{p:0.78,l:'0'},{p:1.0,l:'+3'}];
     for (var li=0; li<labels.length; li++){
       var a=lerp(aMin,aMax,labels[li].p);
@@ -649,23 +662,90 @@
       ctx.beginPath(); ctx.moveTo(tx0,ty0); ctx.lineTo(tx1,ty1); ctx.stroke();
       ctx.fillText(labels[li].l, pivotX+Math.cos(a)*radius*0.72, pivotY+Math.sin(a)*radius*0.72);
     }
-    ctx.strokeStyle='rgba(200,50,40,0.65)'; ctx.lineWidth=radius*0.06;
+    ctx.strokeStyle='rgba(200,50,40,0.65)'; ctx.lineWidth=radius*0.055;
     ctx.beginPath(); ctx.arc(pivotX,pivotY,radius*0.99, lerp(aMin,aMax,0.80), aMax); ctx.stroke();
     ctx.strokeStyle='rgba(60,90,60,0.5)';
     ctx.beginPath(); ctx.arc(pivotX,pivotY,radius*0.99, aMin, lerp(aMin,aMax,0.80)); ctx.stroke();
-    ctx.fillStyle='rgba(20,20,20,0.6)'; ctx.font=(9*devicePixelRatio)+'px Georgia, serif'; ctx.fillText('VU', pivotX, pivotY-radius*0.28);
-    var needleT=Math.max(0,Math.min(1,vuLevel)), na=lerp(aMin,aMax,needleT);
-    ctx.save(); ctx.strokeStyle='#1a1a1a'; ctx.lineWidth=2*devicePixelRatio;
+    ctx.fillStyle='rgba(20,20,20,0.6)'; ctx.font=(8.5*devicePixelRatio)+'px Georgia, serif'; ctx.fillText('VU', pivotX, pivotY-radius*0.24);
+    ctx.fillStyle='rgba(20,20,20,0.45)'; ctx.font=(8*devicePixelRatio)+'px Georgia, serif'; ctx.fillText(label, pivotX, faceY+faceH*0.2);
+    var needleT=Math.max(0,Math.min(1,state.level)), na=lerp(aMin,aMax,needleT);
+    ctx.save(); ctx.strokeStyle='#1a1a1a'; ctx.lineWidth=1.8*devicePixelRatio;
     ctx.beginPath(); ctx.moveTo(pivotX,pivotY); ctx.lineTo(pivotX+Math.cos(na)*radius*0.92, pivotY+Math.sin(na)*radius*0.92); ctx.stroke();
-    ctx.fillStyle='#1a1a1a'; ctx.beginPath(); ctx.arc(pivotX,pivotY,radius*0.05,0,Math.PI*2); ctx.fill(); ctx.restore();
-    ctx.fillStyle = vuPeakHold>0 ? currentPalette.primary : hexToRgba(hexToHexSafe(currentPalette.primary), 0.18);
-    ctx.shadowColor = vuPeakHold>0 ? currentPalette.glow : 'transparent'; ctx.shadowBlur = vuPeakHold>0 ? 14 : 0;
-    ctx.beginPath(); ctx.arc(fx+fw-16*devicePixelRatio, fy+14*devicePixelRatio, 5*devicePixelRatio, 0, Math.PI*2); ctx.fill(); ctx.shadowBlur=0;
-    ctx.fillStyle='rgba(20,20,20,0.55)'; ctx.font=(8.5*devicePixelRatio)+'px Georgia, serif';
-    ctx.fillText('ZEPHYR   ·   SOLAR HARMONY', pivotX, my+meterH-10*devicePixelRatio);
+    ctx.fillStyle='#1a1a1a'; ctx.beginPath(); ctx.arc(pivotX,pivotY,radius*0.045,0,Math.PI*2); ctx.fill(); ctx.restore();
+    // glass highlight sweep across the face
+    ctx.save();
+    var gh = ctx.createLinearGradient(faceX,faceY,faceX+faceW*0.5,faceY+faceH);
+    gh.addColorStop(0, 'rgba(255,255,255,0.16)'); gh.addColorStop(0.35, 'rgba(255,255,255,0.02)'); gh.addColorStop(1,'rgba(255,255,255,0)');
+    ctx.fillStyle = gh; roundRectAll(ctx,faceX,faceY,faceW,faceH,4*devicePixelRatio); ctx.fill();
     ctx.restore();
+  }
+  function drawScrew(x,y,r){
+    var g=ctx.createRadialGradient(x-r*0.3,y-r*0.3,0,x,y,r);
+    g.addColorStop(0,'rgba(220,220,225,0.8)'); g.addColorStop(1,'rgba(40,44,52,0.9)');
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle='rgba(10,10,12,0.7)'; ctx.lineWidth=r*0.35;
+    ctx.beginPath(); ctx.moveTo(x-r*0.55,y); ctx.lineTo(x+r*0.55,y); ctx.stroke();
+  }
+  function drawVU(w,h,t){
+    pullTimeFrame(t);
+    var sumSq=0;
+    for (var i=0;i<timeData.length;i++){ var v=(timeData[i]-128)/128; sumSq+=v*v; }
+    var rms=Math.sqrt(sumSq/timeData.length), db=20*Math.log10(Math.max(rms,0.0001));
+    var norm=Math.max(0, Math.min(1.15, (db+40)/40));
+
+    springNeedle(vuL, norm, 0.10, 0.34);
+    springNeedle(vuR, norm, 0.093, 0.31);
+    vuL.ledPeak = Math.max(vuL.ledPeak-0.022, norm);
+    vuR.ledPeak = Math.max(vuR.ledPeak-0.022, norm*0.97);
+    vuL.peakHold = Math.max(vuL.peakHold-0.006, vuL.level);
+    vuR.peakHold = Math.max(vuR.peakHold-0.006, vuR.level);
+
+    var housingW = Math.min(w*0.88, 1500*devicePixelRatio), housingH = housingW*0.44;
+    var mx=(w-housingW)/2, my=h*0.5-housingH*0.58;
+
+    ctx.save();
+    var hg=ctx.createLinearGradient(mx,my,mx+housingW*0.6,my+housingH);
+    hg.addColorStop(0,'#232a38'); hg.addColorStop(0.45,'#161c28'); hg.addColorStop(0.55,'#1c2332'); hg.addColorStop(1,'#0d121c');
+    ctx.fillStyle=hg; roundRectAll(ctx,mx,my,housingW,housingH,16*devicePixelRatio); ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,0.10)'; ctx.lineWidth=1.5; ctx.stroke();
+
+    var scr = 5*devicePixelRatio, pad = 16*devicePixelRatio;
+    drawScrew(mx+pad, my+pad, scr); drawScrew(mx+housingW-pad, my+pad, scr);
+    drawScrew(mx+pad, my+housingH-pad, scr); drawScrew(mx+housingW-pad, my+housingH-pad, scr);
+
+    var margin = housingW*0.035, dividerW = housingW*0.10;
+    var faceW = (housingW - margin*2 - dividerW)/2, faceH = housingH*0.56;
+    var faceY = my + housingH*0.10;
+    var faceLX = mx+margin, faceRX = mx+housingW-margin-faceW;
+
+    drawAnalogDial(w, faceLX, faceY, faceW, faceH, vuL, 'LEFT');
+    drawAnalogDial(w, faceRX, faceY, faceW, faceH, vuR, 'RIGHT');
+
+    // center brand plate
+    ctx.save();
+    ctx.fillStyle='rgba(255,255,255,0.55)'; ctx.font=(8.5*devicePixelRatio)+'px Georgia, serif'; ctx.textAlign='center';
+    ctx.fillText('ZEPHYR', mx+housingW/2, faceY+faceH*0.42);
+    ctx.font=(7*devicePixelRatio)+'px Georgia, serif'; ctx.fillStyle='rgba(255,255,255,0.32)';
+    ctx.fillText('SOLAR HARMONY', mx+housingW/2, faceY+faceH*0.42+11*devicePixelRatio);
+    ctx.fillStyle = vuL.peakHold>0.97 ? currentPalette.primary : 'rgba(255,255,255,0.12)';
+    ctx.shadowColor = currentPalette.glow; ctx.shadowBlur = vuL.peakHold>0.97 ? 12 : 0;
+    ctx.beginPath(); ctx.arc(mx+housingW/2, faceY+faceH*0.42-16*devicePixelRatio, 4*devicePixelRatio, 0, Math.PI*2); ctx.fill();
+    ctx.shadowBlur=0;
+    ctx.restore();
+
+    // LED peak bargraphs beneath each dial
+    var ledY = faceY+faceH+housingH*0.08, ledH = housingH*0.10;
+    drawLEDBar(faceLX, ledY, faceW, ledH, vuL.ledPeak, vuL.peakHold);
+    drawLEDBar(faceRX, ledY, faceW, ledH, vuR.ledPeak, vuR.peakHold);
+    ctx.save();
+    ctx.fillStyle='rgba(255,255,255,0.28)'; ctx.font=(7*devicePixelRatio)+'px Georgia, serif'; ctx.textAlign='left';
+    ctx.fillText('PEAK', faceLX, ledY+ledH+11*devicePixelRatio);
+    ctx.textAlign='right'; ctx.fillText('PEAK', faceRX+faceW, ledY+ledH+11*devicePixelRatio);
+    ctx.restore();
+    ctx.restore();
+
     ctx.fillStyle='rgba(238,241,251,0.55)'; ctx.font=(11*devicePixelRatio)+'px Georgia, serif'; ctx.textAlign='center';
-    ctx.fillText((db>-39? db.toFixed(1):'-∞') + ' dB RMS', w/2, my+meterH+30*devicePixelRatio);
+    ctx.fillText((db>-39? db.toFixed(1):'-∞') + ' dB RMS', w/2, my+housingH+30*devicePixelRatio);
   }
   function roundRectAll(ctx,x,y,w,h,r){
     ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
@@ -1356,7 +1436,7 @@
     var Lx=-0.5, Ly=-0.62, Lz=0.61;
     var Hx=Lx, Hy=Ly, Hz=Lz+1, Hlen=Math.sqrt(Hx*Hx+Hy*Hy+Hz*Hz);
     Hx/=Hlen; Hy/=Hlen; Hz/=Hlen;
-    var normalStrength = 3.2;
+    var normalStrength = 2.3;
 
     var idx=0;
     for (var y=0;y<bh;y++){
@@ -1381,7 +1461,7 @@
         var specDot = Math.max(0, nx*Hx+ny*Hy+nz*Hz);
         var specular = Math.pow(specDot, 30);
 
-        var innerT = smoothstepFn(0.32, 2.6, field);
+        var innerT = smoothstepFn(0.30, 22, field);
         var baseCol = stopLerpRGB(stops, innerT);
         var lit = 0.32 + 0.8*diffuse;
         var specAmt = specular*innerT*220;
@@ -1406,12 +1486,13 @@
   // shape morphs continuously as its complex parameter 'c' moves — which is what lets
   // this react to the music from moment to moment rather than just panning/zooming.
   var fractalBuf=null, fractalCtx=null, fractalImageData=null;
+  var fractalSmoothBass=0, fractalSmoothMid=0, fractalPulse=0;
   function ensureFractalBuf(){
     if (!fractalBuf){
       fractalBuf = document.createElement('canvas');
-      fractalBuf.width = 640; fractalBuf.height = 400;
+      fractalBuf.width = 900; fractalBuf.height = 560;
       fractalCtx = fractalBuf.getContext('2d');
-      fractalImageData = fractalCtx.createImageData(640,400);
+      fractalImageData = fractalCtx.createImageData(900,560);
     }
   }
   function drawFractal(w,h,t){
@@ -1421,8 +1502,14 @@
     var binCount = FREQ_BIN_COUNT;
     var bass = overallEnergy(0, Math.floor(binCount*0.12));
     var mid = overallEnergy(Math.floor(binCount*0.12), Math.floor(binCount*0.4));
-    var angle = t*0.00016 + bass*0.0025;
-    var radius = 0.72 + 0.14*Math.sin(t*0.00027) + mid*0.18;
+    // heavy smoothing — the Julia parameter 'c' is chaotically sensitive, so feeding it
+    // raw per-frame audio noise makes the whole shape lurch every beat. Ease it instead.
+    fractalSmoothBass = lerp(fractalSmoothBass, bass, 0.035);
+    fractalSmoothMid = lerp(fractalSmoothMid, mid, 0.035);
+    fractalPulse = lerp(fractalPulse, bass, 0.22); // faster tracker, used only for color pulse, not geometry
+
+    var angle = t*0.00014 + fractalSmoothBass*0.0006;
+    var radius = 0.72 + 0.14*Math.sin(t*0.00027) + fractalSmoothMid*0.05;
     var cx = radius*Math.cos(angle), cy = radius*Math.sin(angle);
 
     // slow cinematic zoom: breathes from a wide view into deep structure and back,
@@ -1430,7 +1517,7 @@
     var zoomCycle = 0.5 + 0.5*Math.sin(t*0.000085);
     var zoomPhase = Math.pow(zoomCycle, 1.6);
     var baseScale = 2.7;
-    var scale = lerp(baseScale, 0.10, zoomPhase) - bass*0.06;
+    var scale = lerp(baseScale, 0.10, zoomPhase) - fractalSmoothBass*0.015;
     scale = Math.max(0.06, scale);
     var panAngle = t*0.00011 + 2.1;
     var panRadius = 0.55 * zoomPhase;
@@ -1456,7 +1543,7 @@
           var logZn = Math.log(zr*zr+zi*zi)/2;
           var nu = Math.log(logZn/Math.log(2))/Math.log(2);
           var smoothIter = iter+1-nu;
-          var phase = ((smoothIter*0.045 + t*0.00004) % 1 + 1) % 1;
+          var phase = ((smoothIter*0.045 + t*0.00004 + fractalPulse*0.09) % 1 + 1) % 1;
           var segF = phase*stops.length;
           var si=Math.floor(segF)%stops.length, sj=(si+1)%stops.length, f=segF-Math.floor(segF);
           var a=stops[si], b=stops[sj];
