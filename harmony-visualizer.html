@@ -65,6 +65,26 @@
   .dock-btn.active svg{ filter: none; }
   .dock-sep{ width:1px; height:20px; background: var(--hair); margin: 0 2px; flex-shrink:0; }
 
+  .style-picker{ position:relative; flex-shrink:0; }
+  .style-toggle{ min-width:118px; justify-content:space-between; }
+  .style-toggle .chev{ width:9px; height:6px; opacity:0.6; transition: transform 0.2s ease; }
+  .style-toggle.open .chev{ transform: rotate(180deg); }
+  .style-menu{
+    position:absolute; bottom: calc(100% + 10px); left:50%; transform:translateX(-50%);
+    background: rgba(10,15,28,0.96); border: 1px solid var(--hair); border-radius: 14px;
+    backdrop-filter: blur(18px) saturate(140%); -webkit-backdrop-filter: blur(18px) saturate(140%);
+    padding: 8px; min-width: 168px; box-shadow: 0 16px 44px rgba(0,0,0,0.55);
+    display:none; flex-direction:column; gap:1px; max-height: 60vh; overflow-y:auto;
+  }
+  .style-menu.open{ display:flex; }
+  .style-group-label{ font-size:10px; letter-spacing:0.14em; text-transform:uppercase; color: var(--ink-dim); padding: 8px 10px 4px; }
+  .style-menu button{
+    appearance:none; border:none; background:transparent; color: var(--ink-dim); text-align:left;
+    font-size:13px; padding: 9px 10px; border-radius: 9px; cursor:pointer; font-family:inherit;
+  }
+  .style-menu button:hover{ background: rgba(255,255,255,0.06); color: var(--ink); }
+  .style-menu button.active{ color: var(--void); background: linear-gradient(135deg, var(--p-primary), var(--p-secondary)); font-weight:600; }
+
   #sensWrap{ display:flex; align-items:center; gap:8px; padding: 0 10px 0 6px; flex-shrink:0; }
   #sens{ -webkit-appearance:none; width:70px; height:3px; border-radius:3px; background: linear-gradient(90deg, var(--p-primary), var(--p-secondary)); outline:none; }
   #sens::-webkit-slider-thumb{ -webkit-appearance:none; width:13px; height:13px; border-radius:50%; background: var(--ink); cursor:pointer; box-shadow: 0 0 8px rgba(255,255,255,0.4); }
@@ -117,10 +137,26 @@
     <button class="dock-btn" data-element="earth"><svg viewBox="0 0 16 16"><polygon points="8,14 2,3 14,3" fill="none" stroke="currentColor" stroke-width="1.3"/><line x1="4.3" y1="6.7" x2="11.7" y2="6.7" stroke="currentColor" stroke-width="1.3"/></svg><span>Earth</span></button>
   </div>
   <div class="dock" id="mainDock">
-    <button class="dock-btn" data-mode="bars"><span>Bars</span></button>
-    <button class="dock-btn" data-mode="radial"><span>Radial</span></button>
-    <button class="dock-btn" data-mode="scope"><span>Scope</span></button>
-    <button class="dock-btn" data-mode="vu"><span>VU</span></button>
+    <div class="style-picker" id="stylePicker">
+      <button class="dock-btn style-toggle" id="styleToggle" type="button" aria-haspopup="true" aria-expanded="false">
+        <span id="styleLabel">Bars</span>
+        <svg class="chev" viewBox="0 0 10 6" aria-hidden="true"><polyline points="1,1 5,5 9,1" fill="none" stroke="currentColor" stroke-width="1.4"/></svg>
+      </button>
+      <div class="style-menu" id="styleMenu" role="menu">
+        <div class="style-group-label">Classic</div>
+        <button data-mode="bars" role="menuitem">Bars</button>
+        <button data-mode="radial" role="menuitem">Radial</button>
+        <button data-mode="scope" role="menuitem">Scope</button>
+        <button data-mode="vu" role="menuitem">VU Meter</button>
+        <button data-mode="kaleidoscope" role="menuitem">Kaleidoscope</button>
+        <button data-mode="tunnel" role="menuitem">Tunnel</button>
+        <div class="style-group-label">Elemental</div>
+        <button data-mode="embers" role="menuitem">Embers</button>
+        <button data-mode="terrain" role="menuitem">Terrain</button>
+        <button data-mode="streams" role="menuitem">Streamlines</button>
+        <button data-mode="liquid" role="menuitem">Liquid</button>
+      </div>
+    </div>
     <div class="dock-sep"></div>
     <div id="sensWrap">
       <span style="font-size:11px;color:var(--ink-dim)">Gain</span>
@@ -255,28 +291,45 @@
   });
   document.getElementById('sens').addEventListener('input', function(e){ if (gainNode) gainNode.gain.value = parseFloat(e.target.value); });
 
-  // ---------------- Element + mode state ----------------
+  // ---------------- Element + style state ----------------
+  var MODE_LABELS = {
+    bars:'Bars', radial:'Radial', scope:'Scope', vu:'VU Meter',
+    kaleidoscope:'Kaleidoscope', tunnel:'Tunnel',
+    embers:'Embers', terrain:'Terrain', streams:'Streamlines', liquid:'Liquid'
+  };
   var state = { element: 'aurora', mode: 'bars' };
   var elementBtns = document.querySelectorAll('#elementDock [data-element]');
-  var modeBtns = document.querySelectorAll('#mainDock [data-mode]');
+  var styleMenuBtns = document.querySelectorAll('#styleMenu [data-mode]');
+  var styleToggle = document.getElementById('styleToggle');
+  var styleLabel = document.getElementById('styleLabel');
+  var styleMenu = document.getElementById('styleMenu');
 
   function syncButtons(){
     elementBtns.forEach(function(b){ b.classList.toggle('active', b.dataset.element === state.element); });
-    modeBtns.forEach(function(b){ b.classList.toggle('active', b.dataset.mode === state.mode); });
+    styleMenuBtns.forEach(function(b){ b.classList.toggle('active', b.dataset.mode === state.mode); });
+    styleLabel.textContent = MODE_LABELS[state.mode] || state.mode;
   }
-  elementBtns.forEach(function(btn){
-    btn.addEventListener('click', function(){
-      var el = btn.dataset.element;
-      state.element = el;
-      currentPalette = PALETTES[el];
-      applyPaletteToCSS(currentPalette);
-      state.mode = ELEMENT_MODE[el];
-      syncButtons();
-    });
+  function setMode(m){ state.mode = m; syncButtons(); }
+  function setElement(el){
+    state.element = el;
+    currentPalette = PALETTES[el];
+    applyPaletteToCSS(currentPalette);
+    setMode(ELEMENT_MODE[el]);
+  }
+  elementBtns.forEach(function(btn){ btn.addEventListener('click', function(){ setElement(btn.dataset.element); }); });
+  styleMenuBtns.forEach(function(btn){ btn.addEventListener('click', function(){ setMode(btn.dataset.mode); closeStyleMenu(); }); });
+
+  function openStyleMenu(){ styleMenu.classList.add('open'); styleToggle.classList.add('open'); styleToggle.setAttribute('aria-expanded','true'); }
+  function closeStyleMenu(){ styleMenu.classList.remove('open'); styleToggle.classList.remove('open'); styleToggle.setAttribute('aria-expanded','false'); }
+  styleToggle.addEventListener('click', function(e){
+    e.stopPropagation();
+    if (styleMenu.classList.contains('open')) closeStyleMenu(); else openStyleMenu();
   });
-  modeBtns.forEach(function(btn){
-    btn.addEventListener('click', function(){ state.mode = btn.dataset.mode; syncButtons(); });
+  document.addEventListener('click', function(e){
+    if (!document.getElementById('stylePicker').contains(e.target)) closeStyleMenu();
   });
+  document.addEventListener('keydown', function(e){ if (e.key === 'Escape') closeStyleMenu(); });
+
   // default active state
   currentPalette = PALETTES.aurora; applyPaletteToCSS(currentPalette); syncButtons();
 
@@ -683,6 +736,92 @@
     ctx.restore();
   }
 
+  // ---- KALEIDOSCOPE: mirrored mandala ----
+  function drawKaleidoWedge(wedgeAngle, maxR, binCount){
+    var rays = 22;
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    for (var i=0;i<=rays;i++){
+      var frac = i/rays;
+      var ang = frac*wedgeAngle;
+      var bIdx = Math.floor(Math.pow(frac,1.3) * binCount * 0.55);
+      var e = bandEnergy(bIdx, bIdx+3)/255;
+      var r = maxR*0.12 + Math.pow(e,0.8)*maxR*0.88;
+      var x = Math.cos(ang)*r, y = Math.sin(ang)*r;
+      ctx.lineTo(x,y);
+    }
+    ctx.closePath();
+    var grad = ctx.createRadialGradient(0,0,0,0,0,maxR);
+    grad.addColorStop(0, hexToRgba(currentPalette.tertiary, 0.85));
+    grad.addColorStop(0.45, hexToRgba(currentPalette.primary, 0.55));
+    grad.addColorStop(1, hexToRgba(currentPalette.secondary, 0.04));
+    ctx.fillStyle = grad;
+    ctx.globalAlpha = 0.9;
+    ctx.fill();
+    ctx.lineWidth = 1.1*devicePixelRatio;
+    ctx.strokeStyle = hexToRgba(currentPalette.tertiary, 0.45);
+    ctx.stroke();
+  }
+  function drawKaleidoscope(w,h,t){
+    var cx=w/2, cy=h/2, segments=10, maxR=Math.min(w,h)*0.5, binCount=analyser.frequencyBinCount;
+    var wedgeAngle = (Math.PI*2/segments)/2;
+    ctx.save();
+    ctx.translate(cx,cy);
+    ctx.shadowColor = currentPalette.glow; ctx.shadowBlur = 16;
+    var globalRot = t*0.00012;
+    for (var seg=0; seg<segments; seg++){
+      ctx.save();
+      ctx.rotate(globalRot + seg*(Math.PI*2/segments));
+      drawKaleidoWedge(wedgeAngle, maxR, binCount);
+      ctx.save(); ctx.scale(1,-1); drawKaleidoWedge(wedgeAngle, maxR, binCount); ctx.restore();
+      ctx.restore();
+    }
+    ctx.restore();
+    // center jewel
+    ctx.save(); ctx.translate(cx,cy);
+    var pulse = 1 + 0.06*Math.sin(t*0.005);
+    var hubR = maxR*0.07*pulse;
+    var g = ctx.createRadialGradient(0,0,0,0,0,hubR);
+    g.addColorStop(0, '#fff8e8'); g.addColorStop(1, hexToRgba(currentPalette.tertiary,0));
+    ctx.fillStyle=g; ctx.shadowColor=currentPalette.glow; ctx.shadowBlur=24;
+    ctx.beginPath(); ctx.arc(0,0,hubR,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
+  // ---- TUNNEL: warping rings ----
+  function drawTunnel(w,h,t){
+    var cx=w/2, cy=h/2, maxR=Math.hypot(w,h)*0.62, ringCount=16, binCount=analyser.frequencyBinCount;
+    var bass = overallEnergy(0, Math.floor(binCount*0.12));
+    var speed = 0.00018 + bass*0.00055;
+    ctx.save(); ctx.translate(cx,cy);
+    for (var i=0;i<ringCount;i++){
+      var phase = ((t*speed) + i/ringCount) % 1;
+      var r = phase*maxR;
+      var alpha = (1-phase)*0.85;
+      var wobble = Math.sin(t*0.0026 + i*1.3) * (6+bass*36) * devicePixelRatio;
+      ctx.beginPath();
+      ctx.ellipse(0,0, Math.max(1,r+wobble), Math.max(1,r), 0, 0, Math.PI*2);
+      ctx.strokeStyle = lerpColor(currentPalette.primary, currentPalette.secondary, phase);
+      ctx.globalAlpha = alpha;
+      ctx.lineWidth = lerp(1, 6, phase)*devicePixelRatio;
+      ctx.shadowColor = currentPalette.glow; ctx.shadowBlur = 14;
+      ctx.stroke();
+    }
+    ctx.rotate(t*0.00035);
+    var spokes=18;
+    ctx.globalAlpha = 1;
+    for (var s=0;s<spokes;s++){
+      var ang=(s/spokes)*Math.PI*2;
+      ctx.beginPath();
+      ctx.moveTo(Math.cos(ang)*maxR*0.04, Math.sin(ang)*maxR*0.04);
+      ctx.lineTo(Math.cos(ang)*maxR, Math.sin(ang)*maxR);
+      ctx.strokeStyle = hexToRgba(currentPalette.tertiary, 0.10);
+      ctx.lineWidth = 1*devicePixelRatio;
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
   // ---------------- Main loop ----------------
   function loop(t){
     requestAnimationFrame(loop);
@@ -700,6 +839,8 @@
     else if (state.mode === 'terrain') drawTerrain(w,h,t);
     else if (state.mode === 'streams') drawStreams(w,h,t);
     else if (state.mode === 'liquid') drawLiquid(w,h,t);
+    else if (state.mode === 'kaleidoscope') drawKaleidoscope(w,h,t);
+    else if (state.mode === 'tunnel') drawTunnel(w,h,t);
   }
 
   (function idlePreview(){ if (started) return; drawStars(performance.now()); requestAnimationFrame(idlePreview); })();
