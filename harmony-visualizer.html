@@ -21,8 +21,8 @@
   html,body{ margin:0; height:100%; overflow:hidden; background: var(--void); color: var(--ink); font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; }
   #ambient{
     position:fixed; inset:0; z-index:0; pointer-events:none;
-    background: radial-gradient(ellipse 70% 55% at 50% 62%, var(--p-ambient), transparent 70%);
-    transition: background 1.1s ease;
+    background: linear-gradient(to top, var(--sky-color, rgba(5,9,20,0)) 0%, rgba(5,9,20,0) 60%), radial-gradient(ellipse 70% 55% at 50% 62%, var(--p-ambient), transparent 70%);
+    transition: background 1.4s ease;
   }
   #stars{ position:fixed; inset:0; z-index:0; opacity:0.5; pointer-events:none; }
   #stage{ position:fixed; inset:0; z-index:1; }
@@ -153,6 +153,7 @@
         <button data-mode="tunnel" role="menuitem">Tunnel</button>
         <button data-mode="plasma" role="menuitem">Plasma</button>
         <button data-mode="spectro" role="menuitem">Spectrogram</button>
+        <button data-mode="starfield" role="menuitem">Starfield Warp</button>
         <div class="style-group-label">Elemental</div>
         <button data-mode="embers" role="menuitem">Embers</button>
         <button data-mode="terrain" role="menuitem">Terrain</button>
@@ -166,6 +167,8 @@
       <input type="range" id="sens" min="0.4" max="3" step="0.05" value="1.2">
     </div>
     <div class="dock-sep"></div>
+    <div class="dock-sep"></div>
+    <button class="dock-btn" id="skyBtn" title="Tint the sky to match sunrise/sunset/night where you are">My Sky</button>
     <button class="dock-btn" id="fsBtn">Fullscreen</button>
   </div>
 </div>
@@ -224,12 +227,13 @@
       stars.push({ x: Math.random()*starCanvas.width, y: Math.random()*starCanvas.height, r: Math.random()*1.4*devicePixelRatio + 0.2, p: Math.random()*Math.PI*2, s: 0.3 + Math.random()*0.9 });
     }
   }
+  var starOpacityMul = 1;
   function drawStars(t){
     sctx.clearRect(0,0,starCanvas.width, starCanvas.height);
     for (var i=0;i<stars.length;i++){
       var st = stars[i];
       var tw = 0.5 + 0.5*Math.sin(t*0.0006*st.s + st.p);
-      sctx.globalAlpha = 0.15 + tw*0.55;
+      sctx.globalAlpha = (0.15 + tw*0.55) * starOpacityMul;
       sctx.fillStyle = '#eaf2ff';
       sctx.beginPath();
       sctx.arc(st.x, st.y, st.r, 0, Math.PI*2);
@@ -297,7 +301,7 @@
   // ---------------- Element + style state ----------------
   var MODE_LABELS = {
     bars:'Bars', radial:'Radial', scope:'Scope', vu:'VU Meter',
-    kaleidoscope:'Kaleidoscope', tunnel:'Tunnel', plasma:'Plasma', spectro:'Spectrogram',
+    kaleidoscope:'Kaleidoscope', tunnel:'Tunnel', plasma:'Plasma', spectro:'Spectrogram', starfield:'Starfield Warp',
     embers:'Embers', terrain:'Terrain', streams:'Streamlines', liquid:'Liquid'
   };
   var state = { element: 'aurora', mode: 'bars' };
@@ -335,6 +339,74 @@
 
   // default active state
   currentPalette = PALETTES.aurora; applyPaletteToCSS(currentPalette); syncButtons();
+
+  // ---------------- My Sky: local solar position ----------------
+  function solarElevation(date, lat, lon){
+    var start = new Date(date.getFullYear(), 0, 0);
+    var dayOfYear = Math.floor((date - start) / 86400000);
+    var fracYear = (2*Math.PI/365) * (dayOfYear - 1 + (date.getHours()-12)/24);
+    var eqTime = 229.18 * (0.000075 + 0.001868*Math.cos(fracYear) - 0.032077*Math.sin(fracYear) - 0.014615*Math.cos(2*fracYear) - 0.040849*Math.sin(2*fracYear));
+    var decl = 0.006918 - 0.399912*Math.cos(fracYear) + 0.070257*Math.sin(fracYear) - 0.006758*Math.cos(2*fracYear) + 0.000907*Math.sin(2*fracYear) - 0.002697*Math.cos(3*fracYear) + 0.00148*Math.sin(3*fracYear);
+    var timezone = -date.getTimezoneOffset()/60;
+    var timeOffset = eqTime + 4*lon - 60*timezone;
+    var tst = date.getHours()*60 + date.getMinutes() + date.getSeconds()/60 + timeOffset;
+    var haDeg = (tst/4) - 180;
+    var haRad = haDeg * Math.PI/180;
+    var latRad = lat * Math.PI/180;
+    var cosZenith = Math.sin(latRad)*Math.sin(decl) + Math.cos(latRad)*Math.cos(decl)*Math.cos(haRad);
+    var zenith = Math.acos(Math.max(-1, Math.min(1, cosZenith)));
+    return 90 - zenith*180/Math.PI;
+  }
+  var SKY_STOPS = [
+    { el:-18, c:[5,9,20],     a:0.0,  star:1.00 },
+    { el:-10, c:[46,32,74],   a:0.32, star:0.88 },
+    { el:-4,  c:[110,58,96],  a:0.48, star:0.55 },
+    { el:0,   c:[255,140,92], a:0.55, star:0.22 },
+    { el:6,   c:[255,205,150],a:0.32, star:0.06 },
+    { el:20,  c:[150,190,255],a:0.16, star:0.02 }
+  ];
+  function skyForElevation(elDeg){
+    if (elDeg <= SKY_STOPS[0].el) return SKY_STOPS[0];
+    if (elDeg >= SKY_STOPS[SKY_STOPS.length-1].el) return SKY_STOPS[SKY_STOPS.length-1];
+    for (var i=0;i<SKY_STOPS.length-1;i++){
+      var a=SKY_STOPS[i], b=SKY_STOPS[i+1];
+      if (elDeg>=a.el && elDeg<=b.el){
+        var f=(elDeg-a.el)/(b.el-a.el);
+        return { c:[lerp(a.c[0],b.c[0],f), lerp(a.c[1],b.c[1],f), lerp(a.c[2],b.c[2],f)], a: lerp(a.a,b.a,f), star: lerp(a.star,b.star,f) };
+      }
+    }
+  }
+  var skyCoords = null, skyInterval = null;
+  var skyBtn = document.getElementById('skyBtn');
+  function updateSky(){
+    if (!skyCoords) return;
+    var sky = skyForElevation(solarElevation(new Date(), skyCoords.lat, skyCoords.lon));
+    document.documentElement.style.setProperty('--sky-color', 'rgba(' + Math.round(sky.c[0]) + ',' + Math.round(sky.c[1]) + ',' + Math.round(sky.c[2]) + ',' + sky.a.toFixed(2) + ')');
+    starOpacityMul = sky.star;
+  }
+  skyBtn.addEventListener('click', function(){
+    if (skyCoords){
+      skyCoords = null; starOpacityMul = 1;
+      document.documentElement.style.setProperty('--sky-color', 'rgba(5,9,20,0)');
+      skyBtn.classList.remove('active');
+      skyBtn.textContent = 'My Sky';
+      if (skyInterval){ clearInterval(skyInterval); skyInterval = null; }
+      return;
+    }
+    if (!navigator.geolocation){ skyBtn.textContent = 'Unavailable'; setTimeout(function(){ skyBtn.textContent='My Sky'; }, 2000); return; }
+    skyBtn.textContent = 'Locating…';
+    navigator.geolocation.getCurrentPosition(function(pos){
+      skyCoords = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+      skyBtn.classList.add('active');
+      skyBtn.textContent = 'My Sky';
+      updateSky();
+      if (skyInterval) clearInterval(skyInterval);
+      skyInterval = setInterval(updateSky, 60000);
+    }, function(){
+      skyBtn.textContent = 'Denied';
+      setTimeout(function(){ skyBtn.textContent = 'My Sky'; }, 2000);
+    }, { timeout: 8000 });
+  });
 
   document.getElementById('fsBtn').addEventListener('click', function(){
     if (!document.fullscreenElement){ document.documentElement.requestFullscreen().catch(function(){}); }
@@ -498,14 +570,32 @@
 
   // ---- FIRE: Embers ----
   var emberParticles = [];
+  var emberEnvelope = null;
+  var EMBER_COLS = 40;
   function drawEmbers(w,h,t){
-    var cols = 40, binCount = analyser.frequencyBinCount, baseY = h*0.90, maxFlameH = h*0.5;
-    var envelope = [];
+    var cols = EMBER_COLS, binCount = analyser.frequencyBinCount, baseY = h*0.90, maxFlameH = h*0.5;
+    if (!emberEnvelope) emberEnvelope = new Array(cols).fill(0);
+
+    var raw = [];
     for (var i=0;i<cols;i++){
       var t0=i/cols, t1=(i+1)/cols;
       var b0=Math.floor(Math.pow(t0,2.0)*binCount), b1=Math.max(b0+1, Math.floor(Math.pow(t1,2.0)*binCount));
-      envelope.push(Math.pow(bandEnergy(b0,b1)/255, 0.8));
+      raw.push(Math.pow(bandEnergy(b0,b1)/255, 0.8));
     }
+    // spatial smoothing pass (3-tap) so the silhouette reads as flame, not a jagged mountain
+    var smoothed = new Array(cols);
+    for (var j=0;j<cols;j++){
+      var l = raw[Math.max(0,j-1)], m = raw[j], r = raw[Math.min(cols-1,j+1)];
+      smoothed[j] = (l*0.25 + m*0.5 + r*0.25);
+    }
+    // temporal easing + idle flicker floor so it's never static
+    var envelope = emberEnvelope;
+    for (var k=0;k<cols;k++){
+      var idle = 0.10 + 0.06*Math.sin(t*0.004 + k*0.6) + 0.04*Math.sin(t*0.011 + k*1.3);
+      var target = Math.min(1, smoothed[k]*0.85 + idle);
+      envelope[k] = lerp(envelope[k], target, k===0||k===cols-1 ? 0.5 : 0.22);
+    }
+
     // flame silhouette
     ctx.save();
     ctx.beginPath();
@@ -513,8 +603,7 @@
     ctx.lineTo(0, baseY);
     for (var c=0;c<cols;c++){
       var x = (c/(cols-1))*w;
-      var flicker = Math.sin(t*0.006 + c*0.7)*0.05;
-      var y = baseY - (envelope[c]+flicker) * maxFlameH;
+      var y = baseY - envelope[c] * maxFlameH;
       var xPrev = c===0 ? x : ((c-1)/(cols-1))*w;
       var xMid = (x+xPrev)/2;
       ctx.quadraticCurveTo(xMid, y, x, y);
@@ -530,10 +619,10 @@
     ctx.fill();
     ctx.restore();
 
-    // particles
-    var energy = overallEnergy(2, Math.floor(binCount*0.35));
-    var spawnCount = Math.floor(energy * 3.2);
-    for (var s=0; s<spawnCount && emberParticles.length < 240; s++){
+    // particles — floor spawn rate so embers are always visibly rising, scaling up with the music
+    var energy = overallEnergy(1, Math.floor(binCount*0.45));
+    var spawnCount = 1 + Math.floor(energy * 5);
+    for (var s=0; s<spawnCount && emberParticles.length < 260; s++){
       var col = Math.floor(Math.random()*cols);
       var wx = (col/(cols-1))*w + (Math.random()-0.5)*10*devicePixelRatio;
       var wy = baseY - envelope[col]*maxFlameH;
@@ -568,15 +657,18 @@
   var terrainFrame = 0;
   function drawTerrain(w,h,t){
     var binCount = analyser.frequencyBinCount;
-    var e = Math.pow(bandEnergy(1, Math.floor(binCount*0.5))/255, 0.85);
+    var raw = Math.pow(bandEnergy(1, Math.floor(binCount*0.5))/255, 0.85);
+    var idle = 0.16 + 0.10*Math.sin(t*0.0009) + 0.05*Math.sin(t*0.0023+1.7);
+    var e = Math.min(1, raw*0.82 + idle);
     terrainHistory.push(e);
     if (terrainHistory.length > 240) terrainHistory.shift();
     terrainFrame++;
     if (terrainFrame % 3 === 0){
-      terrainBack.push(e);
+      terrainBack.push(Math.min(1, e*0.85 + 0.05*Math.sin(t*0.0006+2.3)));
       if (terrainBack.length > 160) terrainBack.shift();
     }
 
+    var sway = Math.sin(t*0.00035) * w*0.015;
     var baseY = h*0.80, maxH = h*0.42;
 
     function renderLayer(arr, opts){
@@ -585,9 +677,9 @@
       ctx.beginPath();
       ctx.moveTo(0, h);
       for (var i=0;i<arr.length;i++){
-        var x = (i/(arr.length-1))*w;
+        var x = (i/(arr.length-1))*w + opts.sway;
         var y = opts.baseY - arr[i]*opts.amp - opts.lift;
-        if (i===0) ctx.lineTo(x,y); else ctx.lineTo(x,y);
+        ctx.lineTo(x,y);
       }
       ctx.lineTo(w,h); ctx.closePath();
       ctx.fillStyle = opts.fill;
@@ -598,7 +690,7 @@
       ctx.save();
       ctx.beginPath();
       for (var j=0;j<arr.length;j++){
-        var xx = (j/(arr.length-1))*w, yy = opts.baseY - arr[j]*opts.amp - opts.lift;
+        var xx = (j/(arr.length-1))*w + opts.sway, yy = opts.baseY - arr[j]*opts.amp - opts.lift;
         if (j===0) ctx.moveTo(xx,yy); else ctx.lineTo(xx,yy);
       }
       ctx.strokeStyle = opts.ridge; ctx.lineWidth = 1.6*devicePixelRatio;
@@ -608,8 +700,8 @@
       ctx.restore();
     }
 
-    renderLayer(terrainBack, { baseY: baseY-18*devicePixelRatio, amp: maxH*0.7, lift: 30*devicePixelRatio, fill: currentPalette.shadow, alpha: 0.55, ridge: currentPalette.secondary, ridgeAlpha: 0.25, glow: 0 });
-    renderLayer(terrainHistory, { baseY: baseY, amp: maxH, lift: 0, fill: currentPalette.primary, alpha: 0.85, ridge: currentPalette.tertiary, ridgeAlpha: 0.9, glow: 12 });
+    renderLayer(terrainBack, { baseY: baseY-18*devicePixelRatio, amp: maxH*0.7, lift: 30*devicePixelRatio, fill: currentPalette.shadow, alpha: 0.55, ridge: currentPalette.secondary, ridgeAlpha: 0.25, glow: 0, sway: -sway*0.6 });
+    renderLayer(terrainHistory, { baseY: baseY, amp: maxH, lift: 0, fill: currentPalette.primary, alpha: 0.85, ridge: currentPalette.tertiary, ridgeAlpha: 0.9, glow: 12, sway: sway });
 
     // crystal spikes on strong recent transient
     var lastIdx = terrainHistory.length-1;
@@ -681,56 +773,97 @@
 
   // ---- WATER: Liquid ----
   var bubbles = [];
+  var liquidSurface = null, liquidPoints = 72;
   function drawLiquid(w,h,t){
     analyser.getByteTimeDomainData(timeData);
-    var waterLevel = h*0.60;
-    ctx.save();
-    ctx.beginPath();
-    ctx.moveTo(0, h);
-    var n = timeData.length, step = Math.max(1, Math.floor(n/160));
-    var firstY = null;
-    for (var i=0;i<n;i+=step){
-      var v = timeData[i]/128.0 - 1.0;
-      var x = (i/n)*w;
-      var y = waterLevel + v*h*0.16;
-      if (firstY===null){ firstY=y; ctx.lineTo(x,y); } else { ctx.lineTo(x,y); }
-    }
-    ctx.lineTo(w,h); ctx.closePath();
-    var lg = ctx.createLinearGradient(0, waterLevel-40*devicePixelRatio, 0, h);
-    lg.addColorStop(0, hexToRgba(currentPalette.secondary, 0.9));
-    lg.addColorStop(0.4, hexToRgba(currentPalette.primary, 0.85));
-    lg.addColorStop(1, currentPalette.shadow);
-    ctx.fillStyle = lg;
-    ctx.shadowColor = currentPalette.glow; ctx.shadowBlur = 20;
-    ctx.fill();
-    ctx.restore();
+    var waterLevel = h*0.58;
+    var binCount = analyser.frequencyBinCount;
+    var energy = overallEnergy(1, Math.floor(binCount*0.5));
+    if (!liquidSurface) liquidSurface = new Array(liquidPoints).fill(0);
 
-    // surface highlight line
+    // sample raw waveform down to liquidPoints, smoothed
+    var n = timeData.length;
+    for (var i=0;i<liquidPoints;i++){
+      var idx = Math.floor((i/(liquidPoints-1)) * (n-1));
+      var v = (timeData[idx]-128)/128;
+      var target = v * h * 0.10;
+      liquidSurface[i] = lerp(liquidSurface[i], target, 0.14);
+    }
+
+    function surfaceY(frac, layer){
+      var idx = frac*(liquidPoints-1);
+      var i0 = Math.floor(idx), i1 = Math.min(liquidPoints-1, i0+1), f = idx-i0;
+      var driven = lerp(liquidSurface[i0], liquidSurface[i1], f);
+      var swellA = Math.sin(frac*Math.PI*2*1.2 + t*0.0009*layer) * h*0.028;
+      var swellB = Math.sin(frac*Math.PI*2*2.7 - t*0.0006*layer + layer) * h*0.014;
+      var idleLift = (0.35 + energy*0.9);
+      return waterLevel + swellA*idleLift + swellB*idleLift + driven;
+    }
+
+    function renderSurface(layer, opts){
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(0, h);
+      var steps = 90;
+      var prevX=0, prevY=surfaceY(0,layer);
+      ctx.lineTo(prevX, prevY);
+      for (var s=1;s<=steps;s++){
+        var frac = s/steps, x = frac*w, y = surfaceY(frac, layer);
+        var midX = (prevX+x)/2, midY=(prevY+y)/2;
+        ctx.quadraticCurveTo(prevX, prevY, midX, midY);
+        prevX=x; prevY=y;
+      }
+      ctx.lineTo(w, h); ctx.closePath();
+      ctx.fillStyle = opts.fill;
+      ctx.globalAlpha = opts.alpha;
+      ctx.shadowColor = currentPalette.glow; ctx.shadowBlur = opts.glow;
+      ctx.fill();
+      ctx.restore();
+    }
+
+    // back parallax swell (deeper, slower)
+    var backGrad = ctx.createLinearGradient(0, waterLevel-30*devicePixelRatio, 0, h);
+    backGrad.addColorStop(0, hexToRgba(currentPalette.secondary, 0.5));
+    backGrad.addColorStop(1, currentPalette.shadow);
+    renderSurface(0.55, { fill: backGrad, alpha: 0.5, glow: 0 });
+
+    // front surface
+    var frontGrad = ctx.createLinearGradient(0, waterLevel-40*devicePixelRatio, 0, h);
+    frontGrad.addColorStop(0, hexToRgba(currentPalette.secondary, 0.92));
+    frontGrad.addColorStop(0.4, hexToRgba(currentPalette.primary, 0.88));
+    frontGrad.addColorStop(1, currentPalette.shadow);
+    renderSurface(1, { fill: frontGrad, alpha: 0.95, glow: 18 });
+
+    // specular highlight along front surface
     ctx.save();
     ctx.beginPath();
-    for (var j=0;j<n;j+=step){
-      var v2 = timeData[j]/128.0 - 1.0, x2=(j/n)*w, y2=waterLevel+v2*h*0.16;
-      if (j===0) ctx.moveTo(x2,y2); else ctx.lineTo(x2,y2);
+    var steps2 = 90, px=0, py=surfaceY(0,1);
+    ctx.moveTo(px,py);
+    for (var s2=1;s2<=steps2;s2++){
+      var frac2=s2/steps2, x2=frac2*w, y2=surfaceY(frac2,1);
+      var mx=(px+x2)/2, my=(py+y2)/2;
+      ctx.quadraticCurveTo(px,py,mx,my);
+      px=x2; py=y2;
     }
     ctx.strokeStyle = currentPalette.tertiary;
-    ctx.lineWidth = 1.8*devicePixelRatio;
-    ctx.shadowColor = currentPalette.glow; ctx.shadowBlur = 14;
-    ctx.globalAlpha = 0.8;
+    ctx.lineWidth = 2*devicePixelRatio;
+    ctx.shadowColor = currentPalette.glow; ctx.shadowBlur = 16;
+    ctx.globalAlpha = 0.85;
     ctx.stroke();
     ctx.restore();
 
     // bubbles
-    var binCount = analyser.frequencyBinCount;
     var bass = overallEnergy(0, Math.floor(binCount*0.12));
-    if (bubbles.length < 120 && Math.random() < bass*0.9){
-      bubbles.push({ x: Math.random()*w, y: h+10, vy: -(0.6+Math.random()*1.3)*devicePixelRatio, size: (1.5+Math.random()*3)*devicePixelRatio, phase: Math.random()*Math.PI*2, life: 300 });
+    if (bubbles.length < 130 && Math.random() < (0.05 + bass*0.9)){
+      bubbles.push({ x: Math.random()*w, y: h+10, vy: -(0.6+Math.random()*1.4)*devicePixelRatio, size: (1.5+Math.random()*3)*devicePixelRatio, phase: Math.random()*Math.PI*2, life: 320 });
     }
     ctx.save();
     for (var b = bubbles.length-1; b>=0; b--){
       var bb = bubbles[b];
       bb.y += bb.vy; bb.life--;
       var bx = bb.x + Math.sin(t*0.005+bb.phase)*3*devicePixelRatio;
-      if (bb.y < waterLevel - 10 || bb.life<=0){ bubbles.splice(b,1); continue; }
+      var surfHere = surfaceY(bb.x/w, 1);
+      if (bb.y < surfHere - 10 || bb.life<=0){ bubbles.splice(b,1); continue; }
       ctx.globalAlpha = 0.55;
       ctx.strokeStyle = currentPalette.tertiary;
       ctx.lineWidth = 1*devicePixelRatio;
@@ -916,6 +1049,51 @@
     ctx.restore();
   }
 
+  // ---- STARFIELD WARP ----
+  var warpStars = [];
+  function ensureWarpStars(w,h){
+    if (warpStars.length) return;
+    for (var i=0;i<260;i++){
+      warpStars.push({ x:(Math.random()-0.5)*w, y:(Math.random()-0.5)*h, z: Math.random()*w, colorPick: Math.random() });
+    }
+  }
+  function drawStarfield(w,h,t){
+    ensureWarpStars(w,h);
+    var cx=w/2, cy=h/2, binCount=analyser.frequencyBinCount;
+    var bass = overallEnergy(0, Math.floor(binCount*0.12));
+    var speed = (2 + bass*22) * devicePixelRatio;
+    ctx.save();
+    for (var i=0;i<warpStars.length;i++){
+      var s = warpStars[i];
+      var prevZ = s.z;
+      s.z -= speed;
+      if (s.z <= 1){
+        s.x = (Math.random()-0.5)*w; s.y = (Math.random()-0.5)*h; s.z = w; prevZ = s.z;
+      }
+      var k = 128*devicePixelRatio;
+      var x = cx + (s.x/s.z)*k, y = cy + (s.y/s.z)*k;
+      var px = cx + (s.x/prevZ)*k, py = cy + (s.y/prevZ)*k;
+      if (x<0||x>w||y<0||y>h) continue;
+      var depth = 1 - s.z/w;
+      var size = Math.max(0.6, depth*3.2)*devicePixelRatio;
+      var col = s.colorPick<0.33 ? currentPalette.tertiary : (s.colorPick<0.66 ? currentPalette.primary : currentPalette.secondary);
+      ctx.strokeStyle = col;
+      ctx.globalAlpha = Math.min(1, depth*1.3);
+      ctx.lineWidth = size;
+      ctx.shadowColor = currentPalette.glow; ctx.shadowBlur = 8*depth;
+      ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(x,y); ctx.stroke();
+    }
+    ctx.restore();
+    // center glow core
+    ctx.save();
+    var g = ctx.createRadialGradient(cx,cy,0,cx,cy,Math.min(w,h)*0.08);
+    g.addColorStop(0, hexToRgba(currentPalette.tertiary, 0.5));
+    g.addColorStop(1, hexToRgba(currentPalette.tertiary, 0));
+    ctx.fillStyle=g;
+    ctx.beginPath(); ctx.arc(cx,cy,Math.min(w,h)*0.08,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+
   // ---------------- Main loop ----------------
   function loop(t){
     requestAnimationFrame(loop);
@@ -937,6 +1115,7 @@
     else if (state.mode === 'tunnel') drawTunnel(w,h,t);
     else if (state.mode === 'plasma') drawPlasma(w,h,t);
     else if (state.mode === 'spectro') drawSpectro(w,h,t);
+    else if (state.mode === 'starfield') drawStarfield(w,h,t);
   }
 
   (function idlePreview(){ if (started) return; drawStars(performance.now()); requestAnimationFrame(idlePreview); })();
