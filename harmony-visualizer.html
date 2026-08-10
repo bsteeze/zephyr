@@ -1302,7 +1302,7 @@
   }
 
   // ---- LAVA LAMP: rising/merging metaballs ----
-  var lavaBuf=null, lavaCtx=null, lavaImageData=null, lavaBlobs=null;
+  var lavaBuf=null, lavaCtx=null, lavaImageData=null, lavaBlobs=null, lavaPrevRow=null;
   function smoothstepFn(e0,e1,x){ var tt=Math.max(0,Math.min(1,(x-e0)/(e1-e0))); return tt*tt*(3-tt*2); }
   function stopLerpRGB(stops,t){
     var segF = t*(stops.length-1);
@@ -1317,6 +1317,7 @@
       lavaBuf.width = 400; lavaBuf.height = 250;
       lavaCtx = lavaBuf.getContext('2d');
       lavaImageData = lavaCtx.createImageData(400,250);
+      lavaPrevRow = new Float32Array(400);
     }
     if (!lavaBlobs){
       lavaBlobs = [];
@@ -1352,8 +1353,14 @@
       blobsPx.push({ x: xNorm*bw, y: yNorm*bh, r: rNorm*bh });
     }
 
+    var Lx=-0.5, Ly=-0.62, Lz=0.61;
+    var Hx=Lx, Hy=Ly, Hz=Lz+1, Hlen=Math.sqrt(Hx*Hx+Hy*Hy+Hz*Hz);
+    Hx/=Hlen; Hy/=Hlen; Hz/=Hlen;
+    var normalStrength = 3.2;
+
     var idx=0;
     for (var y=0;y<bh;y++){
+      var leftField = 0;
       for (var x=0;x<bw;x++){
         var field = 0;
         for (var bi=0;bi<blobsPx.length;bi++){
@@ -1361,9 +1368,27 @@
           var dx=x-b.x, dy=y-b.y;
           field += (b.r*b.r)/(dx*dx+dy*dy+1);
         }
+        var dFdx = (x===0) ? 0 : field-leftField;
+        var dFdy = (y===0) ? 0 : field-lavaPrevRow[x];
+        leftField = field;
+        lavaPrevRow[x] = field;
+
+        var nx = -dFdx*normalStrength, ny = -dFdy*normalStrength, nz = 1.0;
+        var nlen = Math.sqrt(nx*nx+ny*ny+nz*nz);
+        nx/=nlen; ny/=nlen; nz/=nlen;
+
+        var diffuse = Math.max(0, nx*Lx+ny*Ly+nz*Lz);
+        var specDot = Math.max(0, nx*Hx+ny*Hy+nz*Hz);
+        var specular = Math.pow(specDot, 30);
+
         var innerT = smoothstepFn(0.32, 2.6, field);
-        var col = stopLerpRGB(stops, innerT);
-        data[idx]=col.r; data[idx+1]=col.g; data[idx+2]=col.b; data[idx+3]=255;
+        var baseCol = stopLerpRGB(stops, innerT);
+        var lit = 0.32 + 0.8*diffuse;
+        var specAmt = specular*innerT*220;
+        data[idx]   = Math.min(255, baseCol.r*lit + specAmt);
+        data[idx+1] = Math.min(255, baseCol.g*lit + specAmt);
+        data[idx+2] = Math.min(255, baseCol.b*lit + specAmt);
+        data[idx+3] = 255;
         idx+=4;
       }
     }
