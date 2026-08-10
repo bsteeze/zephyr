@@ -169,7 +169,7 @@
         <button data-mode="kaleidoscope" role="menuitem">Kaleidoscope</button>
         <button data-mode="tunnel" role="menuitem">Tunnel</button>
         <button data-mode="plasma" role="menuitem">Plasma</button>
-        <button data-mode="spectro" role="menuitem">Spectrogram</button>
+        <button data-mode="spectro" role="menuitem">3D Grid</button>
         <button data-mode="starfield" role="menuitem">Starfield Warp</button>
         <button data-mode="fractal" role="menuitem">Fractal</button>
         <button data-mode="lavalamp" role="menuitem">Lava Lamp</button>
@@ -382,7 +382,7 @@
   // ---------------- Element + style state ----------------
   var MODE_LABELS = {
     bars:'Bars', radial:'Radial', scope:'Scope', vu:'VU Meter',
-    kaleidoscope:'Kaleidoscope', tunnel:'Tunnel', plasma:'Plasma', spectro:'Spectrogram', starfield:'Starfield Warp', fractal:'Fractal', lavalamp:'Lava Lamp',
+    kaleidoscope:'Kaleidoscope', tunnel:'Tunnel', plasma:'Plasma', spectro:'3D Grid', starfield:'Starfield Warp', fractal:'Fractal', lavalamp:'Lava Lamp',
     embers:'Embers', terrain:'Terrain', streams:'Streamlines', liquid:'Liquid'
   };
   var state = { element: 'aurora', mode: 'bars' };
@@ -1169,50 +1169,90 @@
     ctx.restore();
   }
 
-  // ---- SPECTROGRAM: receding waterfall ----
+  // ---- 3D GRID: rotating isometric spectrum mesh ----
   var spectroHistory = [], spectroFrameCounter = 0;
-  var SPECTRO_BARS = 40, SPECTRO_ROWS = 22;
+  var SPECTRO_COLS = 22, SPECTRO_ROWS = 14;
+  function mixRGBPair(hexA, hexB, t){
+    var a = hexToRgb(hexA), b = hexToRgb(hexB);
+    return { r: lerp(a.r,b.r,t), g: lerp(a.g,b.g,t), b: lerp(a.b,b.b,t) };
+  }
+  function rgbShade(o, mul){ return 'rgb(' + Math.round(o.r*mul) + ',' + Math.round(o.g*mul) + ',' + Math.round(o.b*mul) + ')'; }
   function drawSpectro(w,h,t){
     var binCount = FREQ_BIN_COUNT;
     spectroFrameCounter++;
-    if (spectroFrameCounter % 2 === 0){
+    if (spectroFrameCounter % 3 === 0){
       var row = [];
-      for (var i=0;i<SPECTRO_BARS;i++){
-        var t0=i/SPECTRO_BARS, t1=(i+1)/SPECTRO_BARS;
+      for (var i=0;i<SPECTRO_COLS;i++){
+        var t0=i/SPECTRO_COLS, t1=(i+1)/SPECTRO_COLS;
         var b0=Math.floor(Math.pow(t0,2.1)*binCount), b1=Math.max(b0+1, Math.floor(Math.pow(t1,2.1)*binCount));
         row.push(Math.pow(bandEnergy(b0,b1)/255, 0.8));
       }
       spectroHistory.unshift(row);
       if (spectroHistory.length > SPECTRO_ROWS) spectroHistory.pop();
     }
-    var baseY = h*0.82, maxBarH = h*0.34, centerX = w/2, frontWidth = w*0.86;
+    while (spectroHistory.length < SPECTRO_ROWS){
+      spectroHistory.push(spectroHistory.length ? spectroHistory[spectroHistory.length-1].slice() : new Array(SPECTRO_COLS).fill(0));
+    }
+
+    var theta = t*0.00009;
+    var cosT = Math.cos(theta), sinT = Math.sin(theta);
+    var originX = w/2, originY = h*0.60;
+    var cellPx = Math.min(w,h)*0.036;
+    var maxHeightPx = h*0.30;
+
+    function iso(gx,gz,elev){
+      var rx = gx*cosT - gz*sinT;
+      var rz = gx*sinT + gz*cosT;
+      return [ originX + (rx-rz)*cellPx*0.866, originY + (rx+rz)*cellPx*0.5 - elev ];
+    }
+
+    // floor wireframe
     ctx.save();
-    for (var r=spectroHistory.length-1; r>=0; r--){
-      var row = spectroHistory[r];
-      var depth = r/(SPECTRO_ROWS-1);
-      var scale = lerp(1, 0.42, depth);
-      var rowWidth = frontWidth*scale;
-      var rowY = baseY - depth*h*0.30;
-      var rowMaxH = maxBarH*scale;
-      var alpha = lerp(1, 0.32, depth);
-      var barW = rowWidth/row.length;
-      var startX = centerX - rowWidth/2;
-      var strokeCol = hexToRgba(currentPalette.shadow, alpha*0.9);
-      for (var i=0;i<row.length;i++){
-        var val = row[i], bh2 = Math.max(2*devicePixelRatio, val*rowMaxH), x = startX + i*barW, bw2 = Math.max(1, barW*0.78);
-        ctx.globalAlpha = alpha;
-        ctx.fillStyle = lerpColor(currentPalette.primary, currentPalette.tertiary, Math.min(1, val*1.3));
-        ctx.fillRect(x, rowY-bh2, bw2, bh2);
-        ctx.strokeStyle = strokeCol;
-        ctx.lineWidth = 1*devicePixelRatio;
-        ctx.strokeRect(x, rowY-bh2, bw2, bh2);
-      }
+    ctx.strokeStyle = hexToRgba(currentPalette.shadow, 0.55);
+    ctx.lineWidth = 1*devicePixelRatio;
+    for (var r0=0; r0<=SPECTRO_ROWS; r0++){
+      var pA = iso(-SPECTRO_COLS/2, r0, 0), pB = iso(SPECTRO_COLS/2, r0, 0);
+      ctx.beginPath(); ctx.moveTo(pA[0],pA[1]); ctx.lineTo(pB[0],pB[1]); ctx.stroke();
+    }
+    for (var c0=0; c0<=SPECTRO_COLS; c0++){
+      var pC = iso(c0-SPECTRO_COLS/2, 0, 0), pD = iso(c0-SPECTRO_COLS/2, SPECTRO_ROWS, 0);
+      ctx.beginPath(); ctx.moveTo(pC[0],pC[1]); ctx.lineTo(pD[0],pD[1]); ctx.stroke();
     }
     ctx.restore();
+
+    // build + depth-sort cells (painter's algorithm for correct box occlusion under rotation)
+    var cells = [];
+    for (var r=0;r<SPECTRO_ROWS;r++){
+      var rowArr = spectroHistory[r];
+      for (var c=0;c<SPECTRO_COLS;c++){
+        var gx = c - SPECTRO_COLS/2, gz = r;
+        var rx = gx*cosT - gz*sinT, rz = gx*sinT + gz*cosT;
+        cells.push({ gx:gx, gz:gz, val: rowArr[c], depthKey: rx+rz });
+      }
+    }
+    cells.sort(function(a,b){ return a.depthKey - b.depthKey; });
+
     ctx.save();
-    ctx.strokeStyle = hexToRgba(currentPalette.tertiary, 0.5);
-    ctx.lineWidth = 1.2*devicePixelRatio;
-    ctx.beginPath(); ctx.moveTo(centerX-frontWidth/2, baseY+2); ctx.lineTo(centerX+frontWidth/2, baseY+2); ctx.stroke();
+    for (var i=0;i<cells.length;i++){
+      var cell = cells[i];
+      var hPx = Math.max(2*devicePixelRatio, cell.val*maxHeightPx);
+      var P00=iso(cell.gx,cell.gz,0), P10=iso(cell.gx+1,cell.gz,0), P01=iso(cell.gx,cell.gz+1,0), P11=iso(cell.gx+1,cell.gz+1,0);
+      var T00=iso(cell.gx,cell.gz,hPx), T10=iso(cell.gx+1,cell.gz,hPx), T01=iso(cell.gx,cell.gz+1,hPx), T11=iso(cell.gx+1,cell.gz+1,hPx);
+      var baseRGB = mixRGBPair(currentPalette.primary, currentPalette.tertiary, Math.min(1, cell.val*1.25));
+      var strokeC = hexToRgba(currentPalette.shadow, 0.5);
+      ctx.lineWidth = 1*devicePixelRatio;
+      ctx.strokeStyle = strokeC;
+
+      // left face
+      ctx.beginPath(); ctx.moveTo(P00[0],P00[1]); ctx.lineTo(P01[0],P01[1]); ctx.lineTo(T01[0],T01[1]); ctx.lineTo(T00[0],T00[1]); ctx.closePath();
+      ctx.fillStyle = rgbShade(baseRGB, 0.5); ctx.fill(); ctx.stroke();
+      // right face
+      ctx.beginPath(); ctx.moveTo(P10[0],P10[1]); ctx.lineTo(P11[0],P11[1]); ctx.lineTo(T11[0],T11[1]); ctx.lineTo(T10[0],T10[1]); ctx.closePath();
+      ctx.fillStyle = rgbShade(baseRGB, 0.75); ctx.fill(); ctx.stroke();
+      // top face
+      ctx.beginPath(); ctx.moveTo(T00[0],T00[1]); ctx.lineTo(T10[0],T10[1]); ctx.lineTo(T11[0],T11[1]); ctx.lineTo(T01[0],T01[1]); ctx.closePath();
+      ctx.fillStyle = rgbShade(baseRGB, 1.0); ctx.fill(); ctx.stroke();
+    }
     ctx.restore();
   }
 
