@@ -148,8 +148,11 @@
         <button data-mode="radial" role="menuitem">Radial</button>
         <button data-mode="scope" role="menuitem">Scope</button>
         <button data-mode="vu" role="menuitem">VU Meter</button>
+        <div class="style-group-label">Psychedelic</div>
         <button data-mode="kaleidoscope" role="menuitem">Kaleidoscope</button>
         <button data-mode="tunnel" role="menuitem">Tunnel</button>
+        <button data-mode="plasma" role="menuitem">Plasma</button>
+        <button data-mode="spectro" role="menuitem">Spectrogram</button>
         <div class="style-group-label">Elemental</div>
         <button data-mode="embers" role="menuitem">Embers</button>
         <button data-mode="terrain" role="menuitem">Terrain</button>
@@ -294,7 +297,7 @@
   // ---------------- Element + style state ----------------
   var MODE_LABELS = {
     bars:'Bars', radial:'Radial', scope:'Scope', vu:'VU Meter',
-    kaleidoscope:'Kaleidoscope', tunnel:'Tunnel',
+    kaleidoscope:'Kaleidoscope', tunnel:'Tunnel', plasma:'Plasma', spectro:'Spectrogram',
     embers:'Embers', terrain:'Terrain', streams:'Streamlines', liquid:'Liquid'
   };
   var state = { element: 'aurora', mode: 'bars' };
@@ -822,6 +825,97 @@
     ctx.restore();
   }
 
+  // ---- PLASMA: demo-scene interference field ----
+  var plasmaBuf=null, plasmaCtx=null, plasmaImageData=null;
+  function ensurePlasmaBuf(){
+    if (!plasmaBuf){
+      plasmaBuf = document.createElement('canvas');
+      plasmaBuf.width = 128; plasmaBuf.height = 72;
+      plasmaCtx = plasmaBuf.getContext('2d');
+      plasmaImageData = plasmaCtx.createImageData(128,72);
+    }
+  }
+  function drawPlasma(w,h,t){
+    ensurePlasmaBuf();
+    var bw = plasmaBuf.width, bh = plasmaBuf.height;
+    var data = plasmaImageData.data;
+    var binCount = analyser.frequencyBinCount;
+    var bass = overallEnergy(0, Math.floor(binCount*0.12));
+    var mid = overallEnergy(Math.floor(binCount*0.12), Math.floor(binCount*0.4));
+    var f1 = 0.10 + bass*0.06, f2 = 0.09 + mid*0.05, f3 = 0.045, f4 = 0.12;
+    var speed = 0.0016 + bass*0.0028;
+    var stops = [hexToRgb(currentPalette.shadow), hexToRgb(currentPalette.primary), hexToRgb(currentPalette.secondary), hexToRgb(currentPalette.tertiary)];
+    var idx = 0, cx = bw/2, cy = bh/2;
+    for (var y=0;y<bh;y++){
+      for (var x=0;x<bw;x++){
+        var dx = x-cx, dy = y-cy;
+        var v = Math.sin(x*f1 + t*speed)
+              + Math.sin(y*f2 - t*speed*1.3)
+              + Math.sin((x+y)*f3 + t*speed*0.7)
+              + Math.sin(Math.sqrt(dx*dx+dy*dy)*f4 - t*speed*1.6);
+        var norm = (v+4)/8;
+        var phase = ((norm + t*0.00004) % 1 + 1) % 1;
+        var segF = phase*stops.length;
+        var si = Math.floor(segF) % stops.length, sj = (si+1) % stops.length, f = segF-Math.floor(segF);
+        var a = stops[si], b = stops[sj];
+        data[idx]   = a.r + (b.r-a.r)*f;
+        data[idx+1] = a.g + (b.g-a.g)*f;
+        data[idx+2] = a.b + (b.b-a.b)*f;
+        data[idx+3] = 255;
+        idx += 4;
+      }
+    }
+    plasmaCtx.putImageData(plasmaImageData, 0, 0);
+    ctx.save();
+    ctx.imageSmoothingEnabled = true;
+    if ('imageSmoothingQuality' in ctx) ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(plasmaBuf, 0,0,bw,bh, 0,0,w,h);
+    ctx.restore();
+  }
+
+  // ---- SPECTROGRAM: receding waterfall ----
+  var spectroHistory = [], spectroFrameCounter = 0;
+  var SPECTRO_BARS = 40, SPECTRO_ROWS = 22;
+  function drawSpectro(w,h,t){
+    var binCount = analyser.frequencyBinCount;
+    spectroFrameCounter++;
+    if (spectroFrameCounter % 2 === 0){
+      var row = [];
+      for (var i=0;i<SPECTRO_BARS;i++){
+        var t0=i/SPECTRO_BARS, t1=(i+1)/SPECTRO_BARS;
+        var b0=Math.floor(Math.pow(t0,2.1)*binCount), b1=Math.max(b0+1, Math.floor(Math.pow(t1,2.1)*binCount));
+        row.push(Math.pow(bandEnergy(b0,b1)/255, 0.8));
+      }
+      spectroHistory.unshift(row);
+      if (spectroHistory.length > SPECTRO_ROWS) spectroHistory.pop();
+    }
+    var baseY = h*0.82, maxBarH = h*0.34, centerX = w/2, frontWidth = w*0.86;
+    ctx.save();
+    for (var r=spectroHistory.length-1; r>=0; r--){
+      var row = spectroHistory[r];
+      var depth = r/(SPECTRO_ROWS-1);
+      var scale = lerp(1, 0.42, depth);
+      var rowWidth = frontWidth*scale;
+      var rowY = baseY - depth*h*0.30;
+      var rowMaxH = maxBarH*scale;
+      var alpha = lerp(1, 0.12, depth);
+      var barW = rowWidth/row.length;
+      var startX = centerX - rowWidth/2;
+      for (var i=0;i<row.length;i++){
+        var val = row[i], bh2 = val*rowMaxH, x = startX + i*barW;
+        ctx.fillStyle = lerpColor(currentPalette.primary, currentPalette.tertiary, Math.min(1, val*1.3));
+        ctx.globalAlpha = alpha * (0.35 + val*0.65);
+        ctx.fillRect(x, rowY-bh2, Math.max(1, barW*0.82), bh2);
+      }
+    }
+    ctx.restore();
+    ctx.save();
+    ctx.strokeStyle = hexToRgba(currentPalette.tertiary, 0.5);
+    ctx.lineWidth = 1.2*devicePixelRatio;
+    ctx.beginPath(); ctx.moveTo(centerX-frontWidth/2, baseY+2); ctx.lineTo(centerX+frontWidth/2, baseY+2); ctx.stroke();
+    ctx.restore();
+  }
+
   // ---------------- Main loop ----------------
   function loop(t){
     requestAnimationFrame(loop);
@@ -841,6 +935,8 @@
     else if (state.mode === 'liquid') drawLiquid(w,h,t);
     else if (state.mode === 'kaleidoscope') drawKaleidoscope(w,h,t);
     else if (state.mode === 'tunnel') drawTunnel(w,h,t);
+    else if (state.mode === 'plasma') drawPlasma(w,h,t);
+    else if (state.mode === 'spectro') drawSpectro(w,h,t);
   }
 
   (function idlePreview(){ if (started) return; drawStars(performance.now()); requestAnimationFrame(idlePreview); })();
