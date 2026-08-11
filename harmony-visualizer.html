@@ -172,6 +172,7 @@
         <button data-mode="tunnel" role="menuitem">Tunnel</button>
         <button data-mode="plasma" role="menuitem">Plasma</button>
         <button data-mode="spectro" role="menuitem">3D Grid</button>
+        <button data-mode="wireframe" role="menuitem">Wireframe Peaks</button>
         <button data-mode="starfield" role="menuitem">Starfield Warp</button>
         <button data-mode="fractal" role="menuitem">Fractal</button>
         <button data-mode="lavalamp" role="menuitem">Lava Lamp</button>
@@ -384,7 +385,7 @@
   // ---------------- Element + style state ----------------
   var MODE_LABELS = {
     bars:'Bars', vbarmirror:'VBar Mirror', hbarmirror:'HBar Mirror', radial:'Radial', scope:'Scope', vu:'VU Meter',
-    kaleidoscope:'Kaleidoscope', tunnel:'Tunnel', plasma:'Plasma', spectro:'3D Grid', starfield:'Starfield Warp', fractal:'Fractal', lavalamp:'Lava Lamp',
+    kaleidoscope:'Kaleidoscope', tunnel:'Tunnel', plasma:'Plasma', spectro:'3D Grid', wireframe:'Wireframe Peaks', starfield:'Starfield Warp', fractal:'Fractal', lavalamp:'Lava Lamp',
     embers:'Embers', terrain:'Terrain', streams:'Streamlines', liquid:'Liquid'
   };
   var state = { element: 'aurora', mode: 'bars' };
@@ -1487,6 +1488,59 @@
     ctx.restore();
   }
 
+  // ---- WIREFRAME PEAKS: low-poly triangulated mountain silhouette ----
+  var wireHeights = null, WIRE_COLS = 26;
+  function drawWireframePeaks(w,h,t){
+    var binCount = FREQ_BIN_COUNT;
+    if (!wireHeights) wireHeights = new Array(WIRE_COLS+1).fill(0);
+    var baseY = h*0.88, maxH = h*0.5;
+    for (var i=0;i<=WIRE_COLS;i++){
+      var t0 = i/WIRE_COLS;
+      var nz = fbmNoise(t0*4.5, t*0.00004 + i*0.3);
+      var b0 = Math.floor(t0*binCount*0.5);
+      var audioV = bandEnergy(b0, b0+5)/255;
+      var valleyDip = 1 - 0.55*Math.exp(-Math.pow((t0-0.5)*3.2, 2));
+      var target = Math.min(1, (nz*0.5 + audioV*0.6) * valleyDip);
+      wireHeights[i] = lerp(wireHeights[i], target, 0.12);
+    }
+    var xs = [];
+    for (var j=0;j<=WIRE_COLS;j++) xs.push((j/WIRE_COLS)*w);
+
+    ctx.save();
+    ctx.strokeStyle = hexToRgba(currentPalette.primary, 0.6);
+    ctx.lineWidth = 1.3*devicePixelRatio;
+    ctx.shadowColor = currentPalette.glow; ctx.shadowBlur = 9;
+    ctx.beginPath();
+    for (var k=0;k<=WIRE_COLS;k++){
+      var px = xs[k], py = baseY - wireHeights[k]*maxH;
+      if (k===0) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+    }
+    ctx.stroke();
+
+    ctx.strokeStyle = hexToRgba(currentPalette.secondary, 0.32);
+    ctx.lineWidth = 1*devicePixelRatio;
+    ctx.shadowBlur = 4;
+    for (var m=0;m<WIRE_COLS;m++){
+      var p1x=xs[m], p1y=baseY-wireHeights[m]*maxH;
+      var p2x=xs[m+1], p2y=baseY-wireHeights[m+1]*maxH;
+      ctx.beginPath(); ctx.moveTo(p1x,p1y); ctx.lineTo(xs[m],baseY); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(p1x,p1y); ctx.lineTo(xs[m+1],baseY); ctx.stroke();
+    }
+    ctx.strokeStyle = hexToRgba(currentPalette.primary, 0.4);
+    ctx.shadowBlur = 0;
+    ctx.beginPath(); ctx.moveTo(0,baseY); ctx.lineTo(w,baseY); ctx.stroke();
+    ctx.restore();
+
+    ctx.save();
+    for (var n=0;n<=WIRE_COLS;n++){
+      var vx=xs[n], vy=baseY-wireHeights[n]*maxH;
+      ctx.fillStyle = currentPalette.tertiary;
+      ctx.shadowColor = currentPalette.glow; ctx.shadowBlur = 6;
+      ctx.beginPath(); ctx.arc(vx,vy,1.6*devicePixelRatio,0,Math.PI*2); ctx.fill();
+    }
+    ctx.restore();
+  }
+
   // ---- STARFIELD WARP ----
   var warpStars = [];
   function ensureWarpStars(w,h){
@@ -1771,6 +1825,7 @@
     else if (state.mode === 'tunnel') drawTunnel(w,h,t);
     else if (state.mode === 'plasma') drawPlasma(w,h,t);
     else if (state.mode === 'spectro') drawSpectro(w,h,t);
+    else if (state.mode === 'wireframe') drawWireframePeaks(w,h,t);
     else if (state.mode === 'starfield') drawStarfield(w,h,t);
     else if (state.mode === 'fractal') drawFractal(w,h,t);
     else if (state.mode === 'lavalamp') drawLavaLamp(w,h,t);
