@@ -120,6 +120,42 @@
   }
   #ambientBadge.show{ opacity:1; transform:translateY(0); }
 
+  #tunerPanel{
+    position:fixed; top:50%; left:50%; transform:translate(-50%,-50%) scale(0.96);
+    z-index:40; width:min(420px, 90vw);
+    background: rgba(10,15,28,0.94); border:1px solid var(--hair); border-radius:20px;
+    backdrop-filter: blur(24px) saturate(140%); -webkit-backdrop-filter: blur(24px) saturate(140%);
+    box-shadow: 0 24px 70px rgba(0,0,0,0.6);
+    padding: 22px 24px 20px; display:none; flex-direction:column; align-items:center; gap:10px;
+    opacity:0; transition: opacity 0.25s ease, transform 0.25s ease;
+  }
+  #tunerPanel.show{ display:flex; opacity:1; transform:translate(-50%,-50%) scale(1); }
+  .tuner-inst-row{ display:flex; gap:4px; flex-wrap:wrap; justify-content:center; margin-bottom:6px; }
+  .tuner-inst{
+    appearance:none; border:1px solid var(--hair); background:rgba(255,255,255,0.04); color:var(--ink-dim);
+    font-size:11px; padding:6px 11px; border-radius:999px; cursor:pointer; font-family:inherit;
+  }
+  .tuner-inst.active{ background: linear-gradient(135deg, var(--p-primary), var(--p-secondary)); color:var(--void); font-weight:600; border-color:transparent; }
+  .tuner-note{ font-family: Georgia, serif; font-size:64px; color: var(--ink); line-height:1; margin-top:4px; }
+  .tuner-hz{ font-size:13px; color: var(--ink-dim); min-height:16px; }
+  .tuner-meter{ width:100%; margin-top:6px; }
+  .tuner-meter-track{ position:relative; height:10px; border-radius:6px; background: rgba(255,255,255,0.07); overflow:visible; }
+  .tuner-meter-center{ position:absolute; left:50%; top:-3px; bottom:-3px; width:2px; background: var(--p-primary); opacity:0.5; transform:translateX(-1px); }
+  .tuner-meter-needle{
+    position:absolute; top:-4px; bottom:-4px; width:4px; border-radius:3px;
+    background: var(--ink); left:50%; transform:translateX(-2px);
+    transition: left 0.08s linear, background 0.15s ease;
+  }
+  .tuner-meter-labels{ display:flex; justify-content:space-between; font-size:10px; color:var(--ink-dim); margin-top:6px; }
+  .tuner-strings{ display:flex; gap:6px; flex-wrap:wrap; justify-content:center; margin-top:8px; min-height:26px; }
+  .tuner-string{ font-size:12px; padding:4px 10px; border-radius:8px; background:rgba(255,255,255,0.05); color:var(--ink-dim); border:1px solid transparent; }
+  .tuner-string.nearest{ color:var(--ink); border-color: var(--p-primary); background: rgba(255,255,255,0.09); }
+  .tuner-close{
+    appearance:none; border:none; background:transparent; color:var(--ink-dim); font-size:12px;
+    text-decoration:underline; text-underline-offset:3px; cursor:pointer; font-family:inherit; margin-top:8px;
+  }
+  .tuner-close:hover{ color:var(--ink); }
+
   @media (max-width:640px){ #ident{ font-size:10px; letter-spacing:0.1em; } #dockWrap{ bottom:14px; } }
   @media (prefers-reduced-motion: reduce){ #dockWrap, #dockWrap.hidden{ transition:none; } }
 </style>
@@ -132,6 +168,27 @@
 
 <div id="ident"><span class="sun">☼</span> ZEPHYR <b>— Harmony Visualizer</b></div>
 <div id="ambientBadge">Ambient patterns — no audio detected</div>
+
+<div id="tunerPanel">
+  <div class="tuner-inst-row">
+    <button class="tuner-inst active" data-inst="chromatic">Chromatic</button>
+    <button class="tuner-inst" data-inst="guitar">Guitar</button>
+    <button class="tuner-inst" data-inst="bass">Bass</button>
+    <button class="tuner-inst" data-inst="ukulele">Ukulele</button>
+    <button class="tuner-inst" data-inst="violin">Violin</button>
+  </div>
+  <div class="tuner-note" id="tunerNote">—</div>
+  <div class="tuner-hz" id="tunerHz">Play a note…</div>
+  <div class="tuner-meter">
+    <div class="tuner-meter-track">
+      <div class="tuner-meter-center"></div>
+      <div class="tuner-meter-needle" id="tunerNeedle"></div>
+    </div>
+    <div class="tuner-meter-labels"><span>−50¢</span><span>in tune</span><span>+50¢</span></div>
+  </div>
+  <div class="tuner-strings" id="tunerStrings"></div>
+  <button class="tuner-close" id="tunerClose">Close</button>
+</div>
 
 <div id="startOverlay">
   <div class="mark">☼ Zephyr Observatory</div>
@@ -181,6 +238,7 @@
         <button data-mode="terrain" role="menuitem">Terrain</button>
         <button data-mode="streams" role="menuitem">Streamlines</button>
         <button data-mode="liquid" role="menuitem">Liquid</button>
+        <button data-mode="kelp" role="menuitem">Kelp Forest</button>
       </div>
     </div>
     <div class="dock-sep"></div>
@@ -191,6 +249,7 @@
     <div class="dock-sep"></div>
     <div class="dock-sep"></div>
     <button class="dock-btn" id="skyBtn" title="Tint the sky to match sunrise/sunset/night where you are">My Sky</button>
+    <button class="dock-btn" id="tunerBtn">Tuner</button>
     <button class="dock-btn" id="fsBtn">Fullscreen</button>
   </div>
 </div>
@@ -386,7 +445,7 @@
   var MODE_LABELS = {
     bars:'Bars', vbarmirror:'VBar Mirror', hbarmirror:'HBar Mirror', radial:'Radial', scope:'Scope', vu:'VU Meter',
     kaleidoscope:'Kaleidoscope', tunnel:'Tunnel', plasma:'Plasma', spectro:'3D Grid', wireframe:'Wireframe Peaks', starfield:'Starfield Warp', fractal:'Fractal', lavalamp:'Lava Lamp',
-    embers:'Embers', terrain:'Terrain', streams:'Streamlines', liquid:'Liquid'
+    embers:'Embers', terrain:'Terrain', streams:'Streamlines', liquid:'Liquid', kelp:'Kelp Forest'
   };
   var state = { element: 'aurora', mode: 'bars' };
   var elementBtns = document.querySelectorAll('#elementDock [data-element]');
@@ -1261,6 +1320,122 @@
     ctx.restore();
   }
 
+  // ---- KELP FOREST: underwater fronds, caustic light, drifting bubbles and fish ----
+  var kelpFronds = null, kelpFish = null, kelpBubbles = [];
+  function ensureKelp(){
+    if (!kelpFronds){
+      kelpFronds = [];
+      for (var i=0;i<15;i++){
+        kelpFronds.push({
+          xNorm: (i+0.5)/15 + (Math.random()-0.5)*0.05,
+          depth: Math.random(),
+          heightNorm: 0.55 + Math.random()*0.4,
+          swaySpeed: 0.0004 + Math.random()*0.0004,
+          swayPhase: Math.random()*Math.PI*2,
+          swayAmp: 0.05 + Math.random()*0.06,
+          segs: 7
+        });
+      }
+      kelpFronds.sort(function(a,b){ return a.depth-b.depth; });
+    }
+    if (!kelpFish){
+      kelpFish = [];
+      for (var f=0;f<3;f++){
+        kelpFish.push({ y: 0.2+Math.random()*0.5, speed:(0.15+Math.random()*0.25)*(Math.random()<0.5?1:-1), x: Math.random(), size: 0.014+Math.random()*0.012, phase: Math.random()*Math.PI*2 });
+      }
+    }
+  }
+  function drawKelpForest(w,h,t){
+    ensureKelp();
+    var binCount = FREQ_BIN_COUNT;
+    var bass = overallEnergy(0, Math.floor(binCount*0.12));
+    var treble = overallEnergy(Math.floor(binCount*0.3), Math.floor(binCount*0.7));
+
+    // caustic light shafts from above
+    ctx.save();
+    for (var c=0;c<4;c++){
+      var cx = w*(0.15+c*0.24) + Math.sin(t*0.00008+c*2)*w*0.05;
+      var shaftW = w*0.11;
+      var g = ctx.createLinearGradient(cx-shaftW,0,cx+shaftW,h*0.7);
+      g.addColorStop(0, hexToRgba(currentPalette.tertiary,0));
+      g.addColorStop(0.5, hexToRgba(currentPalette.tertiary, 0.07+treble*0.05));
+      g.addColorStop(1, hexToRgba(currentPalette.tertiary,0));
+      ctx.fillStyle = g;
+      ctx.beginPath();
+      ctx.moveTo(cx-shaftW*0.3,0); ctx.lineTo(cx+shaftW*0.3,0);
+      ctx.lineTo(cx+shaftW*1.4,h*0.75); ctx.lineTo(cx-shaftW*1.4,h*0.75);
+      ctx.closePath(); ctx.fill();
+    }
+    ctx.restore();
+
+    // kelp fronds, back-to-front by depth
+    for (var i=0;i<kelpFronds.length;i++){
+      var k = kelpFronds[i];
+      var baseX = k.xNorm*w;
+      var frondH = k.heightNorm*h*0.92;
+      var swayAmp = (k.swayAmp + treble*0.05) * w * (0.5+k.depth*0.7);
+      var alpha = 0.35 + k.depth*0.55;
+      ctx.save();
+      ctx.globalAlpha = alpha;
+      ctx.strokeStyle = lerpColor(currentPalette.shadow, currentPalette.primary, k.depth);
+      ctx.lineWidth = (3 + k.depth*5)*devicePixelRatio;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(baseX, h);
+      for (var s=1;s<=k.segs;s++){
+        var frac = s/k.segs;
+        var segY = h - frac*frondH;
+        var sway = Math.sin(t*k.swaySpeed + k.swayPhase + frac*2.2) * swayAmp * frac;
+        var segX = baseX + sway;
+        var prevFrac = (s-1)/k.segs;
+        var prevY = h - prevFrac*frondH;
+        var prevSway = Math.sin(t*k.swaySpeed + k.swayPhase + prevFrac*2.2) * swayAmp * prevFrac;
+        var prevX = baseX + prevSway;
+        var midX=(prevX+segX)/2, midY=(prevY+segY)/2;
+        ctx.quadraticCurveTo(prevX, prevY, midX, midY);
+      }
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    // bubbles rising
+    if (kelpBubbles.length < 90 && Math.random() < 0.08+bass*0.5){
+      kelpBubbles.push({ x: Math.random()*w, y: h+8, vy: -(0.4+Math.random()*1.1)*devicePixelRatio, size:(1+Math.random()*2.4)*devicePixelRatio, phase: Math.random()*Math.PI*2, life: 500 });
+    }
+    ctx.save();
+    for (var b=kelpBubbles.length-1;b>=0;b--){
+      var bb = kelpBubbles[b];
+      bb.y += bb.vy; bb.life--;
+      var bx = bb.x + Math.sin(t*0.004+bb.phase)*2.5*devicePixelRatio;
+      if (bb.y < -10 || bb.life<=0){ kelpBubbles.splice(b,1); continue; }
+      ctx.globalAlpha = 0.45;
+      ctx.strokeStyle = currentPalette.tertiary;
+      ctx.lineWidth = 1*devicePixelRatio;
+      ctx.beginPath(); ctx.arc(bx, bb.y, bb.size, 0, Math.PI*2); ctx.stroke();
+    }
+    ctx.restore();
+
+    // drifting fish silhouettes
+    ctx.save();
+    for (var fi=0;fi<kelpFish.length;fi++){
+      var fh = kelpFish[fi];
+      fh.x += fh.speed*0.0006;
+      if (fh.x>1.15) fh.x=-0.15; if (fh.x<-0.15) fh.x=1.15;
+      var fx = fh.x*w, fy = fh.y*h + Math.sin(t*0.002+fh.phase)*h*0.02;
+      var sz = fh.size*w;
+      var dir = fh.speed>0?1:-1;
+      ctx.fillStyle = hexToRgba(currentPalette.shadow, 0.7);
+      ctx.beginPath();
+      ctx.ellipse(fx, fy, sz, sz*0.42, 0, 0, Math.PI*2);
+      ctx.moveTo(fx-sz*dir, fy);
+      ctx.lineTo(fx-sz*1.6*dir, fy-sz*0.5);
+      ctx.lineTo(fx-sz*1.6*dir, fy+sz*0.5);
+      ctx.closePath();
+      ctx.fill();
+    }
+    ctx.restore();
+  }
+
   // ---- KALEIDOSCOPE: mirrored mandala ----
   function drawKaleidoWedge(wedgeAngle, maxR, binCount){
     var rays = 22;
@@ -1803,6 +1978,119 @@
   }
 
   // ---------------- Main loop ----------------
+  // ---------------- Instrument Tuner ----------------
+  var tunerOpen = false, tunerInstrument = 'chromatic';
+  var tunerPitchBuf = null;
+  var NOTE_NAMES = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+  var INSTRUMENT_STRINGS = {
+    guitar:  [{n:'E2',m:40},{n:'A2',m:45},{n:'D3',m:50},{n:'G3',m:55},{n:'B3',m:59},{n:'E4',m:64}],
+    bass:    [{n:'E1',m:28},{n:'A1',m:33},{n:'D2',m:38},{n:'G2',m:43}],
+    ukulele: [{n:'G4',m:67},{n:'C4',m:60},{n:'E4',m:64},{n:'A4',m:69}],
+    violin:  [{n:'G3',m:55},{n:'D4',m:62},{n:'A4',m:69},{n:'E5',m:76}]
+  };
+  function midiToFreq(m){ return 440*Math.pow(2,(m-69)/12); }
+  function freqToMidi(f){ return 69 + 12*Math.log2(f/440); }
+  function midiToName(m){ var r=Math.round(m); var oct=Math.floor(r/12)-1; return NOTE_NAMES[((r%12)+12)%12]+oct; }
+
+  // Autocorrelation pitch detector (variant of the classic Chris Wilson approach):
+  // trims leading/trailing near-silence, correlates the waveform against shifted
+  // copies of itself, and finds the lag that correlates best — that lag is the
+  // signal's period, and 1/period is its fundamental frequency. Returns -1 when
+  // the input is too quiet to get a confident reading, same as a real tuner going idle.
+  function autoCorrelate(buf, sampleRate){
+    var SIZE = buf.length;
+    var rms = 0;
+    for (var i=0;i<SIZE;i++){ var v=buf[i]; rms += v*v; }
+    rms = Math.sqrt(rms/SIZE);
+    if (rms < 0.012) return -1;
+
+    var r1=0, r2=SIZE-1, thres=0.2;
+    for (var a=0;a<SIZE/2;a++){ if (Math.abs(buf[a])<thres){ r1=a; break; } }
+    for (var b=1;b<SIZE/2;b++){ if (Math.abs(buf[SIZE-b])<thres){ r2=SIZE-b; break; } }
+    var trimmed = buf.slice(r1,r2);
+    var n = trimmed.length;
+    if (n < 8) return -1;
+
+    var c = new Float64Array(n);
+    for (var i2=0;i2<n;i2++){
+      var sum=0;
+      for (var j=0;j<n-i2;j++){ sum += trimmed[j]*trimmed[j+i2]; }
+      c[i2]=sum;
+    }
+    var d=0; while (d<n-1 && c[d]>c[d+1]) d++;
+    var maxval=-1, maxpos=-1;
+    for (var k=d;k<n;k++){ if (c[k]>maxval){ maxval=c[k]; maxpos=k; } }
+    if (maxpos<=0) return -1;
+    var T0 = maxpos;
+    if (maxpos>0 && maxpos<n-1){
+      var x1=c[T0-1], x2=c[T0], x3=c[T0+1];
+      var aa=(x1+x3-2*x2)/2, bb=(x3-x1)/2;
+      if (aa) T0 = T0 - bb/(2*aa);
+    }
+    return sampleRate/T0;
+  }
+
+  var tunerNoteEl, tunerHzEl, tunerNeedleEl, tunerStringsEl, tunerPanelEl;
+  function renderTunerStrings(nearestMidi){
+    var strings = INSTRUMENT_STRINGS[tunerInstrument];
+    if (!strings){ tunerStringsEl.innerHTML=''; return; }
+    var html='';
+    for (var i=0;i<strings.length;i++){
+      var isNear = nearestMidi!=null && Math.round(nearestMidi)===strings[i].m;
+      html += '<span class="tuner-string'+(isNear?' nearest':'')+'">'+strings[i].n+'</span>';
+    }
+    tunerStringsEl.innerHTML = html;
+  }
+  function updateTuner(){
+    if (!analyser){
+      tunerNoteEl.textContent='—'; tunerHzEl.textContent='No live audio source — mic or tab audio needed';
+      tunerNeedleEl.style.left='50%'; tunerNeedleEl.style.background='var(--ink)';
+      return;
+    }
+    if (!tunerPitchBuf) tunerPitchBuf = new Float32Array(TIME_LEN);
+    analyser.getFloatTimeDomainData(tunerPitchBuf);
+    var freq = autoCorrelate(tunerPitchBuf, audioCtx.sampleRate);
+    if (freq === -1 || freq < 27 || freq > 4200){
+      tunerNoteEl.textContent='—'; tunerHzEl.textContent='Play a note…';
+      tunerNeedleEl.style.left='50%'; tunerNeedleEl.style.background='var(--ink)';
+      renderTunerStrings(null);
+      return;
+    }
+    var midi = freqToMidi(freq);
+    var nearestMidi = Math.round(midi);
+    var cents = (midi-nearestMidi)*100;
+    tunerNoteEl.textContent = midiToName(nearestMidi);
+    tunerHzEl.textContent = freq.toFixed(1) + ' Hz  ·  ' + (cents>=0?'+':'') + cents.toFixed(0) + '¢';
+    var pct = 50 + Math.max(-50,Math.min(50,cents));
+    tunerNeedleEl.style.left = pct+'%';
+    tunerNeedleEl.style.background = Math.abs(cents)<5 ? '#5fbf6e' : (Math.abs(cents)<20 ? '#e8c95a' : '#e2554a');
+    renderTunerStrings(midi);
+  }
+
+  function initTunerUI(){
+    tunerPanelEl = document.getElementById('tunerPanel');
+    tunerNoteEl = document.getElementById('tunerNote');
+    tunerHzEl = document.getElementById('tunerHz');
+    tunerNeedleEl = document.getElementById('tunerNeedle');
+    tunerStringsEl = document.getElementById('tunerStrings');
+    document.getElementById('tunerBtn').addEventListener('click', function(){
+      tunerOpen = !tunerOpen;
+      tunerPanelEl.classList.toggle('show', tunerOpen);
+    });
+    document.getElementById('tunerClose').addEventListener('click', function(){
+      tunerOpen = false; tunerPanelEl.classList.remove('show');
+    });
+    var instBtns = document.querySelectorAll('.tuner-inst');
+    instBtns.forEach(function(btn){
+      btn.addEventListener('click', function(){
+        tunerInstrument = btn.dataset.inst;
+        instBtns.forEach(function(b){ b.classList.toggle('active', b===btn); });
+        renderTunerStrings(null);
+      });
+    });
+  }
+  initTunerUI();
+
   function loop(t){
     requestAnimationFrame(loop);
     drawStars(t);
@@ -1810,6 +2098,7 @@
     ctx.clearRect(0,0,w,h);
     if (!started) return;
     pullAudioFrame(t);
+    if (tunerOpen) updateTuner();
 
     if (state.mode === 'bars') drawBars(w,h);
     else if (state.mode === 'vbarmirror') drawVBarMirror(w,h);
@@ -1821,6 +2110,7 @@
     else if (state.mode === 'terrain') drawTerrain(w,h,t);
     else if (state.mode === 'streams') drawStreams(w,h,t);
     else if (state.mode === 'liquid') drawLiquid(w,h,t);
+    else if (state.mode === 'kelp') drawKelpForest(w,h,t);
     else if (state.mode === 'kaleidoscope') drawKaleidoscope(w,h,t);
     else if (state.mode === 'tunnel') drawTunnel(w,h,t);
     else if (state.mode === 'plasma') drawPlasma(w,h,t);
