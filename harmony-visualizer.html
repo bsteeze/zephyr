@@ -224,7 +224,7 @@
         <button data-mode="radial" role="menuitem">Radial</button>
         <button data-mode="scope" role="menuitem">Scope</button>
         <button data-mode="vu" role="menuitem">VU Meter</button>
-        <button data-mode="chinook" role="menuitem">Chinook Panel</button>
+        <button data-mode="chinook" role="menuitem">Chinook Aft Panel</button>
         <div class="style-group-label">Psychedelic</div>
         <button data-mode="kaleidoscope" role="menuitem">Kaleidoscope</button>
         <button data-mode="tunnel" role="menuitem">Tunnel</button>
@@ -444,7 +444,7 @@
 
   // ---------------- Element + style state ----------------
   var MODE_LABELS = {
-    bars:'Bars', vbarmirror:'VBar Mirror', hbarmirror:'HBar Mirror', radial:'Radial', scope:'Scope', vu:'VU Meter', chinook:'Chinook Panel',
+    bars:'Bars', vbarmirror:'VBar Mirror', hbarmirror:'HBar Mirror', radial:'Radial', scope:'Scope', vu:'VU Meter', chinook:'Chinook Aft Panel',
     kaleidoscope:'Kaleidoscope', tunnel:'Tunnel', plasma:'Plasma', spectro:'3D Grid', wireframe:'Wireframe Peaks', starfield:'Starfield Warp', fractal:'Fractal', lavalamp:'Lava Lamp',
     embers:'Embers', terrain:'Terrain', streams:'Streamlines', liquid:'Liquid', kelp:'Kelp Forest'
   };
@@ -960,6 +960,10 @@ function getChinookTheme(){
   var key=chinookThemeSelected && state && state.element ? state.element : 'original';
   return CHINOOK_THEMES[key] || CHINOOK_THEMES.original;
 }
+function formatGaugeTemp(v){
+  var n=Math.round(v);
+  return n<0?'-'+String(Math.abs(n)).padStart(2,'0'):String(n).padStart(3,'0');
+}
 
 /* Cached warm-gray painted aluminum texture used by the aft panel. */
 var chinookTexture = null;
@@ -1138,6 +1142,21 @@ function drawAircraftGauge(cx,cy,r,value01,opts){
   }
   ctx.restore();
 
+  /* Powered three-digit window present on the six pressure/temperature gauges. */
+  if(opts.digital != null){
+    var lcdW=r*0.58, lcdH=r*0.22, lcdY=cy+r*0.02;
+    ctx.save();
+    ctx.fillStyle='rgba(1,18,17,0.78)';
+    roundRectAll(ctx,cx-lcdW/2,lcdY,lcdW,lcdH,r*0.025); ctx.fill();
+    ctx.strokeStyle='rgba(0,0,0,0.52)'; ctx.lineWidth=Math.max(0.7*devicePixelRatio,r*0.012); ctx.stroke();
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.font='700 '+(lcdH*0.68)+'px Consolas,"Courier New",monospace';
+    ctx.fillStyle=hexToRgba(teal,0.075); ctx.fillText('888',cx,lcdY+lcdH*0.54);
+    ctx.fillStyle=teal; ctx.shadowColor=dim; ctx.shadowBlur=r*0.065;
+    ctx.fillText(opts.digital,cx,lcdY+lcdH*0.54);
+    ctx.restore();
+  }
+
   /* authentic compact face nomenclature */
   ctx.save();
   ctx.fillStyle=teal; ctx.textAlign='center'; ctx.textBaseline='middle';
@@ -1176,6 +1195,51 @@ function drawAircraftGauge(cx,cy,r,value01,opts){
   ctx.restore();
 }
 
+function drawReservoirGauge(cx,cy,r,value01,opts){
+  var colors=getChinookTheme(), lume=colors.lume, dim=colors.dim;
+  value01=Math.max(0,Math.min(1,value01));
+  ctx.save();
+  var bezel=ctx.createRadialGradient(cx-r*0.35,cy-r*0.4,r*0.04,cx,cy,r*1.17);
+  bezel.addColorStop(0,'#a0a29d'); bezel.addColorStop(0.35,'#5d6261'); bezel.addColorStop(0.75,'#252a2b'); bezel.addColorStop(1,'#090c0d');
+  ctx.fillStyle=bezel; ctx.beginPath(); ctx.arc(cx,cy,r*1.105,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+  var sr=r*0.105, sd=r*1.12/Math.sqrt(2);
+  drawGaugeMountScrew(cx-sd,cy-sd,sr,Math.PI*0.23);
+  drawGaugeMountScrew(cx+sd,cy+sd,sr,-Math.PI*0.18);
+  ctx.save();
+  ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.clip();
+  var face=ctx.createRadialGradient(cx-r*0.18,cy-r*0.25,0,cx,cy,r*1.08);
+  face.addColorStop(0,colors.face0); face.addColorStop(0.42,colors.face1); face.addColorStop(0.78,colors.face2); face.addColorStop(1,colors.face3);
+  ctx.fillStyle=face; ctx.fillRect(cx-r,cy-r,r*2,r*2);
+  ctx.restore();
+  ctx.save();
+  ctx.strokeStyle=dim; ctx.fillStyle=lume; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.lineWidth=Math.max(0.8*devicePixelRatio,r*0.014);
+  var left=-Math.PI*0.92, sweep=Math.PI*0.86;
+  for(var i=0;i<12;i++){
+    var a=left+(i/11)*sweep;
+    var inner=r*(i%3===0?0.68:0.78);
+    ctx.beginPath(); ctx.moveTo(cx+Math.cos(a)*inner,cy+Math.sin(a)*inner); ctx.lineTo(cx+Math.cos(a)*r*0.90,cy+Math.sin(a)*r*0.90); ctx.stroke();
+  }
+  ctx.font='700 '+(r*0.13)+'px "Arial Narrow",Arial,sans-serif';
+  ctx.textAlign='left';
+  ctx.fillText('FL',cx-r*0.76,cy-r*0.32);
+  ctx.fillText('AD',cx-r*0.76,cy+r*0.08);
+  ctx.textAlign='center';
+  ctx.font='700 '+(r*0.145)+'px "Arial Narrow",Arial,sans-serif';
+  ctx.fillText(opts.label,cx+r*0.14,cy-r*0.06);
+  ctx.font='600 '+(r*0.12)+'px "Arial Narrow",Arial,sans-serif';
+  ctx.fillText('EMPTY',cx+r*0.14,cy+r*0.63);
+  /* level pointer follows RMS but stays within the reservoir sector */
+  var na=left+value01*sweep;
+  ctx.strokeStyle=lume; ctx.shadowColor=dim; ctx.shadowBlur=r*0.06; ctx.lineWidth=r*0.035; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(cx-r*0.03,cy); ctx.lineTo(cx+Math.cos(na)*r*0.64,cy+Math.sin(na)*r*0.64); ctx.stroke();
+  ctx.restore();
+  ctx.save();
+  ctx.fillStyle='#171b1c'; ctx.beginPath(); ctx.arc(cx,cy,r*0.085,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+
 function drawAviationToggle(cx,cy,size,on,topLabel,onLabel,offLabel){
   var bushR=size*0.43, leverLen=size*1.18;
   ctx.save();
@@ -1211,6 +1275,23 @@ function drawAnnunciator(x,y,w,h,lit){
   ctx.fillStyle=lit?colors.lume:'#252829';
   if(lit){ ctx.shadowColor=colors.dim; ctx.shadowBlur=h*0.25; }
   roundRectAll(ctx,x+inset,y+inset,w-inset*2,h-inset*2,h*0.045); ctx.fill();
+  ctx.restore();
+}
+
+function drawPowerAnnunciator(x,y,w,h,lit,green){
+  ctx.save();
+  ctx.fillStyle='#151718'; ctx.shadowColor='rgba(0,0,0,0.58)'; ctx.shadowBlur=h*0.16; ctx.shadowOffsetY=h*0.08;
+  roundRectAll(ctx,x,y,w,h,h*0.075); ctx.fill();
+  ctx.shadowBlur=0;
+  var inset=h*0.11;
+  ctx.fillStyle='#242728'; roundRectAll(ctx,x+inset,y+inset,w-inset*2,h-inset*2,h*0.035); ctx.fill();
+  if(lit){
+    var col=green?'#75ed79':'#ffe34f';
+    ctx.fillStyle=col; ctx.shadowColor=col; ctx.shadowBlur=h*0.18;
+    var cx=x+w/2, cy=y+h/2;
+    ctx.fillRect(cx-w*0.055,cy-h*0.23,w*0.11,h*0.46);
+    ctx.beginPath(); ctx.moveTo(cx-w*0.17,cy); ctx.lineTo(cx,cy-h*0.23); ctx.lineTo(cx+w*0.17,cy); ctx.lineTo(cx,cy+h*0.23); ctx.closePath(); ctx.fill();
+  }
   ctx.restore();
 }
 
@@ -1253,7 +1334,7 @@ function drawChinookCompanionPanel(x,y,w,h,bands){
     var bh=(gh-padY*2-gapY*(g.rows-1))/g.rows;
     for(var rr=0;rr<g.rows;rr++) for(var cc=0;cc<g.cols;cc++){
       var idx=(gi+rr*g.cols+cc)%activity.length;
-      drawAnnunciator(gx+padX+cc*(bw+gapX),gy+padY+rr*(bh+gapY),bw,bh,activity[idx]>0.30);
+      drawPowerAnnunciator(gx+padX+cc*(bw+gapX),gy+padY+rr*(bh+gapY),bw,bh,activity[idx]>0.30,false);
     }
   }
 
@@ -1262,6 +1343,9 @@ function drawChinookCompanionPanel(x,y,w,h,bands){
   ctx.font='600 '+(w*0.019)+'px "Arial Narrow",Arial,sans-serif';
   ctx.fillText('MAINTENANCE PANEL',x+w*0.5,y+h*0.94);
   ctx.restore();
+  var miW=w*0.075, miH=h*0.035, miY=y+h*0.885;
+  drawPowerAnnunciator(x+w*0.405,miY,miW,miH,bands[0]>0.18,true);
+  drawPowerAnnunciator(x+w*0.52,miY,miW,miH,bands[1]>0.18,true);
 }
 
 function drawChinookPanel(w,h,t){
@@ -1332,22 +1416,24 @@ function drawChinookPanel(w,h,t){
   var row2=panelY+panelH*0.505;
   for(i=0;i<3;i++){
     drawAircraftGauge(cols[i],row1,r,chinookState.level[i],{
-      label:colLabels[i]+' LVL',unit:'PCT X10',scale:'pressure'
+      label:colLabels[i]+' LVL',unit:'PCT X10',scale:'pressure',
+      digital:String(Math.round(chinookState.level[i]*400)).padStart(3,'0')
     });
   }
 
   drawChinookSection(innerX,panelY+panelH*0.395,innerW,'TEMPERATURE');
   for(i=0;i<3;i++){
     drawAircraftGauge(cols[i],row2,r,chinookState.peak[i],{
-      label:colLabels[i]+' PK',unit:'DEG C',scale:'temp'
+      label:colLabels[i]+' PK',unit:'DEG C',scale:'temp',
+      digital:formatGaugeTemp(-50+chinookState.peak[i]*200)
     });
   }
 
   drawChinookSection(innerX,panelY+panelH*0.625,innerW,'RESERVOIR LEVEL');
   var row3=panelY+panelH*0.735;
   var lowerR=r*0.92;
-  drawAircraftGauge(cols[1],row3,lowerR,chinookState.chL,{label:'L CHAN',unit:'RMS',scale:'pressure'});
-  drawAircraftGauge(cols[2],row3,lowerR,chinookState.chR,{label:'R CHAN',unit:'RMS',scale:'pressure'});
+  drawReservoirGauge(cols[1],row3,lowerR,chinookState.chL,{label:'L CHAN'});
+  drawReservoirGauge(cols[2],row3,lowerR,chinookState.chR,{label:'R CHAN'});
 
   /* The photographed panel has one selector in the lower-left bay. */
   drawAviationToggle(cols[0],row3,u*0.047,raw[0]>=raw[1],'FLIGHT CONT','1','2');
