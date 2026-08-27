@@ -930,8 +930,8 @@
     // face
     ctx.save();
     ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.clip();
-    var faceG = ctx.createRadialGradient(cx,cy-r*0.2,r*0.1,cx,cy,r*1.1);
-    faceG.addColorStop(0,'#0e2a20'); faceG.addColorStop(0.7,'#081a13'); faceG.addColorStop(1,'#03100b');
+    var faceG = ctx.createRadialGradient(cx,cy-r*0.15,r*0.04,cx,cy,r*1.1);
+    faceG.addColorStop(0,'#0c241b'); faceG.addColorStop(0.45,'#091d15'); faceG.addColorStop(1,'#03100b');
     ctx.fillStyle = faceG; ctx.fillRect(cx-r,cy-r,r*2,r*2);
     ctx.restore();
     var AIRCRAFT_TEAL = '#3EE6C4';
@@ -1009,6 +1009,51 @@
     gh.addColorStop(0,'rgba(255,255,255,0)'); gh.addColorStop(0.4,'rgba(255,255,255,0.10)'); gh.addColorStop(0.55,'rgba(255,255,255,0.10)'); gh.addColorStop(1,'rgba(255,255,255,0)');
     ctx.fillStyle=gh; ctx.fillRect(cx-r,cy-r,r*2,r*2);
     ctx.restore();
+    // grime on the glass itself — a perfectly smooth gradient is what makes a gauge
+    // read as an artificial glowing blob when viewed up close; real cover glass has
+    // smudges, fingerprints and a faint scratch breaking up the surface
+    ctx.save();
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.clip();
+    var grime = ensureGaugeGrimeTexture();
+    ctx.globalAlpha = 0.8;
+    ctx.drawImage(grime, 0,0,grime.width,grime.height, cx-r,cy-r,r*2,r*2);
+    ctx.restore();
+  }
+  var gaugeGrimeTex = null;
+  function ensureGaugeGrimeTexture(){
+    if (gaugeGrimeTex) return gaugeGrimeTex;
+    var size = 300;
+    var buf = document.createElement('canvas');
+    buf.width = size; buf.height = size;
+    var bctx = buf.getContext('2d');
+    var seed = 55211;
+    function rnd(){ seed = (seed*9301+49297)%233280; return seed/233280; }
+    for (var i=0;i<7;i++){
+      var sx=rnd()*size, sy=rnd()*size, sr=18+rnd()*45;
+      var g = bctx.createRadialGradient(sx,sy,0,sx,sy,sr);
+      g.addColorStop(0, 'rgba(10,15,12,'+(0.06+rnd()*0.10)+')');
+      g.addColorStop(1, 'rgba(10,15,12,0)');
+      bctx.fillStyle = g;
+      bctx.beginPath(); bctx.arc(sx,sy,sr,0,Math.PI*2); bctx.fill();
+    }
+    // one visible faint scratch/crack, like the real gauge glass
+    bctx.strokeStyle = 'rgba(255,255,255,0.10)';
+    bctx.lineWidth = 1.2;
+    bctx.beginPath();
+    var startX = size*0.25, startY = size*0.2;
+    bctx.moveTo(startX, startY);
+    bctx.lineTo(startX+size*0.18, startY+size*0.12);
+    bctx.lineTo(startX+size*0.30, startY+size*0.10);
+    bctx.stroke();
+    // fingerprint-ish smudge near an edge
+    var fx=size*0.72, fy=size*0.68, fr=size*0.14;
+    var fg = bctx.createRadialGradient(fx,fy,0,fx,fy,fr);
+    fg.addColorStop(0,'rgba(20,25,20,0.10)'); fg.addColorStop(1,'rgba(20,25,20,0)');
+    bctx.fillStyle = fg;
+    bctx.beginPath(); bctx.arc(fx,fy,fr,0,Math.PI*2); bctx.fill();
+
+    gaugeGrimeTex = buf;
+    return buf;
   }
   function drawGaugeGroupLabel(x,y,w,text){
     ctx.save();
