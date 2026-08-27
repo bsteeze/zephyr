@@ -928,6 +928,54 @@ var chinookState = {
 var CHINOOK_FACE = '#42e6df';
 var CHINOOK_INK = 'rgba(27,28,29,0.92)';
 
+/* Cached warm-gray painted aluminum texture used by the aft panel. */
+var chinookTexture = null;
+function ensureChinookTexture(){
+  if(chinookTexture) return chinookTexture;
+  var tw=900, th=1200;
+  var buf=document.createElement('canvas');
+  buf.width=tw; buf.height=th;
+  var bctx=buf.getContext('2d');
+  var base=bctx.createLinearGradient(0,0,tw,th);
+  base.addColorStop(0,'#d4cec1');
+  base.addColorStop(0.46,'#b8b1a4');
+  base.addColorStop(1,'#8e887e');
+  bctx.fillStyle=base; bctx.fillRect(0,0,tw,th);
+  var seed=918273;
+  function rnd(){ seed=(seed*9301+49297)%233280; return seed/233280; }
+  var i;
+  for(i=0;i<20;i++){
+    var px=rnd()*tw, py=rnd()*th, pr=70+rnd()*190;
+    var g=bctx.createRadialGradient(px,py,0,px,py,pr);
+    g.addColorStop(0,rnd()>0.5?'rgba(171,153,120,0.10)':'rgba(105,122,126,0.08)');
+    g.addColorStop(1,'rgba(0,0,0,0)');
+    bctx.fillStyle=g; bctx.beginPath(); bctx.arc(px,py,pr,0,Math.PI*2); bctx.fill();
+  }
+  for(i=0;i<48;i++){
+    var x=rnd()*tw, y=rnd()*th, a=rnd()*Math.PI*2, len=12+rnd()*55;
+    bctx.strokeStyle=rnd()>0.5?'rgba(255,255,255,0.055)':'rgba(25,25,22,0.075)';
+    bctx.lineWidth=0.8+rnd()*0.7;
+    bctx.beginPath(); bctx.moveTo(x,y); bctx.lineTo(x+Math.cos(a)*len,y+Math.sin(a)*len); bctx.stroke();
+  }
+  for(i=0;i<1800;i++){
+    bctx.fillStyle=rnd()>0.5?'rgba(255,255,255,0.035)':'rgba(0,0,0,0.04)';
+    bctx.fillRect(rnd()*tw,rnd()*th,1,1);
+  }
+  var vig=bctx.createRadialGradient(tw/2,th/2,th*0.15,tw/2,th/2,th*0.72);
+  vig.addColorStop(0,'rgba(0,0,0,0)'); vig.addColorStop(1,'rgba(0,0,0,0.14)');
+  bctx.fillStyle=vig; bctx.fillRect(0,0,tw,th);
+  chinookTexture=buf;
+  return buf;
+}
+
+function drawWeatheredPanel(x,y,w,h,radius){
+  var tex=ensureChinookTexture();
+  ctx.save();
+  roundRectAll(ctx,x,y,w,h,radius); ctx.clip();
+  ctx.drawImage(tex,0,0,tex.width,tex.height,x,y,w,h);
+  ctx.restore();
+}
+
 function drawChinookRivet(x,y,r){
   ctx.save();
   var g=ctx.createRadialGradient(x-r*0.35,y-r*0.38,r*0.04,x,y,r);
