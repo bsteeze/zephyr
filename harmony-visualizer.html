@@ -995,7 +995,8 @@ function drawChinookFrameRivets(x,y,w,h){
   var r=Math.max(2.1*devicePixelRatio,w*0.0082);
   var inset=Math.max(r*2.4,w*0.025);
   var topCount=Math.max(7,Math.round(w/(r*8.5)));
-  var sideCount=Math.max(8,Math.round(h/(r*9.5)));
+  /* The reference emphasizes the top/bottom seams; sides use only sparse fasteners. */
+  var sideCount=6;
   var i;
   for(i=0;i<=topCount;i++){
     var rx=x+inset+(w-inset*2)*(i/topCount);
@@ -1010,11 +1011,12 @@ function drawChinookFrameRivets(x,y,w,h){
 }
 
 function drawChinookSection(x,y,w,text){
-  var gap=Math.min(w*0.29,ctx.measureText(text).width*0.72+w*0.035);
   var cx=x+w/2;
   var lw=Math.max(1.2*devicePixelRatio,w*0.0042);
   var cap=Math.max(5*devicePixelRatio,w*0.018);
   ctx.save();
+  ctx.font='700 '+Math.max(9*devicePixelRatio,w*0.029)+'px "Arial Narrow",Arial,sans-serif';
+  var gap=Math.min(w*0.25,ctx.measureText(text).width*0.62+w*0.025);
   ctx.strokeStyle=CHINOOK_INK;
   ctx.lineWidth=lw;
   ctx.lineCap='square';
@@ -1024,7 +1026,6 @@ function drawChinookSection(x,y,w,text){
   ctx.stroke();
   ctx.fillStyle=CHINOOK_INK;
   ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.font='700 '+Math.max(10*devicePixelRatio,w*0.042)+'px "Arial Narrow",Arial,sans-serif';
   ctx.fillText(text,cx,y);
   ctx.restore();
 }
@@ -1106,8 +1107,8 @@ function drawAircraftGauge(cx,cy,r,value01,opts){
   /* authentic compact face nomenclature */
   ctx.save();
   ctx.fillStyle=teal; ctx.textAlign='center'; ctx.textBaseline='middle';
-  ctx.font='700 '+(r*0.145)+'px "Arial Narrow",Arial,sans-serif';
-  ctx.fillText('LIMIT',cx+r*0.18,cy-r*0.52);
+  ctx.font='700 '+(r*0.105)+'px "Arial Narrow",Arial,sans-serif';
+  ctx.fillText('LIMIT',cx+r*0.40,cy-r*0.49);
   ctx.font='700 '+(r*0.16)+'px "Arial Narrow",Arial,sans-serif';
   ctx.fillText(opts.label,cx+r*0.18,cy-r*0.31);
   ctx.font='600 '+(r*0.135)+'px "Arial Narrow",Arial,sans-serif';
@@ -1229,7 +1230,7 @@ function drawChinookPanel(w,h,t){
   ctx.restore();
 
   drawChinookSection(innerX,panelY+panelH*0.17,innerW,'PRESSURE');
-  var r=Math.min(u*0.126,panelH*0.089);
+  var r=Math.min(u*0.114,panelH*0.081);
   var row1=panelY+panelH*0.275;
   var row2=panelY+panelH*0.505;
   for(i=0;i<3;i++){
@@ -1247,7 +1248,7 @@ function drawChinookPanel(w,h,t){
 
   drawChinookSection(innerX,panelY+panelH*0.625,innerW,'RESERVOIR LEVEL');
   var row3=panelY+panelH*0.735;
-  var lowerR=r*0.94;
+  var lowerR=r*0.92;
   drawAircraftGauge(cols[1],row3,lowerR,chinookState.chL,{label:'L CHAN',unit:'RMS',scale:'pressure'});
   drawAircraftGauge(cols[2],row3,lowerR,chinookState.chR,{label:'R CHAN',unit:'RMS',scale:'pressure'});
 
@@ -1255,8 +1256,8 @@ function drawChinookPanel(w,h,t){
   drawAviationToggle(cols[0],row3,u*0.047,raw[0]>=raw[1],'FLIGHT CONT','1','2');
 
   /* Authentic two-row annunciator bank. */
-  var bankX=panelX+u*0.10, bankY=panelY+panelH*0.865;
-  var bw=u*0.105, bh=panelH*0.049, gapX=u*0.035, gapY=panelH*0.027;
+  var bankX=panelX+u*0.115, bankY=panelY+panelH*0.865;
+  var bw=u*0.090, bh=panelH*0.043, gapX=u*0.047, gapY=panelH*0.025;
   var activity=[raw[0],raw[1],raw[2],chinookState.chL,chinookState.chR,(raw[0]+raw[1]+raw[2])/3];
   for(i=0;i<6;i++) drawAnnunciator(bankX+i*(bw+gapX),bankY,bw,bh,activity[i]>0.23);
   for(i=0;i<4;i++) drawAnnunciator(bankX+(i+0.55)*(bw+gapX),bankY+bh+gapY,bw,bh,activity[(i+2)%6]>0.33);
