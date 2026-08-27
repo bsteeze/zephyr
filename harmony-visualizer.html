@@ -456,15 +456,32 @@
   var styleMenu = document.getElementById('styleMenu');
 
   function syncButtons(){
-    elementBtns.forEach(function(b){ b.classList.toggle('active', b.dataset.element === state.element); });
+    elementBtns.forEach(function(b){
+      var originalChinook = state.mode === 'chinook' && chinookTheme === 'original';
+      b.classList.toggle('active', !originalChinook && b.dataset.element === state.element);
+    });
     styleMenuBtns.forEach(function(b){ b.classList.toggle('active', b.dataset.mode === state.mode); });
     styleLabel.textContent = MODE_LABELS[state.mode] || state.mode;
   }
-  function setMode(m){ state.mode = m; syncButtons(); }
+  function setMode(m){
+    if (m === 'chinook' && state.mode !== 'chinook' && !chinookHasBeenShown){
+      chinookTheme = 'original';
+      chinookThemeSelected = false;
+      chinookHasBeenShown = true;
+    }
+    state.mode = m;
+    syncButtons();
+  }
   function setElement(el){
     state.element = el;
     currentPalette = PALETTES[el];
     applyPaletteToCSS(currentPalette);
+    if (state.mode === 'chinook'){
+      chinookTheme = el;
+      chinookThemeSelected = true;
+      syncButtons();
+      return;
+    }
     setMode(ELEMENT_MODE[el]);
   }
   elementBtns.forEach(function(btn){ btn.addEventListener('click', function(){ setElement(btn.dataset.element); }); });
@@ -925,8 +942,24 @@ var chinookState = {
   level:[0,0,0], peak:[0,0,0], chL:0, chR:0
 };
 
-var CHINOOK_FACE = '#42e6df';
 var CHINOOK_INK = 'rgba(27,28,29,0.92)';
+var chinookTheme = 'original';
+var chinookHasBeenShown = false;
+var chinookThemeSelected = false;
+var CHINOOK_THEMES = {
+  original:{ lume:'#42e6df', dim:'rgba(66,230,223,0.76)', face0:'#12645f', face1:'#0a4542', face2:'#062d2d', face3:'#02191a' },
+  fire:    { lume:'#ffb05d', dim:'rgba(255,176,93,0.78)', face0:'#71331f', face1:'#4b2118', face2:'#2d1512', face3:'#160a09' },
+  earth:   { lume:'#b8d37a', dim:'rgba(184,211,122,0.78)', face0:'#4b6133', face1:'#344525', face2:'#202f1b', face3:'#10180e' },
+  air:     { lume:'#d6efff', dim:'rgba(214,239,255,0.78)', face0:'#456b80', face1:'#2e5064', face2:'#1c3445', face3:'#0c1b27' },
+  water:   { lume:'#70ddec', dim:'rgba(112,221,236,0.78)', face0:'#155c70', face1:'#0d4356', face2:'#082d3b', face3:'#031721' },
+  aurora:  { lume:'#a994ff', dim:'rgba(169,148,255,0.78)', face0:'#4b3b74', face1:'#342b58', face2:'#211d3d', face3:'#100e20' }
+};
+function getChinookTheme(){
+  /* Derive from the same element state that colors the selected button and gain
+     control. This prevents UI and canvas themes from drifting apart. */
+  var key=chinookThemeSelected && state && state.element ? state.element : 'original';
+  return CHINOOK_THEMES[key] || CHINOOK_THEMES.original;
+}
 
 /* Cached warm-gray painted aluminum texture used by the aft panel. */
 var chinookTexture = null;
@@ -1046,8 +1079,9 @@ function drawGaugeMountScrew(x,y,r,angle){
 
 function drawAircraftGauge(cx,cy,r,value01,opts){
   var aMin=Math.PI*0.58, aMax=Math.PI*2.42;
-  var teal=CHINOOK_FACE;
-  var dim='rgba(66,230,223,0.76)';
+  var colors=getChinookTheme();
+  var teal=colors.lume;
+  var dim=colors.dim;
   value01=Math.max(0,Math.min(1,value01));
 
   /* panel recess and substantial cast-metal bezel */
@@ -1075,10 +1109,10 @@ function drawAircraftGauge(cx,cy,r,value01,opts){
   ctx.save();
   ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.clip();
   var face=ctx.createRadialGradient(cx-r*0.16,cy-r*0.25,r*0.02,cx,cy,r*1.08);
-  face.addColorStop(0,'#12645f');
-  face.addColorStop(0.34,'#0a4542');
-  face.addColorStop(0.72,'#062d2d');
-  face.addColorStop(1,'#02191a');
+  face.addColorStop(0,colors.face0);
+  face.addColorStop(0.34,colors.face1);
+  face.addColorStop(0.72,colors.face2);
+  face.addColorStop(1,colors.face3);
   ctx.fillStyle=face; ctx.fillRect(cx-r,cy-r,r*2,r*2);
   ctx.fillStyle='rgba(38,215,207,0.035)'; ctx.fillRect(cx-r,cy-r,r*2,r*2);
   ctx.restore();
@@ -1167,15 +1201,66 @@ function drawAviationToggle(cx,cy,size,on,topLabel,onLabel,offLabel){
 }
 
 function drawAnnunciator(x,y,w,h,lit){
+  var colors=getChinookTheme();
   ctx.save();
   ctx.fillStyle='#141617';
   ctx.shadowColor='rgba(0,0,0,0.56)'; ctx.shadowBlur=h*0.16; ctx.shadowOffsetY=h*0.08;
   roundRectAll(ctx,x,y,w,h,h*0.08); ctx.fill();
   ctx.shadowBlur=0;
   var inset=h*0.11;
-  ctx.fillStyle=lit?'#70e8de':'#252829';
-  if(lit){ ctx.shadowColor='rgba(78,234,208,0.7)'; ctx.shadowBlur=h*0.25; }
+  ctx.fillStyle=lit?colors.lume:'#252829';
+  if(lit){ ctx.shadowColor=colors.dim; ctx.shadowBlur=h*0.25; }
   roundRectAll(ctx,x+inset,y+inset,w-inset*2,h-inset*2,h*0.045); ctx.fill();
+  ctx.restore();
+}
+
+function drawChinookCompanionPanel(x,y,w,h,bands){
+  ctx.save();
+  ctx.shadowColor='rgba(0,0,0,0.62)'; ctx.shadowBlur=w*0.035; ctx.shadowOffsetY=w*0.014;
+  drawWeatheredPanel(x,y,w,h,w*0.012);
+  ctx.shadowBlur=0;
+  ctx.strokeStyle='rgba(20,20,19,0.82)'; ctx.lineWidth=Math.max(1.5*devicePixelRatio,w*0.0035);
+  roundRectAll(ctx,x,y,w,h,w*0.012); ctx.stroke();
+  ctx.restore();
+  drawChinookFrameRivets(x,y,w,h);
+
+  ctx.save();
+  ctx.fillStyle=CHINOOK_INK; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.font='700 '+(w*0.032)+'px "Arial Narrow",Arial,sans-serif';
+  ctx.fillText('POWER TRAIN',x+w*0.5,y+h*0.055);
+  ctx.restore();
+
+  var groups=[
+    {x:0.16,y:0.12,w:0.68,h:0.18,label:'FWD XMSN',cols:3,rows:2},
+    {x:0.07,y:0.35,w:0.27,h:0.19,label:'ENG 1 XMSN',cols:2,rows:2},
+    {x:0.365,y:0.35,w:0.27,h:0.19,label:'COMB XMSN',cols:2,rows:2},
+    {x:0.66,y:0.35,w:0.27,h:0.19,label:'ENG 2 XMSN',cols:2,rows:2},
+    {x:0.25,y:0.61,w:0.50,h:0.20,label:'AFT XMSN',cols:3,rows:2}
+  ];
+  var activity=[bands[0],bands[1],bands[2],(bands[0]+bands[1])*0.5,(bands[1]+bands[2])*0.5];
+  for(var gi=0;gi<groups.length;gi++){
+    var g=groups[gi], gx=x+w*g.x, gy=y+h*g.y, gw=w*g.w, gh=h*g.h;
+    ctx.save();
+    ctx.strokeStyle=CHINOOK_INK; ctx.lineWidth=Math.max(1*devicePixelRatio,w*0.003);
+    ctx.strokeRect(gx,gy,gw,gh);
+    ctx.fillStyle=CHINOOK_INK; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.font='600 '+(w*0.021)+'px "Arial Narrow",Arial,sans-serif';
+    ctx.fillText(g.label,gx+gw/2,gy-h*0.012);
+    ctx.restore();
+    var padX=gw*0.12, padY=gh*0.20;
+    var gapX=gw*0.08, gapY=gh*0.12;
+    var bw=(gw-padX*2-gapX*(g.cols-1))/g.cols;
+    var bh=(gh-padY*2-gapY*(g.rows-1))/g.rows;
+    for(var rr=0;rr<g.rows;rr++) for(var cc=0;cc<g.cols;cc++){
+      var idx=(gi+rr*g.cols+cc)%activity.length;
+      drawAnnunciator(gx+padX+cc*(bw+gapX),gy+padY+rr*(bh+gapY),bw,bh,activity[idx]>0.30);
+    }
+  }
+
+  ctx.save();
+  ctx.fillStyle=CHINOOK_INK; ctx.textAlign='center';
+  ctx.font='600 '+(w*0.019)+'px "Arial Narrow",Arial,sans-serif';
+  ctx.fillText('MAINTENANCE PANEL',x+w*0.5,y+h*0.94);
   ctx.restore();
 }
 
@@ -1200,14 +1285,26 @@ function drawChinookPanel(w,h,t){
   chinookState.chL=lerp(chinookState.chL,Math.min(1,rms*3.3),0.095);
   chinookState.chR=lerp(chinookState.chR,Math.min(1,rms*3.1+raw[2]*0.08),0.088);
 
-  /* Match the photographed panel's tall 0.76-ish aspect ratio. */
-  var maxPanelW=w*0.92;
-  var maxPanelH=h*0.91;
+  /* Focused hydraulic module on phones/portrait tablets; full aft-panel composition
+     on landscape tablets and desktops. Breakpoint uses CSS pixels, not backing pixels. */
+  var cssW=w/devicePixelRatio;
+  var wide=(cssW>=900 && w/h>1.15);
+  var maxPanelW=w*(wide?0.49:0.92);
+  var maxPanelH=h*(wide?0.86:0.91);
   var panelW=Math.min(maxPanelW,maxPanelH*0.755);
   var panelH=panelW/0.755;
-  var panelX=(w-panelW)/2;
+  var companionW=wide?panelW*0.94:0;
+  var companionGap=wide?Math.max(3*devicePixelRatio,panelW*0.018):0;
+  var totalW=panelW+companionW+companionGap;
+  if(wide && totalW>w*0.94){
+    var scale=(w*0.94)/totalW;
+    panelW*=scale; panelH=panelW/0.755; companionW*=scale; companionGap*=scale; totalW=panelW+companionW+companionGap;
+  }
+  var panelX=wide?(w-totalW)/2+companionW+companionGap:(w-panelW)/2;
   var panelY=Math.max(h*0.025,(h-panelH)/2-h*0.012);
   var u=panelW;
+
+  if(wide) drawChinookCompanionPanel(panelX-companionGap-companionW,panelY,companionW,panelH,raw);
 
   ctx.save();
   ctx.shadowColor='rgba(0,0,0,0.62)'; ctx.shadowBlur=u*0.045; ctx.shadowOffsetY=u*0.018;
@@ -2495,4 +2592,3 @@ function drawChinookPanel(w,h,t){
 </script>
 </body>
 </html>
-
