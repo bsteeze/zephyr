@@ -898,20 +898,13 @@
     ctx.strokeStyle='rgba(4,4,5,0.8)'; ctx.lineWidth=r*0.35;
     ctx.beginPath(); ctx.moveTo(x-r*0.55,y); ctx.lineTo(x+r*0.55,y); ctx.stroke();
   }
-  function drawRivetBorder(x,y,w,h,rivR){
-    var inset = Math.max(8*devicePixelRatio, rivR*2.5);
-    var spacing = rivR*7.5;
-    var nTop = Math.max(2, Math.round((w-inset*2)/spacing));
-    var nSide = Math.max(2, Math.round((h-inset*2)/spacing));
-    for (var i=0;i<=nTop;i++){
-      var rx = x + inset + (w-inset*2)*(i/nTop);
+  function drawTopRivets(x,y,w,rivR){
+    var inset = Math.max(10*devicePixelRatio, rivR*3);
+    var spacing = rivR*9;
+    var n = Math.max(4, Math.round((w-inset*2)/spacing));
+    for (var i=0;i<=n;i++){
+      var rx = x + inset + (w-inset*2)*(i/n);
       drawScrew(rx, y+inset, rivR);
-      drawScrew(rx, y+h-inset, rivR);
-    }
-    for (var j=1;j<nSide;j++){
-      var ry = y + inset + (h-inset*2)*(j/nSide);
-      drawScrew(x+inset, ry, rivR);
-      drawScrew(x+w-inset, ry, rivR);
     }
   }
 
@@ -1053,7 +1046,7 @@
     metalG.addColorStop(0,'#8a8f96'); metalG.addColorStop(0.5,'#75797f'); metalG.addColorStop(1,'#5d6167');
     ctx.fillStyle = metalG; roundRectAll(ctx,panelX,panelY,panelW,panelH,10*devicePixelRatio); ctx.fill();
     ctx.strokeStyle='rgba(0,0,0,0.35)'; ctx.lineWidth=2*devicePixelRatio; ctx.stroke();
-    drawRivetBorder(panelX, panelY, panelW, panelH, 3*devicePixelRatio);
+    drawTopRivets(panelX, panelY, panelW, 3*devicePixelRatio);
     ctx.restore();
 
     ctx.save();
@@ -1061,19 +1054,19 @@
     ctx.fillText('AUDIO SYSTEMS', panelX+panelW/2, panelY+panelH*0.075);
     ctx.font='600 '+(panelW*0.016)+'px Arial, sans-serif';
     var colLabels = ['BASS','MID','TREBLE'];
-    var colX = [panelX+panelW*0.17, panelX+panelW*0.5, panelX+panelW*0.83];
+    var colX = [panelX+panelW*0.15, panelX+panelW*0.41, panelX+panelW*0.66];
     for (var c=0;c<3;c++) ctx.fillText(colLabels[c], colX[c], panelY+panelH*0.135);
     ctx.restore();
 
-    drawGaugeGroupLabel(panelX+panelW*0.06, panelY+panelH*0.17, panelW*0.88, 'LEVEL');
-    var gaugeR1 = Math.min(panelH*0.095, panelW*0.125), row1Y = panelY+panelH*0.30;
+    drawGaugeGroupLabel(panelX+panelW*0.05, panelY+panelH*0.17, panelW*0.77, 'LEVEL');
+    var gaugeR1 = Math.min(panelH*0.095, panelW*0.105), row1Y = panelY+panelH*0.30;
     for (var g1=0;g1<3;g1++){
       drawAircraftGauge(colX[g1], row1Y, gaugeR1, chinookState.level[g1], {
         label: colLabels[g1]+' LVL', unit:'% X10', digital: String(Math.round(chinookState.level[g1]*100)).padStart(3,'0')
       });
     }
 
-    drawGaugeGroupLabel(panelX+panelW*0.06, panelY+panelH*0.44, panelW*0.88, 'PEAK');
+    drawGaugeGroupLabel(panelX+panelW*0.05, panelY+panelH*0.44, panelW*0.77, 'PEAK');
     var row2Y = panelY+panelH*0.57;
     for (var g2=0;g2<3;g2++){
       drawAircraftGauge(colX[g2], row2Y, gaugeR1, chinookState.peak[g2], {
@@ -1081,25 +1074,13 @@
       });
     }
 
-    drawGaugeGroupLabel(panelX+panelW*0.06, panelY+panelH*0.71, panelW*0.88, 'CHANNEL LEVEL');
-    var row3Y = panelY+panelH*0.85, gaugeR2 = Math.min(panelH*0.10, panelW*0.13);
-    var chX = [panelX+panelW*0.30, panelX+panelW*0.70];
+    drawGaugeGroupLabel(panelX+panelW*0.05, panelY+panelH*0.71, panelW*0.77, 'CHANNEL LEVEL');
+    var row3Y = panelY+panelH*0.85, gaugeR2 = Math.min(panelH*0.10, panelW*0.11);
+    var chX = [panelX+panelW*0.26, panelX+panelW*0.54];
     drawAircraftGauge(chX[0], row3Y, gaugeR2, chinookState.chL, { label:'L CHAN', unit:'RMS', digital: String(Math.round(chinookState.chL*100)).padStart(3,'0') });
     drawAircraftGauge(chX[1], row3Y, gaugeR2, chinookState.chR, { label:'R CHAN', unit:'RMS', digital: String(Math.round(chinookState.chR*100)).padStart(3,'0') });
 
-    // decorative switch panel bottom-left, reactive push-buttons bottom-right
-    var swX = panelX+panelW*0.06, swY = panelY+panelH*0.93;
-    ctx.save();
-    ctx.fillStyle='rgba(20,20,22,0.8)'; ctx.font='600 '+(panelW*0.013)+'px Arial, sans-serif'; ctx.textAlign='left';
-    ctx.fillText('SRC', swX, swY-panelH*0.02);
-    ctx.fillStyle='#2a2c2f'; roundRectAll(ctx, swX, swY, panelW*0.05, panelH*0.03, 3*devicePixelRatio); ctx.fill();
-    var toggleOn = bandLo > bandHi;
-    var knobX = swX + (toggleOn? panelW*0.012 : panelW*0.038);
-    ctx.fillStyle = hexToRgba('#3EE6C4',0.9); ctx.shadowColor='rgba(62,230,196,0.7)'; ctx.shadowBlur=6;
-    ctx.beginPath(); ctx.arc(knobX, swY+panelH*0.015, panelH*0.012, 0, Math.PI*2); ctx.fill();
-    ctx.restore();
-
-    var btnStartX = panelX+panelW*0.62, btnY = panelY+panelH*0.905, btnGap = panelW*0.045, btnSize = panelW*0.032;
+    var btnStartX = panelX+panelW*0.58, btnY = panelY+panelH*0.905, btnGap = panelW*0.030, btnSize = panelW*0.026;
     for (var bi=0;bi<6;bi++){
       var bx = btnStartX + bi*btnGap;
       var lit = bands[bi%3] > 0.4;
@@ -1111,6 +1092,20 @@
       ctx.restore();
     }
 
+    // right-edge switch column — this is what the real HYDRAULICS panel actually has
+    // running down its right side (PWR ASSR / LTG DAY / LEVEL CHECK / FAULT IND),
+    // not a toggle tucked in a bottom corner
+    var switchColX = panelX + panelW*0.90;
+    ctx.save();
+    ctx.strokeStyle='rgba(0,0,0,0.25)'; ctx.lineWidth=1.5*devicePixelRatio;
+    ctx.beginPath(); ctx.moveTo(panelX+panelW*0.80, panelY+panelH*0.10); ctx.lineTo(panelX+panelW*0.80, panelY+panelH*0.94); ctx.stroke();
+    ctx.restore();
+    var swSize = panelW*0.024;
+    drawAviationToggle(switchColX, panelY+panelH*0.20, swSize, bandLo>bandHi, 'GAIN', 'TEST', 'OFF');
+    drawAviationToggle(switchColX, panelY+panelH*0.42, swSize, !!skyCoords, 'SKY', 'ON', 'OFF');
+    drawAviationToggle(switchColX, panelY+panelH*0.64, swSize, usingAmbientFallback, 'AMB', 'ON', 'OFF');
+    drawAviationToggle(switchColX, panelY+panelH*0.86, swSize, bandHi>bandMid, 'TEST', 'RESET', 'TEST');
+
     // flanking side panels — only when the main cluster left genuine spare width,
     // so mobile (where panelX is tiny) is completely unaffected
     var sideMargin = w*0.02;
@@ -1120,15 +1115,42 @@
       drawChinookSidePanel(w-sideMargin-sideW, panelY, sideW, panelH, 'SYSTEM', 'switches', bands);
     }
   }
-  function drawMiniToggle(x,y,w,h,on,label){
+  function drawAviationToggle(cx, cy, size, on, topLabel, onLabel, offLabel){
+    var bushR = size*0.42, leverLen = size*1.15, leverW = size*0.22;
+    // top position label
     ctx.save();
-    ctx.fillStyle='rgba(20,20,22,0.8)'; ctx.font='600 '+(w*0.16)+'px Arial, sans-serif'; ctx.textAlign='left';
-    ctx.fillText(label, x, y-h*0.6);
-    ctx.fillStyle='#2a2c2f'; roundRectAll(ctx,x,y,w,h,h*0.18); ctx.fill();
-    var knobX = x + (on? w*0.72 : w*0.28);
-    ctx.fillStyle = hexToRgba('#3EE6C4', on?0.95:0.35);
-    if (on){ ctx.shadowColor='rgba(62,230,196,0.7)'; ctx.shadowBlur=6; }
-    ctx.beginPath(); ctx.arc(knobX, y+h*0.5, h*0.38, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle='rgba(20,20,22,0.85)'; ctx.font='700 '+(size*0.34)+'px Arial, sans-serif'; ctx.textAlign='center';
+    ctx.fillText(topLabel, cx, cy-leverLen-size*0.55);
+    ctx.font='600 '+(size*0.26)+'px Arial, sans-serif'; ctx.fillStyle='rgba(20,20,22,0.65)';
+    ctx.fillText(onLabel, cx+size*0.62, cy-leverLen*0.35);
+    ctx.fillText(offLabel, cx+size*0.62, cy+leverLen*0.55);
+    ctx.restore();
+    // mounting bushing (dark recessed base)
+    ctx.save();
+    var bushG = ctx.createRadialGradient(cx-bushR*0.3,cy-bushR*0.3,0,cx,cy,bushR);
+    bushG.addColorStop(0,'#3a3d42'); bushG.addColorStop(1,'#101113');
+    ctx.fillStyle = bushG;
+    ctx.beginPath(); ctx.arc(cx,cy,bushR,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle='rgba(0,0,0,0.6)'; ctx.lineWidth=1*devicePixelRatio; ctx.stroke();
+    ctx.restore();
+    // lever — angled toward whichever position is active
+    var angle = on ? -Math.PI*0.32 : -Math.PI*0.68;
+    var tipX = cx + Math.cos(angle)*leverLen, tipY = cy + Math.sin(angle)*leverLen;
+    ctx.save();
+    ctx.shadowColor='rgba(0,0,0,0.5)'; ctx.shadowBlur=2*devicePixelRatio; ctx.shadowOffsetX=1*devicePixelRatio; ctx.shadowOffsetY=1*devicePixelRatio;
+    var leverG = ctx.createLinearGradient(cx,cy,tipX,tipY);
+    leverG.addColorStop(0,'#9aa0a6'); leverG.addColorStop(0.5,'#e8ecef'); leverG.addColorStop(1,'#8a9096');
+    ctx.strokeStyle = leverG; ctx.lineWidth = leverW; ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(tipX,tipY); ctx.stroke();
+    ctx.restore();
+    // lever tip cap
+    ctx.save();
+    ctx.fillStyle='#c9cdd1'; ctx.beginPath(); ctx.arc(tipX,tipY,leverW*0.55,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+    // bushing highlight
+    ctx.save();
+    ctx.fillStyle='rgba(255,255,255,0.15)';
+    ctx.beginPath(); ctx.arc(cx-bushR*0.25,cy-bushR*0.25,bushR*0.3,0,Math.PI*2); ctx.fill();
     ctx.restore();
   }
   function drawChinookSidePanel(x,y,w,h,title,kind,bands){
@@ -1137,7 +1159,7 @@
     metalG.addColorStop(0,'#8a8f96'); metalG.addColorStop(0.5,'#75797f'); metalG.addColorStop(1,'#5d6167');
     ctx.fillStyle = metalG; roundRectAll(ctx,x,y,w,h,10*devicePixelRatio); ctx.fill();
     ctx.strokeStyle='rgba(0,0,0,0.35)'; ctx.lineWidth=2*devicePixelRatio; ctx.stroke();
-    drawRivetBorder(x, y, w, h, 3*devicePixelRatio);
+    drawTopRivets(x, y, w, 3*devicePixelRatio);
     ctx.restore();
 
     ctx.save();
@@ -1163,10 +1185,10 @@
         }
       }
     } else if (kind==='switches'){
-      var swW=w*0.5, swH=h*0.035, swX=x+w*0.25;
-      drawMiniToggle(swX, y+h*0.24, swW, swH, bands[1]>0.3, 'GAIN');
-      drawMiniToggle(swX, y+h*0.42, swW, swH, !!skyCoords, 'SKY');
-      drawMiniToggle(swX, y+h*0.60, swW, swH, usingAmbientFallback, 'AMB');
+      var swSize = w*0.11, swCx=x+w*0.5;
+      drawAviationToggle(swCx, y+h*0.26, swSize, bands[1]>0.3, 'GAIN', 'HI', 'LO');
+      drawAviationToggle(swCx, y+h*0.53, swSize, !!skyCoords, 'SKY', 'ON', 'OFF');
+      drawAviationToggle(swCx, y+h*0.80, swSize, usingAmbientFallback, 'AMB', 'ON', 'OFF');
     }
   }
 
