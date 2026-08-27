@@ -925,7 +925,8 @@
     faceG.addColorStop(0,'#0e2a20'); faceG.addColorStop(0.7,'#081a13'); faceG.addColorStop(1,'#03100b');
     ctx.fillStyle = faceG; ctx.fillRect(cx-r,cy-r,r*2,r*2);
     ctx.restore();
-    var glow = currentPalette.tertiary, glowDim = hexToRgba(currentPalette.tertiary,0.55);
+    var AIRCRAFT_TEAL = '#3EE6C4';
+    var glow = AIRCRAFT_TEAL, glowDim = hexToRgba(AIRCRAFT_TEAL,0.6);
     // tick marks + numbers
     ctx.save();
     ctx.strokeStyle = glowDim; ctx.fillStyle = glowDim; ctx.lineWidth = 1*devicePixelRatio;
@@ -965,18 +966,18 @@
     // every segment, lit or not, which is what makes a number look like it's living
     // inside a real digital display rather than just being text drawn on the gauge
     ctx.font='700 '+(lcdH*0.62)+'px Consolas, monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
-    ctx.fillStyle = hexToRgba(currentPalette.tertiary, 0.09);
+    ctx.fillStyle = hexToRgba(AIRCRAFT_TEAL, 0.09);
     ctx.fillText('888', cx, lcdY+lcdH*0.54);
     ctx.fillStyle = glow;
-    ctx.shadowColor=glow; ctx.shadowBlur=4;
+    ctx.shadowColor=hexToRgba(AIRCRAFT_TEAL,0.7); ctx.shadowBlur=4;
     ctx.fillText(opts.digital, cx, lcdY+lcdH*0.54);
     ctx.restore();
     // labels
     ctx.save();
-    ctx.fillStyle = hexToRgba(currentPalette.tertiary,0.85); ctx.textAlign='center';
+    ctx.fillStyle = hexToRgba(AIRCRAFT_TEAL,0.85); ctx.textAlign='center';
     ctx.font='700 '+(r*0.16)+'px Arial, sans-serif';
     ctx.fillText(opts.label, cx, cy-r*0.30);
-    ctx.font='600 '+(r*0.12)+'px Arial, sans-serif'; ctx.fillStyle=hexToRgba(currentPalette.tertiary,0.5);
+    ctx.font='600 '+(r*0.12)+'px Arial, sans-serif'; ctx.fillStyle=hexToRgba(AIRCRAFT_TEAL,0.5);
     ctx.fillText(opts.unit, cx, lcdY+lcdH+r*0.16);
     ctx.restore();
     // warm specular highlight — real curved gauge glass catches overhead room light as
@@ -1038,12 +1039,12 @@
     ctx.fillText('AUDIO SYSTEMS', panelX+panelW/2, panelY+panelH*0.075);
     ctx.font='600 '+(panelW*0.016)+'px Arial, sans-serif';
     var colLabels = ['BASS','MID','TREBLE'];
-    var colX = [panelX+panelW*0.20, panelX+panelW*0.5, panelX+panelW*0.80];
+    var colX = [panelX+panelW*0.17, panelX+panelW*0.5, panelX+panelW*0.83];
     for (var c=0;c<3;c++) ctx.fillText(colLabels[c], colX[c], panelY+panelH*0.135);
     ctx.restore();
 
     drawGaugeGroupLabel(panelX+panelW*0.06, panelY+panelH*0.17, panelW*0.88, 'LEVEL');
-    var gaugeR1 = panelH*0.095, row1Y = panelY+panelH*0.30;
+    var gaugeR1 = Math.min(panelH*0.095, panelW*0.125), row1Y = panelY+panelH*0.30;
     for (var g1=0;g1<3;g1++){
       drawAircraftGauge(colX[g1], row1Y, gaugeR1, chinookState.level[g1], {
         label: colLabels[g1]+' LVL', unit:'% X10', digital: String(Math.round(chinookState.level[g1]*100)).padStart(3,'0')
@@ -1059,8 +1060,8 @@
     }
 
     drawGaugeGroupLabel(panelX+panelW*0.06, panelY+panelH*0.71, panelW*0.88, 'CHANNEL LEVEL');
-    var row3Y = panelY+panelH*0.85, gaugeR2 = panelH*0.10;
-    var chX = [panelX+panelW*0.34, panelX+panelW*0.66];
+    var row3Y = panelY+panelH*0.85, gaugeR2 = Math.min(panelH*0.10, panelW*0.13);
+    var chX = [panelX+panelW*0.30, panelX+panelW*0.70];
     drawAircraftGauge(chX[0], row3Y, gaugeR2, chinookState.chL, { label:'L CHAN', unit:'RMS', digital: String(Math.round(chinookState.chL*100)).padStart(3,'0') });
     drawAircraftGauge(chX[1], row3Y, gaugeR2, chinookState.chR, { label:'R CHAN', unit:'RMS', digital: String(Math.round(chinookState.chR*100)).padStart(3,'0') });
 
@@ -1072,7 +1073,7 @@
     ctx.fillStyle='#2a2c2f'; roundRectAll(ctx, swX, swY, panelW*0.05, panelH*0.03, 3*devicePixelRatio); ctx.fill();
     var toggleOn = bandLo > bandHi;
     var knobX = swX + (toggleOn? panelW*0.012 : panelW*0.038);
-    ctx.fillStyle = hexToRgba(currentPalette.tertiary,0.9); ctx.shadowColor=currentPalette.glow; ctx.shadowBlur=6;
+    ctx.fillStyle = hexToRgba('#3EE6C4',0.9); ctx.shadowColor='rgba(62,230,196,0.7)'; ctx.shadowBlur=6;
     ctx.beginPath(); ctx.arc(knobX, swY+panelH*0.015, panelH*0.012, 0, Math.PI*2); ctx.fill();
     ctx.restore();
 
@@ -1081,8 +1082,8 @@
       var bx = btnStartX + bi*btnGap;
       var lit = bands[bi%3] > 0.4;
       ctx.save();
-      ctx.fillStyle = lit ? hexToRgba(currentPalette.tertiary,0.85) : '#1c1e21';
-      if (lit){ ctx.shadowColor=currentPalette.glow; ctx.shadowBlur=8; }
+      ctx.fillStyle = lit ? hexToRgba('#3EE6C4',0.85) : '#1c1e21';
+      if (lit){ ctx.shadowColor='rgba(62,230,196,0.7)'; ctx.shadowBlur=8; }
       roundRectAll(ctx,bx,btnY,btnSize,btnSize,3*devicePixelRatio); ctx.fill();
       ctx.strokeStyle='rgba(0,0,0,0.5)'; ctx.lineWidth=1*devicePixelRatio; ctx.stroke();
       ctx.restore();
