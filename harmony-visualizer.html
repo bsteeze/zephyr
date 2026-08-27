@@ -1019,6 +1019,79 @@
     ctx.fillText(text, x+w/2, y+w*0.018);
     ctx.restore();
   }
+
+  // Weathered aluminum panel texture — a flat two-stop gradient can't sell "real metal"
+  // because real panels have uneven warm/cool blotches, grime, and faint scratches.
+  // Generated once into an offscreen canvas and reused every frame (never recomputed
+  // per-frame, which would either be wasteful or, if re-randomized, flicker like static).
+  var chinookTexture = null;
+  function ensureChinookTexture(){
+    if (chinookTexture) return chinookTexture;
+    var tw = 900, th = 700;
+    var buf = document.createElement('canvas');
+    buf.width = tw; buf.height = th;
+    var bctx = buf.getContext('2d');
+
+    var base = bctx.createLinearGradient(0,0,0,th);
+    base.addColorStop(0, '#9a9c92');
+    base.addColorStop(0.45, '#84867c');
+    base.addColorStop(1, '#65675f');
+    bctx.fillStyle = base;
+    bctx.fillRect(0,0,tw,th);
+
+    // large soft warm/cool patches — uneven oxidation, not a clean gradient
+    var seed = 918273;
+    function rnd(){ seed = (seed*9301+49297)%233280; return seed/233280; }
+    for (var p=0;p<14;p++){
+      var px=rnd()*tw, py=rnd()*th, pr=80+rnd()*180;
+      var warm = rnd()>0.5;
+      var g = bctx.createRadialGradient(px,py,0,px,py,pr);
+      g.addColorStop(0, warm ? 'rgba(180,165,130,0.10)' : 'rgba(120,135,140,0.10)');
+      g.addColorStop(1, 'rgba(0,0,0,0)');
+      bctx.fillStyle = g;
+      bctx.beginPath(); bctx.arc(px,py,pr,0,Math.PI*2); bctx.fill();
+    }
+    // grime smudges — darker, smaller, more numerous
+    for (var s=0;s<26;s++){
+      var sx=rnd()*tw, sy=rnd()*th, sr=15+rnd()*50;
+      var g2 = bctx.createRadialGradient(sx,sy,0,sx,sy,sr);
+      g2.addColorStop(0, 'rgba(20,20,18,'+(0.08+rnd()*0.10)+')');
+      g2.addColorStop(1, 'rgba(20,20,18,0)');
+      bctx.fillStyle = g2;
+      bctx.beginPath(); bctx.arc(sx,sy,sr,0,Math.PI*2); bctx.fill();
+    }
+    // faint scratches
+    bctx.lineWidth = 1;
+    for (var sc=0;sc<40;sc++){
+      var lx=rnd()*tw, ly=rnd()*th, ang=rnd()*Math.PI*2, len=10+rnd()*45;
+      bctx.strokeStyle = rnd()>0.5 ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.08)';
+      bctx.beginPath();
+      bctx.moveTo(lx,ly);
+      bctx.lineTo(lx+Math.cos(ang)*len, ly+Math.sin(ang)*len);
+      bctx.stroke();
+    }
+    // fine grain speckle
+    for (var n=0;n<1400;n++){
+      var nx=rnd()*tw, ny=rnd()*th;
+      bctx.fillStyle = rnd()>0.5 ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.05)';
+      bctx.fillRect(nx,ny,1,1);
+    }
+    // vignette
+    var vig = bctx.createRadialGradient(tw/2,th/2,th*0.25,tw/2,th/2,th*0.85);
+    vig.addColorStop(0,'rgba(0,0,0,0)'); vig.addColorStop(1,'rgba(0,0,0,0.22)');
+    bctx.fillStyle = vig; bctx.fillRect(0,0,tw,th);
+
+    chinookTexture = buf;
+    return buf;
+  }
+  function drawWeatheredPanel(x,y,w,h,radius){
+    var tex = ensureChinookTexture();
+    ctx.save();
+    roundRectAll(ctx,x,y,w,h,radius); ctx.clip();
+    ctx.drawImage(tex, 0,0,tex.width,tex.height, x,y,w,h);
+    ctx.restore();
+  }
+
   function drawChinookPanel(w,h,t){
     var binCount = FREQ_BIN_COUNT;
     var bandLo = overallEnergy(0, Math.floor(binCount*0.10));
@@ -1042,10 +1115,9 @@
     var panelW = w*mainFrac, panelY = h*0.045, panelH = h*0.86;
     var panelX = (w-panelW)/2;
     ctx.save();
-    var metalG = ctx.createLinearGradient(panelX,panelY,panelX,panelY+panelH);
-    metalG.addColorStop(0,'#8a8f96'); metalG.addColorStop(0.5,'#75797f'); metalG.addColorStop(1,'#5d6167');
-    ctx.fillStyle = metalG; roundRectAll(ctx,panelX,panelY,panelW,panelH,10*devicePixelRatio); ctx.fill();
-    ctx.strokeStyle='rgba(0,0,0,0.35)'; ctx.lineWidth=2*devicePixelRatio; ctx.stroke();
+    drawWeatheredPanel(panelX, panelY, panelW, panelH, 10*devicePixelRatio);
+    ctx.strokeStyle='rgba(0,0,0,0.35)'; ctx.lineWidth=2*devicePixelRatio;
+    roundRectAll(ctx,panelX,panelY,panelW,panelH,10*devicePixelRatio); ctx.stroke();
     drawTopRivets(panelX, panelY, panelW, 3*devicePixelRatio);
     ctx.restore();
 
@@ -1155,10 +1227,9 @@
   }
   function drawChinookSidePanel(x,y,w,h,title,kind,bands){
     ctx.save();
-    var metalG = ctx.createLinearGradient(x,y,x,y+h);
-    metalG.addColorStop(0,'#8a8f96'); metalG.addColorStop(0.5,'#75797f'); metalG.addColorStop(1,'#5d6167');
-    ctx.fillStyle = metalG; roundRectAll(ctx,x,y,w,h,10*devicePixelRatio); ctx.fill();
-    ctx.strokeStyle='rgba(0,0,0,0.35)'; ctx.lineWidth=2*devicePixelRatio; ctx.stroke();
+    drawWeatheredPanel(x, y, w, h, 10*devicePixelRatio);
+    ctx.strokeStyle='rgba(0,0,0,0.35)'; ctx.lineWidth=2*devicePixelRatio;
+    roundRectAll(ctx,x,y,w,h,10*devicePixelRatio); ctx.stroke();
     drawTopRivets(x, y, w, 3*devicePixelRatio);
     ctx.restore();
 
