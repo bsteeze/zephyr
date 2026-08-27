@@ -945,7 +945,7 @@
     faceG.addColorStop(0,'#0c241b'); faceG.addColorStop(0.45,'#091d15'); faceG.addColorStop(1,'#03100b');
     ctx.fillStyle = faceG; ctx.fillRect(cx-r,cy-r,r*2,r*2);
     ctx.restore();
-    var AIRCRAFT_TEAL = '#33CFE8';
+    var AIRCRAFT_TEAL = '#45DFE6';
     var glow = AIRCRAFT_TEAL, glowDim = hexToRgba(AIRCRAFT_TEAL,0.6);
     // tick marks + numbers — real gauge has 4 minor ticks between each major, going
     // almost all the way around; a sparse 8-tick sweep with a big gap read as generic
@@ -1068,10 +1068,10 @@
   }
   function drawGaugeGroupLabel(x,y,w,text){
     ctx.save();
-    ctx.strokeStyle='rgba(20,20,22,0.5)'; ctx.lineWidth=1.3*devicePixelRatio;
+    ctx.strokeStyle='rgba(15,15,17,0.92)'; ctx.lineWidth=3*devicePixelRatio;
     ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(x+w*0.36,y); ctx.stroke();
     ctx.beginPath(); ctx.moveTo(x+w*0.64,y); ctx.lineTo(x+w,y); ctx.stroke();
-    ctx.fillStyle='rgba(20,20,22,0.8)'; ctx.font='700 '+(w*0.045)+'px Arial, sans-serif'; ctx.textAlign='center';
+    ctx.fillStyle='rgba(15,15,17,0.95)'; ctx.font='700 '+(w*0.045)+'px Arial, sans-serif'; ctx.textAlign='center';
     ctx.fillText(text, x+w/2, y+w*0.018);
     ctx.restore();
   }
@@ -1089,9 +1089,9 @@
     var bctx = buf.getContext('2d');
 
     var base = bctx.createLinearGradient(0,0,0,th);
-    base.addColorStop(0, '#bfb99e');
-    base.addColorStop(0.45, '#a49d82');
-    base.addColorStop(1, '#7c765f');
+    base.addColorStop(0, '#D6CBBB');
+    base.addColorStop(0.45, '#AFA699');
+    base.addColorStop(1, '#857E74');
     bctx.fillStyle = base;
     bctx.fillRect(0,0,tw,th);
 
@@ -1213,8 +1213,8 @@
       var bx = btnStartX + bi*btnGap;
       var lit = bands[bi%3] > 0.4;
       ctx.save();
-      ctx.fillStyle = lit ? hexToRgba('#33CFE8',0.85) : '#1c1e21';
-      if (lit){ ctx.shadowColor='rgba(51,207,232,0.7)'; ctx.shadowBlur=8; }
+      ctx.fillStyle = lit ? hexToRgba('#45DFE6',0.85) : '#1c1e21';
+      if (lit){ ctx.shadowColor='rgba(69,223,230,0.7)'; ctx.shadowBlur=8; }
       roundRectAll(ctx,bx,btnY,btnSize,btnSize,3*devicePixelRatio); ctx.fill();
       ctx.strokeStyle='rgba(0,0,0,0.5)'; ctx.lineWidth=1*devicePixelRatio; ctx.stroke();
       ctx.restore();
@@ -1225,7 +1225,7 @@
     // not a toggle tucked in a bottom corner
     var switchColX = panelX + panelW*0.885;
     ctx.save();
-    ctx.strokeStyle='rgba(0,0,0,0.25)'; ctx.lineWidth=1.5*devicePixelRatio;
+    ctx.strokeStyle='rgba(15,15,17,0.55)'; ctx.lineWidth=2*devicePixelRatio;
     ctx.beginPath(); ctx.moveTo(panelX+panelW*0.79, panelY+panelH*0.10); ctx.lineTo(panelX+panelW*0.79, panelY+panelH*0.94); ctx.stroke();
     ctx.restore();
     var swSize = panelW*0.032;
@@ -1304,8 +1304,8 @@
           var idx=(r*cols+c)%bands.length;
           var lit = bands[idx] > (0.22+((r+c)%3)*0.07);
           ctx.save();
-          ctx.fillStyle = lit? hexToRgba('#33CFE8',0.85) : '#1c1e21';
-          if (lit){ ctx.shadowColor='rgba(51,207,232,0.7)'; ctx.shadowBlur=6; }
+          ctx.fillStyle = lit? hexToRgba('#45DFE6',0.85) : '#1c1e21';
+          if (lit){ ctx.shadowColor='rgba(69,223,230,0.7)'; ctx.shadowBlur=6; }
           roundRectAll(ctx,bx,by,bw,bh,3*devicePixelRatio); ctx.fill();
           ctx.strokeStyle='rgba(0,0,0,0.5)'; ctx.lineWidth=1*devicePixelRatio; ctx.stroke();
           ctx.restore();
