@@ -898,13 +898,25 @@
     ctx.strokeStyle='rgba(4,4,5,0.8)'; ctx.lineWidth=r*0.35;
     ctx.beginPath(); ctx.moveTo(x-r*0.55,y); ctx.lineTo(x+r*0.55,y); ctx.stroke();
   }
-  function drawTopRivets(x,y,w,rivR){
+  function drawRivet(x,y,r){
+    // a smooth domed rivet head — no slot, bright metallic highlight — this is a
+    // completely different fastener from the slotted gauge screws above, and using
+    // drawScrew for both was the actual bug: real panel rivets are never slotted
+    var g = ctx.createRadialGradient(x-r*0.35,y-r*0.35,r*0.05,x,y,r);
+    g.addColorStop(0,'#eef0f1'); g.addColorStop(0.35,'#b9bbbe'); g.addColorStop(0.75,'#7d7f82'); g.addColorStop(1,'#4a4c4f');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.35)'; ctx.lineWidth = Math.max(0.6, r*0.12);
+    ctx.stroke();
+  }
+  function drawTopRivets(x,y,w,panelW){
+    var rivR = panelW*0.011;
     var inset = Math.max(10*devicePixelRatio, rivR*3);
     var spacing = rivR*9;
     var n = Math.max(4, Math.round((w-inset*2)/spacing));
     for (var i=0;i<=n;i++){
       var rx = x + inset + (w-inset*2)*(i/n);
-      drawScrew(rx, y+inset, rivR);
+      drawRivet(rx, y+inset, rivR);
     }
   }
 
@@ -923,10 +935,8 @@
     ctx.beginPath(); ctx.arc(cx,cy,r*1.1,0,Math.PI*2); ctx.fill();
     ctx.restore();
     var scr = r*0.13;
-    drawScrew(cx-r*0.82, cy-r*0.82, scr*0.45);
-    drawScrew(cx+r*0.82, cy-r*0.82, scr*0.45);
-    drawScrew(cx-r*0.82, cy+r*0.6, scr*0.45);
-    drawScrew(cx+r*0.82, cy+r*0.6, scr*0.45);
+    drawScrew(cx-r*0.80, cy-r*0.80, scr*0.52);
+    drawScrew(cx+r*0.80, cy+r*0.68, scr*0.52);
     // face
     ctx.save();
     ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.clip();
@@ -940,17 +950,17 @@
     // almost all the way around; a sparse 8-tick sweep with a big gap read as generic
     ctx.save();
     ctx.strokeStyle = glowDim; ctx.fillStyle = glowDim; ctx.lineWidth = 1.2*devicePixelRatio;
-    ctx.font = '800 '+(r*0.155)+'px Arial, sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-    var nTicks = 20;
+    ctx.font = '800 '+(r*0.20)+'px Arial, sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    var nTicks = 32;
     for (var i=0;i<=nTicks;i++){
       var tf = i/nTicks;
       var a = lerp(aMin,aMax,tf);
-      var major = (i%5===0);
-      var r0 = r*(major?0.78:0.87), r1 = r*0.96;
-      ctx.lineWidth = (major?1.6:1)*devicePixelRatio;
+      var major = (i%8===0);
+      var r0 = r*(major?0.78:0.88), r1 = r*0.96;
+      ctx.lineWidth = (major?1.7:0.9)*devicePixelRatio;
       ctx.beginPath(); ctx.moveTo(cx+Math.cos(a)*r0, cy+Math.sin(a)*r0); ctx.lineTo(cx+Math.cos(a)*r1, cy+Math.sin(a)*r1); ctx.stroke();
       if (major){
-        var lx=cx+Math.cos(a)*r*0.63, ly=cy+Math.sin(a)*r*0.63;
+        var lx=cx+Math.cos(a)*r*0.62, ly=cy+Math.sin(a)*r*0.62;
         ctx.fillText(Math.round(tf*100), lx, ly);
       }
     }
@@ -1163,7 +1173,7 @@
     drawWeatheredPanel(panelX, panelY, panelW, panelH, 10*devicePixelRatio);
     ctx.strokeStyle='rgba(0,0,0,0.35)'; ctx.lineWidth=2*devicePixelRatio;
     roundRectAll(ctx,panelX,panelY,panelW,panelH,10*devicePixelRatio); ctx.stroke();
-    drawTopRivets(panelX, panelY, panelW, 3*devicePixelRatio);
+    drawTopRivets(panelX, panelY, panelW, panelW);
     ctx.restore();
 
     ctx.save();
@@ -1212,12 +1222,12 @@
     // right-edge switch column — this is what the real HYDRAULICS panel actually has
     // running down its right side (PWR ASSR / LTG DAY / LEVEL CHECK / FAULT IND),
     // not a toggle tucked in a bottom corner
-    var switchColX = panelX + panelW*0.90;
+    var switchColX = panelX + panelW*0.885;
     ctx.save();
     ctx.strokeStyle='rgba(0,0,0,0.25)'; ctx.lineWidth=1.5*devicePixelRatio;
-    ctx.beginPath(); ctx.moveTo(panelX+panelW*0.80, panelY+panelH*0.10); ctx.lineTo(panelX+panelW*0.80, panelY+panelH*0.94); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(panelX+panelW*0.79, panelY+panelH*0.10); ctx.lineTo(panelX+panelW*0.79, panelY+panelH*0.94); ctx.stroke();
     ctx.restore();
-    var swSize = panelW*0.024;
+    var swSize = panelW*0.032;
     drawAviationToggle(switchColX, panelY+panelH*0.20, swSize, bandLo>bandHi, 'GAIN', 'TEST', 'OFF');
     drawAviationToggle(switchColX, panelY+panelH*0.42, swSize, !!skyCoords, 'SKY', 'ON', 'OFF');
     drawAviationToggle(switchColX, panelY+panelH*0.64, swSize, usingAmbientFallback, 'AMB', 'ON', 'OFF');
@@ -1239,8 +1249,8 @@
     ctx.fillStyle='rgba(20,20,22,0.85)'; ctx.font='700 '+(size*0.34)+'px Arial, sans-serif'; ctx.textAlign='center';
     ctx.fillText(topLabel, cx, cy-leverLen-size*0.55);
     ctx.font='600 '+(size*0.26)+'px Arial, sans-serif'; ctx.fillStyle='rgba(20,20,22,0.65)';
-    ctx.fillText(onLabel, cx+size*0.62, cy-leverLen*0.35);
-    ctx.fillText(offLabel, cx+size*0.62, cy+leverLen*0.55);
+    ctx.fillText(onLabel, cx+size*0.55, cy-leverLen*0.35);
+    ctx.fillText(offLabel, cx+size*0.55, cy+leverLen*0.55);
     ctx.restore();
     // mounting bushing (dark recessed base)
     ctx.save();
@@ -1275,7 +1285,7 @@
     drawWeatheredPanel(x, y, w, h, 10*devicePixelRatio);
     ctx.strokeStyle='rgba(0,0,0,0.35)'; ctx.lineWidth=2*devicePixelRatio;
     roundRectAll(ctx,x,y,w,h,10*devicePixelRatio); ctx.stroke();
-    drawTopRivets(x, y, w, 3*devicePixelRatio);
+    drawTopRivets(x, y, w, w);
     ctx.restore();
 
     ctx.save();
