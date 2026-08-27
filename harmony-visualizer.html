@@ -1033,9 +1033,9 @@
     var bctx = buf.getContext('2d');
 
     var base = bctx.createLinearGradient(0,0,0,th);
-    base.addColorStop(0, '#9a9c92');
-    base.addColorStop(0.45, '#84867c');
-    base.addColorStop(1, '#65675f');
+    base.addColorStop(0, '#aeb0a5');
+    base.addColorStop(0.45, '#999b8f');
+    base.addColorStop(1, '#82847a');
     bctx.fillStyle = base;
     bctx.fillRect(0,0,tw,th);
 
@@ -1051,12 +1051,12 @@
       bctx.fillStyle = g;
       bctx.beginPath(); bctx.arc(px,py,pr,0,Math.PI*2); bctx.fill();
     }
-    // grime smudges — darker, smaller, more numerous
-    for (var s=0;s<26;s++){
+    // grime smudges — subtle, not dirty
+    for (var s=0;s<16;s++){
       var sx=rnd()*tw, sy=rnd()*th, sr=15+rnd()*50;
       var g2 = bctx.createRadialGradient(sx,sy,0,sx,sy,sr);
-      g2.addColorStop(0, 'rgba(20,20,18,'+(0.08+rnd()*0.10)+')');
-      g2.addColorStop(1, 'rgba(20,20,18,0)');
+      g2.addColorStop(0, 'rgba(30,30,26,'+(0.04+rnd()*0.06)+')');
+      g2.addColorStop(1, 'rgba(30,30,26,0)');
       bctx.fillStyle = g2;
       bctx.beginPath(); bctx.arc(sx,sy,sr,0,Math.PI*2); bctx.fill();
     }
@@ -1078,7 +1078,7 @@
     }
     // vignette
     var vig = bctx.createRadialGradient(tw/2,th/2,th*0.25,tw/2,th/2,th*0.85);
-    vig.addColorStop(0,'rgba(0,0,0,0)'); vig.addColorStop(1,'rgba(0,0,0,0.22)');
+    vig.addColorStop(0,'rgba(0,0,0,0)'); vig.addColorStop(1,'rgba(0,0,0,0.13)');
     bctx.fillStyle = vig; bctx.fillRect(0,0,tw,th);
 
     chinookTexture = buf;
@@ -1148,7 +1148,7 @@
 
     drawGaugeGroupLabel(panelX+panelW*0.05, panelY+panelH*0.71, panelW*0.77, 'CHANNEL LEVEL');
     var row3Y = panelY+panelH*0.85, gaugeR2 = Math.min(panelH*0.10, panelW*0.11);
-    var chX = [panelX+panelW*0.26, panelX+panelW*0.54];
+    var chX = [colX[0], colX[2]];
     drawAircraftGauge(chX[0], row3Y, gaugeR2, chinookState.chL, { label:'L CHAN', unit:'RMS', digital: String(Math.round(chinookState.chL*100)).padStart(3,'0') });
     drawAircraftGauge(chX[1], row3Y, gaugeR2, chinookState.chR, { label:'R CHAN', unit:'RMS', digital: String(Math.round(chinookState.chR*100)).padStart(3,'0') });
 
