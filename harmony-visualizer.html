@@ -893,10 +893,26 @@
   }
   function drawScrew(x,y,r){
     var g=ctx.createRadialGradient(x-r*0.3,y-r*0.3,0,x,y,r);
-    g.addColorStop(0,'rgba(220,220,225,0.8)'); g.addColorStop(1,'rgba(40,44,52,0.9)');
+    g.addColorStop(0,'rgba(90,92,96,0.85)'); g.addColorStop(1,'rgba(14,15,17,0.95)');
     ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fill();
-    ctx.strokeStyle='rgba(10,10,12,0.7)'; ctx.lineWidth=r*0.35;
+    ctx.strokeStyle='rgba(4,4,5,0.8)'; ctx.lineWidth=r*0.35;
     ctx.beginPath(); ctx.moveTo(x-r*0.55,y); ctx.lineTo(x+r*0.55,y); ctx.stroke();
+  }
+  function drawRivetBorder(x,y,w,h,rivR){
+    var inset = Math.max(8*devicePixelRatio, rivR*2.5);
+    var spacing = rivR*7.5;
+    var nTop = Math.max(2, Math.round((w-inset*2)/spacing));
+    var nSide = Math.max(2, Math.round((h-inset*2)/spacing));
+    for (var i=0;i<=nTop;i++){
+      var rx = x + inset + (w-inset*2)*(i/nTop);
+      drawScrew(rx, y+inset, rivR);
+      drawScrew(rx, y+h-inset, rivR);
+    }
+    for (var j=1;j<nSide;j++){
+      var ry = y + inset + (h-inset*2)*(j/nSide);
+      drawScrew(x+inset, ry, rivR);
+      drawScrew(x+w-inset, ry, rivR);
+    }
   }
 
   // ---- CHINOOK PANEL: aircraft instrument cluster ----
@@ -905,7 +921,7 @@
     chL: 0, chR: 0
   };
   function drawAircraftGauge(cx, cy, r, value01, opts){
-    var aMin = Math.PI*0.62, aMax = Math.PI*2.38; // ~280° sweep, gap at top
+    var aMin = Math.PI*0.58, aMax = Math.PI*2.42; // tighter gap, closer to the reference's near-full-circle sweep
     // bezel
     ctx.save();
     var bezelG = ctx.createRadialGradient(cx-r*0.3,cy-r*0.3,r*0.2,cx,cy,r*1.12);
@@ -914,10 +930,10 @@
     ctx.beginPath(); ctx.arc(cx,cy,r*1.1,0,Math.PI*2); ctx.fill();
     ctx.restore();
     var scr = r*0.13;
-    drawScrew(cx-r*0.82, cy-r*0.82, scr*0.6);
-    drawScrew(cx+r*0.82, cy-r*0.82, scr*0.6);
-    drawScrew(cx-r*0.82, cy+r*0.6, scr*0.6);
-    drawScrew(cx+r*0.82, cy+r*0.6, scr*0.6);
+    drawScrew(cx-r*0.82, cy-r*0.82, scr*0.45);
+    drawScrew(cx+r*0.82, cy-r*0.82, scr*0.45);
+    drawScrew(cx-r*0.82, cy+r*0.6, scr*0.45);
+    drawScrew(cx+r*0.82, cy+r*0.6, scr*0.45);
     // face
     ctx.save();
     ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.clip();
@@ -927,19 +943,21 @@
     ctx.restore();
     var AIRCRAFT_TEAL = '#3EE6C4';
     var glow = AIRCRAFT_TEAL, glowDim = hexToRgba(AIRCRAFT_TEAL,0.6);
-    // tick marks + numbers
+    // tick marks + numbers — real gauge has 4 minor ticks between each major, going
+    // almost all the way around; a sparse 8-tick sweep with a big gap read as generic
     ctx.save();
-    ctx.strokeStyle = glowDim; ctx.fillStyle = glowDim; ctx.lineWidth = 1*devicePixelRatio;
-    ctx.font = '700 '+(r*0.13)+'px Arial, sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
-    var nTicks = 8;
+    ctx.strokeStyle = glowDim; ctx.fillStyle = glowDim; ctx.lineWidth = 1.2*devicePixelRatio;
+    ctx.font = '800 '+(r*0.155)+'px Arial, sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    var nTicks = 20;
     for (var i=0;i<=nTicks;i++){
       var tf = i/nTicks;
       var a = lerp(aMin,aMax,tf);
-      var major = (i%2===0);
-      var r0 = r*(major?0.80:0.86), r1 = r*0.96;
+      var major = (i%5===0);
+      var r0 = r*(major?0.78:0.87), r1 = r*0.96;
+      ctx.lineWidth = (major?1.6:1)*devicePixelRatio;
       ctx.beginPath(); ctx.moveTo(cx+Math.cos(a)*r0, cy+Math.sin(a)*r0); ctx.lineTo(cx+Math.cos(a)*r1, cy+Math.sin(a)*r1); ctx.stroke();
       if (major){
-        var lx=cx+Math.cos(a)*r*0.65, ly=cy+Math.sin(a)*r*0.65;
+        var lx=cx+Math.cos(a)*r*0.63, ly=cy+Math.sin(a)*r*0.63;
         ctx.fillText(Math.round(tf*100), lx, ly);
       }
     }
@@ -965,7 +983,7 @@
     // ghost unlit segments — real 7-segment readouts always show the dim outline of
     // every segment, lit or not, which is what makes a number look like it's living
     // inside a real digital display rather than just being text drawn on the gauge
-    ctx.font='700 '+(lcdH*0.62)+'px Consolas, monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.font='800 '+(lcdH*0.68)+'px Consolas, monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
     ctx.fillStyle = hexToRgba(AIRCRAFT_TEAL, 0.09);
     ctx.fillText('888', cx, lcdY+lcdH*0.54);
     ctx.fillStyle = glow;
@@ -974,10 +992,10 @@
     ctx.restore();
     // labels
     ctx.save();
-    ctx.fillStyle = hexToRgba(AIRCRAFT_TEAL,0.85); ctx.textAlign='center';
-    ctx.font='700 '+(r*0.16)+'px Arial, sans-serif';
+    ctx.fillStyle = hexToRgba(AIRCRAFT_TEAL,0.9); ctx.textAlign='center';
+    ctx.font='800 '+(r*0.185)+'px Arial, sans-serif';
     ctx.fillText(opts.label, cx, cy-r*0.30);
-    ctx.font='600 '+(r*0.12)+'px Arial, sans-serif'; ctx.fillStyle=hexToRgba(AIRCRAFT_TEAL,0.5);
+    ctx.font='700 '+(r*0.135)+'px Arial, sans-serif'; ctx.fillStyle=hexToRgba(AIRCRAFT_TEAL,0.6);
     ctx.fillText(opts.unit, cx, lcdY+lcdH+r*0.16);
     ctx.restore();
     // warm specular highlight — real curved gauge glass catches overhead room light as
@@ -1024,14 +1042,18 @@
     chinookState.chL = lerp(chinookState.chL, Math.min(1, rms*3.2), 0.10);
     chinookState.chR = lerp(chinookState.chR, Math.min(1, rms*3.0 + Math.sin(t*0.002)*0.02), 0.095);
 
-    var panelX = w*0.05, panelY = h*0.045, panelW = w*0.90, panelH = h*0.86;
+    // on a narrow phone this stays full-bleed (0.90) exactly as before; on a wide
+    // desktop window it narrows so there's genuine room for flanking side panels
+    // rather than one gauge cluster floating alone in empty space
+    var mainFrac = Math.min(0.90, Math.max(0.42, (h*1.35)/w));
+    var panelW = w*mainFrac, panelY = h*0.045, panelH = h*0.86;
+    var panelX = (w-panelW)/2;
     ctx.save();
     var metalG = ctx.createLinearGradient(panelX,panelY,panelX,panelY+panelH);
     metalG.addColorStop(0,'#8a8f96'); metalG.addColorStop(0.5,'#75797f'); metalG.addColorStop(1,'#5d6167');
     ctx.fillStyle = metalG; roundRectAll(ctx,panelX,panelY,panelW,panelH,10*devicePixelRatio); ctx.fill();
     ctx.strokeStyle='rgba(0,0,0,0.35)'; ctx.lineWidth=2*devicePixelRatio; ctx.stroke();
-    var rivR = 3*devicePixelRatio;
-    for (var rx=0; rx<=14; rx++){ drawScrew(panelX+8*devicePixelRatio+(panelW-16*devicePixelRatio)*(rx/14), panelY+10*devicePixelRatio, rivR); }
+    drawRivetBorder(panelX, panelY, panelW, panelH, 3*devicePixelRatio);
     ctx.restore();
 
     ctx.save();
@@ -1087,6 +1109,64 @@
       roundRectAll(ctx,bx,btnY,btnSize,btnSize,3*devicePixelRatio); ctx.fill();
       ctx.strokeStyle='rgba(0,0,0,0.5)'; ctx.lineWidth=1*devicePixelRatio; ctx.stroke();
       ctx.restore();
+    }
+
+    // flanking side panels — only when the main cluster left genuine spare width,
+    // so mobile (where panelX is tiny) is completely unaffected
+    var sideMargin = w*0.02;
+    var sideW = panelX - sideMargin*2;
+    if (sideW > w*0.055){
+      drawChinookSidePanel(sideMargin, panelY, sideW, panelH, 'POWER TRAIN', 'buttons', bands);
+      drawChinookSidePanel(w-sideMargin-sideW, panelY, sideW, panelH, 'SYSTEM', 'switches', bands);
+    }
+  }
+  function drawMiniToggle(x,y,w,h,on,label){
+    ctx.save();
+    ctx.fillStyle='rgba(20,20,22,0.8)'; ctx.font='600 '+(w*0.16)+'px Arial, sans-serif'; ctx.textAlign='left';
+    ctx.fillText(label, x, y-h*0.6);
+    ctx.fillStyle='#2a2c2f'; roundRectAll(ctx,x,y,w,h,h*0.18); ctx.fill();
+    var knobX = x + (on? w*0.72 : w*0.28);
+    ctx.fillStyle = hexToRgba('#3EE6C4', on?0.95:0.35);
+    if (on){ ctx.shadowColor='rgba(62,230,196,0.7)'; ctx.shadowBlur=6; }
+    ctx.beginPath(); ctx.arc(knobX, y+h*0.5, h*0.38, 0, Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
+  function drawChinookSidePanel(x,y,w,h,title,kind,bands){
+    ctx.save();
+    var metalG = ctx.createLinearGradient(x,y,x,y+h);
+    metalG.addColorStop(0,'#8a8f96'); metalG.addColorStop(0.5,'#75797f'); metalG.addColorStop(1,'#5d6167');
+    ctx.fillStyle = metalG; roundRectAll(ctx,x,y,w,h,10*devicePixelRatio); ctx.fill();
+    ctx.strokeStyle='rgba(0,0,0,0.35)'; ctx.lineWidth=2*devicePixelRatio; ctx.stroke();
+    drawRivetBorder(x, y, w, h, 3*devicePixelRatio);
+    ctx.restore();
+
+    ctx.save();
+    ctx.fillStyle='rgba(20,20,22,0.85)'; ctx.font='700 '+(w*0.088)+'px Arial, sans-serif'; ctx.textAlign='center';
+    ctx.fillText(title, x+w/2, y+h*0.06);
+    ctx.restore();
+
+    if (kind==='buttons'){
+      var cols=3, rows=6, pad=w*0.12, cellW=(w-pad*2)/cols, cellH=h*0.075;
+      var startY=y+h*0.12;
+      for (var r=0;r<rows;r++){
+        for (var c=0;c<cols;c++){
+          var bx=x+pad+c*cellW+cellW*0.15, by=startY+r*(cellH*1.4);
+          var bw=cellW*0.7, bh=cellH;
+          var idx=(r*cols+c)%bands.length;
+          var lit = bands[idx] > (0.22+((r+c)%3)*0.07);
+          ctx.save();
+          ctx.fillStyle = lit? hexToRgba('#3EE6C4',0.85) : '#1c1e21';
+          if (lit){ ctx.shadowColor='rgba(62,230,196,0.7)'; ctx.shadowBlur=6; }
+          roundRectAll(ctx,bx,by,bw,bh,3*devicePixelRatio); ctx.fill();
+          ctx.strokeStyle='rgba(0,0,0,0.5)'; ctx.lineWidth=1*devicePixelRatio; ctx.stroke();
+          ctx.restore();
+        }
+      }
+    } else if (kind==='switches'){
+      var swW=w*0.5, swH=h*0.035, swX=x+w*0.25;
+      drawMiniToggle(swX, y+h*0.24, swW, swH, bands[1]>0.3, 'GAIN');
+      drawMiniToggle(swX, y+h*0.42, swW, swH, !!skyCoords, 'SKY');
+      drawMiniToggle(swX, y+h*0.60, swW, swH, usingAmbientFallback, 'AMB');
     }
   }
 
