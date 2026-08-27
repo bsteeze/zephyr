@@ -935,8 +935,9 @@
     ctx.beginPath(); ctx.arc(cx,cy,r*1.1,0,Math.PI*2); ctx.fill();
     ctx.restore();
     var scr = r*0.13;
-    drawScrew(cx-r*0.80, cy-r*0.80, scr*0.52);
-    drawScrew(cx+r*0.80, cy+r*0.68, scr*0.52);
+    var screwR = r*1.03, screwA1 = Math.PI*1.25, screwA2 = Math.PI*0.25;
+    drawScrew(cx+Math.cos(screwA1)*screwR, cy+Math.sin(screwA1)*screwR, scr*0.52);
+    drawScrew(cx+Math.cos(screwA2)*screwR, cy+Math.sin(screwA2)*screwR, scr*0.52);
     // face
     ctx.save();
     ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.clip();
@@ -944,7 +945,7 @@
     faceG.addColorStop(0,'#0c241b'); faceG.addColorStop(0.45,'#091d15'); faceG.addColorStop(1,'#03100b');
     ctx.fillStyle = faceG; ctx.fillRect(cx-r,cy-r,r*2,r*2);
     ctx.restore();
-    var AIRCRAFT_TEAL = '#3EE6C4';
+    var AIRCRAFT_TEAL = '#33CFE8';
     var glow = AIRCRAFT_TEAL, glowDim = hexToRgba(AIRCRAFT_TEAL,0.6);
     // tick marks + numbers — real gauge has 4 minor ticks between each major, going
     // almost all the way around; a sparse 8-tick sweep with a big gap read as generic
@@ -1088,9 +1089,9 @@
     var bctx = buf.getContext('2d');
 
     var base = bctx.createLinearGradient(0,0,0,th);
-    base.addColorStop(0, '#aeb0a5');
-    base.addColorStop(0.45, '#999b8f');
-    base.addColorStop(1, '#82847a');
+    base.addColorStop(0, '#bfb99e');
+    base.addColorStop(0.45, '#a49d82');
+    base.addColorStop(1, '#7c765f');
     bctx.fillStyle = base;
     bctx.fillRect(0,0,tw,th);
 
@@ -1212,8 +1213,8 @@
       var bx = btnStartX + bi*btnGap;
       var lit = bands[bi%3] > 0.4;
       ctx.save();
-      ctx.fillStyle = lit ? hexToRgba('#3EE6C4',0.85) : '#1c1e21';
-      if (lit){ ctx.shadowColor='rgba(62,230,196,0.7)'; ctx.shadowBlur=8; }
+      ctx.fillStyle = lit ? hexToRgba('#33CFE8',0.85) : '#1c1e21';
+      if (lit){ ctx.shadowColor='rgba(51,207,232,0.7)'; ctx.shadowBlur=8; }
       roundRectAll(ctx,bx,btnY,btnSize,btnSize,3*devicePixelRatio); ctx.fill();
       ctx.strokeStyle='rgba(0,0,0,0.5)'; ctx.lineWidth=1*devicePixelRatio; ctx.stroke();
       ctx.restore();
@@ -1303,8 +1304,8 @@
           var idx=(r*cols+c)%bands.length;
           var lit = bands[idx] > (0.22+((r+c)%3)*0.07);
           ctx.save();
-          ctx.fillStyle = lit? hexToRgba('#3EE6C4',0.85) : '#1c1e21';
-          if (lit){ ctx.shadowColor='rgba(62,230,196,0.7)'; ctx.shadowBlur=6; }
+          ctx.fillStyle = lit? hexToRgba('#33CFE8',0.85) : '#1c1e21';
+          if (lit){ ctx.shadowColor='rgba(51,207,232,0.7)'; ctx.shadowBlur=6; }
           roundRectAll(ctx,bx,by,bw,bh,3*devicePixelRatio); ctx.fill();
           ctx.strokeStyle='rgba(0,0,0,0.5)'; ctx.lineWidth=1*devicePixelRatio; ctx.stroke();
           ctx.restore();
