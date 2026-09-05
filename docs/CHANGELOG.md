@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.1.2 - Expert Portrait Restored
+
+Restored
+- AI-generated Expert Story Engine with whole-chart synthesis
+- Evidence-linked interpretation sections
+- Cached reports for unchanged charts
+- Downloadable natal portrait PDF
+- Vercel `/api/interpret-chart` route and server-side OpenAI configuration
+
+Added
+- Zodiac Tone Circle article with Kepler history and Circle of Fifths mapping
+- Consistent `www.zephyr.guru` canonicals and an eight-page sitemap
+
 ## 0.1.1 - Natal Discovery
 
 Added
