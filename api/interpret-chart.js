@@ -123,23 +123,35 @@ function normalizeChart(chart) {
 function validateEvidence(report, chart) {
   const placement=new Map(chart.planets.map(p=>[p.key,p]));
   const aspectKeys=new Set(chart.aspects.map(a=>[a.planetA,a.planetB].sort().join('|')+'|'+a.aspect));
+  const normalized=value=>String(value||'').trim().toLowerCase();
+  let rejected=0;
   report.sections=report.sections.map(section=>({
     ...section,
-    evidence:section.evidence.filter(e=>{
-      if(!e.planets.every(p=>PLANETS.has(p)))return false;
+    evidence:section.evidence.map(e=>({
+      ...e,
+      planets:e.planets.map(normalized),
+      sign:normalized(e.sign),
+      aspect:normalized(e.aspect)
+    })).filter(e=>{
+      let valid=false;
+      if(!e.planets.every(p=>PLANETS.has(p))){rejected++;return false;}
       if(e.type==='placement'){
         const p=placement.get(e.planets[0]);
-        return !!p && (!e.sign||e.sign===p.sign) && (!e.house||e.house===p.house);
+        valid=e.planets.length===1 && !!p && (!e.sign||e.sign===p.sign) && (!e.house||e.house===p.house);
+      }else if(e.type==='aspect'){
+        valid=e.planets.length===2 && aspectKeys.has([...e.planets].sort().join('|')+'|'+e.aspect);
+      }else if(e.type==='house'){
+        valid=e.house>=1&&e.house<=12;
+      }else if(e.type==='angle'){
+        valid=e.sign===''||SIGNS.has(e.sign);
+      }else{
+        valid=true;
       }
-      if(e.type==='aspect'){
-        return e.planets.length===2 && aspectKeys.has([...e.planets].sort().join('|')+'|'+e.aspect);
-      }
-      if(e.type==='house')return e.house>=1&&e.house<=12;
-      if(e.type==='angle')return e.sign===''||SIGNS.has(e.sign);
-      return true;
+      if(!valid)rejected++;
+      return valid;
     })
   })).filter(section=>section.evidence.length);
-  if(report.sections.length<6)throw new Error('The interpretation did not retain enough verifiable chart evidence.');
+  if(report.sections.length<6)throw new Error(`The interpretation did not retain enough verifiable chart evidence (${report.sections.length} sections; ${rejected} evidence items rejected).`);
   return report;
 }
 
@@ -163,28 +175,35 @@ module.exports = async function handler(req,res) {
   if(!validChart(body?.chart))return res.status(400).json({error:'The calculated chart data is incomplete or invalid.'});
 
   try{
-    const response=await fetch('https://api.openai.com/v1/responses',{
-      method:'POST',
-      headers:{'Authorization':`Bearer ${process.env.OPENAI_API_KEY}`,'Content-Type':'application/json'},
-      body:JSON.stringify({
-        model:process.env.OPENAI_MODEL||'gpt-5.6',
-        store:false,
-        max_output_tokens:6500,
-        reasoning:{effort:'medium'},
-        instructions,
-        input:`Interpret this calculated natal chart. Return only the requested structured report.\n\n${JSON.stringify(body.chart)}`,
-        text:{format:{type:'json_schema',name:'zephyr_natal_report',strict:true,schema:reportSchema}}
-      })
-    });
-    const data=await response.json();
-    if(!response.ok){
-      console.error('OpenAI error',response.status,data?.error?.code||data?.error?.type||'unknown');
-      return res.status(response.status===429?429:502).json({error:response.status===429?'The interpretation service is busy. Please try again shortly.':'The expert interpretation could not be completed.'});
+    for(let attempt=0;attempt<2;attempt++){
+      const response=await fetch('https://api.openai.com/v1/responses',{
+        method:'POST',
+        headers:{'Authorization':`Bearer ${process.env.OPENAI_API_KEY}`,'Content-Type':'application/json'},
+        body:JSON.stringify({
+          model:process.env.OPENAI_MODEL||'gpt-5.6',
+          store:false,
+          max_output_tokens:9000,
+          reasoning:{effort:'medium'},
+          instructions,
+          input:`Interpret this calculated natal chart. Return only the requested structured report.\nFor each section cite at least one exact placement or aspect from the supplied planets/aspects arrays. Use lowercase planet keys, sign keys, and aspect names exactly as provided. Do not invent evidence.\n${attempt?'The previous draft failed chart evidence verification. Carefully check every evidence item against the supplied arrays before responding.\n':''}\n${JSON.stringify(body.chart)}`,
+          text:{format:{type:'json_schema',name:'zephyr_natal_report',strict:true,schema:reportSchema}}
+        })
+      });
+      const data=await response.json();
+      if(!response.ok){
+        console.error('OpenAI error',response.status,data?.error?.code||data?.error?.type||'unknown');
+        return res.status(response.status===429?429:502).json({error:response.status===429?'The interpretation service is busy. Please try again shortly.':'The expert interpretation could not be completed.'});
+      }
+      const outputText=data.output_text||data.output?.flatMap(item=>item.content||[]).find(item=>item.type==='output_text')?.text;
+      if(!outputText)throw new Error('No structured interpretation returned.');
+      try{
+        const report=validateEvidence(JSON.parse(outputText),body.chart);
+        return res.status(200).json({report,model:data.model||process.env.OPENAI_MODEL||'gpt-5.6'});
+      }catch(error){
+        if(attempt===1)throw error;
+        console.warn('Retrying interpretation after validation failure',error?.message||error);
+      }
     }
-    const outputText=data.output_text||data.output?.flatMap(item=>item.content||[]).find(item=>item.type==='output_text')?.text;
-    if(!outputText)throw new Error('No structured interpretation returned.');
-    const report=validateEvidence(JSON.parse(outputText),body.chart);
-    return res.status(200).json({report,model:data.model||process.env.OPENAI_MODEL||'gpt-5.6'});
   }catch(error){
     console.error('Interpretation failure',error?.message||error);
     return res.status(502).json({error:'The expert interpretation could not be completed. Your curated Zephyr reading is still available.'});
