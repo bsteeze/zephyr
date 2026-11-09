@@ -13,6 +13,9 @@ Natal chart tool: https://www.zephyr.guru/?view=natal
 - How birthdays become musical intervals: https://www.zephyr.guru/birthday-musical-intervals.html
 - Fictional sample natal portrait, “The Velvet Scalpel”: https://www.zephyr.guru/natal-chart-example.html
 - Plain-language guide to the Big Three, houses, and aspects: https://www.zephyr.guru/natal-chart-guide.html
+- Mayan day sign calculator (traditional Tzolk'in with Haab' and Long Count, plus Dreamspell): https://www.zephyr.guru/mayan.html
+- Free tarot reading with Three Card and Celtic Cross spreads and an original 78-card Zephyr deck: https://www.zephyr.guru/tarot.html
+- Live harmony visualizer and instrument tuner (microphone or tab audio, nothing recorded): https://www.zephyr.guru/harmony-visualizer.html
 - Zodiac Tone Circle, Kepler, the Circle of Fifths, and Zephyr’s solar-year method: https://www.zephyr.guru/zodiac-tone-circle.html
 
 ## What Zephyr offers

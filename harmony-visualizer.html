@@ -3,7 +3,19 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Zephyr — Live Harmony Visualizer</title>
+<title>Live Music Visualizer &amp; Instrument Tuner | Zephyr Observatory</title>
+<meta name="description" content="Zephyr's free live harmony visualizer turns your microphone or browser audio into fire, air, water, and earth patterns—plus a chromatic, guitar, bass, ukulele, and violin tuner. Nothing is recorded.">
+<link rel="canonical" href="https://www.zephyr.guru/harmony-visualizer.html">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<meta name="theme-color" content="#050914">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Zephyr">
+<meta property="og:title" content="Live Music Visualizer &amp; Tuner | Zephyr">
+<meta property="og:description" content="Hear the room: live audio rendered as the four elements, with a built-in instrument tuner.">
+<meta property="og:url" content="https://www.zephyr.guru/harmony-visualizer.html">
+<meta property="og:image" content="https://www.zephyr.guru/zephyr-social-card.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="/zephyr-logo.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/site.webmanifest">
+<script src="/analytics.js"></script>
 <style>
   :root{
     --void: #050914;
@@ -37,6 +49,10 @@
   }
   #ident .sun{ color: var(--p-tertiary); font-size:14px; transition: color 0.6s ease; }
   #ident b{ color: var(--ink); font-weight:600; }
+  #ident .ident-home{ pointer-events:auto; color:inherit; text-decoration:none; display:inline-flex; align-items:center; gap:10px; }
+  #ident .ident-home:hover{ color: var(--ink); }
+  .overlay-home{ display:inline-block; margin-top:18px; color: var(--ink-dim); font-size:13px; text-decoration:none; letter-spacing:.04em; }
+  .overlay-home:hover{ color: var(--ink); }
 
   #dockWrap{
     position:fixed; left:50%; bottom:20px; transform:translateX(-50%);
@@ -167,7 +183,7 @@
 <canvas id="stars"></canvas>
 <div id="stage"><canvas id="viz"></canvas></div>
 
-<div id="ident"><span class="sun">☼</span> ZEPHYR <b>— Harmony Visualizer</b></div>
+<div id="ident"><a class="ident-home" href="/" title="Back to Zephyr"><span class="sun">☼</span> ZEPHYR</a> <b>— Harmony Visualizer</b></div>
 <div id="ambientBadge">Ambient patterns — no audio detected</div>
 
 <div id="tunerPanel">
@@ -192,7 +208,7 @@
 </div>
 
 <div id="startOverlay">
-  <div class="mark">☼ Zephyr Observatory</div>
+  <div class="mark"><a href="/" style="color:inherit;text-decoration:none">☼ Zephyr Observatory</a></div>
   <h1>Hear the room.</h1>
   <p>Zephyr listens through your microphone — or a browser tab's audio — and renders it live as one of four elements. Nothing is recorded or sent anywhere; it stays in this tab.</p>
   <div class="startBtns">
@@ -201,6 +217,7 @@
   </div>
   <button class="textBtn" id="useAmbient">Skip audio — just show ambient patterns</button>
   <div id="startErr"></div>
+  <a class="overlay-home" href="/">← Back to Zephyr Observatory</a>
 </div>
 
 <div id="dockWrap" class="hidden">
@@ -415,6 +432,8 @@
     started = true;
     document.getElementById('startOverlay').style.display = 'none';
     document.getElementById('dockWrap').classList.remove('hidden');
+    // Deep link: /harmony-visualizer.html#tuner opens the tuner once audio starts.
+    if (location.hash === '#tuner' && !usingAmbientFallback){ var tb=document.getElementById('tunerBtn'); if (tb && !tunerOpen) tb.click(); }
     requestAnimationFrame(loop);
   }
   function showErr(msg){ document.getElementById('startErr').textContent = msg; }

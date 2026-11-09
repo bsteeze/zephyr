@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#050914">
+<script src="/analytics.js"></script>
+<title>Mayan Birth Sign Calculator: Tzolk'in &amp; Dreamspell | Zephyr</title>
+<meta name="description" content="Find your Mayan day sign two ways: the traditional Tzolk'in count (GMT correlation) with Haab and Long Count, and the modern Dreamspell galactic signature. Free and private.">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<link rel="canonical" href="https://www.zephyr.guru/mayan.html">
+<link rel="icon" href="/zephyr-logo.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/site.webmanifest">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Zephyr">
+<meta property="og:title" content="Mayan Birth Sign: Tzolk'in &amp; Dreamspell | Zephyr">
+<meta property="og:description" content="Your traditional Mayan day sign and your Dreamspell galactic signature, side by side, with the math shown.">
+<meta property="og:url" content="https://www.zephyr.guru/mayan.html"><meta property="og:image" content="https://www.zephyr.guru/zephyr-social-card.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="/learn.css">
+<style>
+  .oracle-hero{padding:56px 0 28px;max-width:860px}
+  .oracle-hero h1{font-family:Georgia,serif;font-size:clamp(2.6rem,6vw,4.8rem);font-weight:500;line-height:.98;letter-spacing:-.035em;margin:14px 0 18px}
+  .date-form{display:flex;flex-wrap:wrap;gap:12px;align-items:end;margin:26px 0 8px}
+  .date-form label{display:grid;gap:6px;font-size:.78rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  .date-form input{font:inherit;font-size:1.05rem;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px;min-width:220px;color-scheme:dark}
+  .btn-gold{font:inherit;font-weight:800;border:0;border-radius:12px;padding:13px 22px;background:linear-gradient(135deg,#ffe8a3,#e6b85d 45%,#b47a2c);color:#1b1206;cursor:pointer}
+  .btn-quiet{font:inherit;font-weight:700;border:1px solid var(--line);border-radius:12px;padding:12px 18px;background:transparent;color:var(--muted);cursor:pointer}
+  .note{color:#8493ae;font-size:.86rem;margin:6px 0 0}
+  .systems{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;margin:30px 0 26px}
+  .sys{position:relative;padding:28px;border:1px solid var(--line);border-radius:22px;background:linear-gradient(180deg,rgba(15,29,59,.85),rgba(8,15,32,.85));overflow:hidden}
+  .sys::before{content:"";position:absolute;inset:-40% -20% auto auto;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,var(--glow,rgba(239,196,102,.18)),transparent 70%);pointer-events:none}
+  .sys .eyebrow{margin-bottom:14px}
+  .sign-head{display:flex;gap:20px;align-items:center}
+  .glyph{flex:none;width:112px;height:132px;display:grid;place-items:center;border-radius:26px;border:2px solid rgba(239,196,102,.5);background:radial-gradient(circle at 50% 35%,rgba(239,196,102,.16),rgba(5,9,20,.6))}
+  .glyph svg{width:92px;height:auto}
+  .sign-name{font-family:Georgia,serif;font-size:clamp(1.8rem,3.2vw,2.5rem);line-height:1.02;margin:0}
+  .sign-sub{color:var(--muted);margin:6px 0 0;font-size:.95rem}
+  .sys p.read{color:#c9d2e3;margin:20px 0 0}
+  .facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:20px}
+  .fact{padding:12px 14px;border:1px solid var(--line);border-radius:14px;background:rgba(5,9,20,.4)}
+  .fact small{display:block;color:#8493ae;font-size:.68rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase}
+  .fact b{display:block;font-size:.98rem;margin-top:3px}
+  .cross{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,auto);gap:8px;margin-top:20px;max-width:420px}
+  .cross div{padding:10px;border:1px solid var(--line);border-radius:12px;text-align:center;font-size:.82rem;background:rgba(5,9,20,.4)}
+  .cross div small{display:block;color:#8493ae;font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;font-weight:800}
+  .cross .c-center{border-color:rgba(239,196,102,.6);background:rgba(239,196,102,.08)}
+  .c-guide{grid-column:2;grid-row:1}.c-anti{grid-column:1;grid-row:2}.c-center{grid-column:2;grid-row:2}.c-analog{grid-column:3;grid-row:2}.c-occult{grid-column:2;grid-row:3}
+  .seal-chip{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:baseline}
+  .compare{padding:24px 28px;border:1px solid var(--line);border-radius:18px;background:rgba(239,196,102,.05);margin-bottom:30px}
+  .compare h2{font-family:Georgia,serif;font-weight:500;font-size:1.6rem;margin:0 0 10px}
+  .compare p{color:#c2cbdb;margin:0 0 10px}
+  .today{display:flex;flex-wrap:wrap;gap:10px;margin:8px 0 40px;color:var(--muted);font-size:.9rem}
+  .today span{padding:7px 12px;border:1px solid var(--line);border-radius:999px}
+  .site-nav a.active{color:var(--gold)}
+  @media(max-width:860px){.systems{grid-template-columns:1fr}.facts{grid-template-columns:repeat(2,1fr)}.site-nav{gap:14px}.site-nav a{font-size:.82rem}}
+  @media(max-width:520px){.sign-head{flex-direction:column;align-items:flex-start}.sys{padding:22px}.site-nav a.hide-sm{display:none}}
+</style>
+</head>
+<body>
+<header class="shell site-head"><a class="brand" href="/"><img src="/zephyr-logo.svg" alt="">ZEPHYR</a>
+  <nav class="site-nav"><a class="hide-sm" href="/">Solar Harmony</a><a href="/natal-chart.html">Natal</a><a class="active" href="/mayan.html">Mayan</a><a href="/tarot.html">Tarot</a></nav></header>
+<main class="shell">
+  <section class="oracle-hero">
+    <p class="eyebrow">Astrology · The Mayan Count</p>
+    <h1>Your day in the sacred 260.</h1>
+    <p class="dek">The Maya tracked time with interlocking cycles: 20 day signs turning against 13 numbers. Enter a birthday to see your sign in the traditional count and in the modern Dreamspell, side by side.</p>
+    <form class="date-form" id="mayaForm">
+      <label>Birthday<input type="date" id="birth" required min="1600-01-01" max="2200-12-31"></label>
+      <button class="btn-gold" type="submit">Reveal my signs</button>
+      <button class="btn-quiet" type="button" id="todayBtn">Use today</button>
+    </form>
+    <p class="note">Calculated in your browser. Nothing is sent or stored.</p>
+  </section>
+
+  <section class="systems" id="results" aria-live="polite">
+    <article class="sys" style="--glow:rgba(102,214,173,.16)">
+      <p class="eyebrow">Traditional Tzolk'in</p>
+      <div class="sign-head"><div class="glyph" id="tzGlyph"></div><div><h2 class="sign-name" id="tzName">—</h2><p class="sign-sub" id="tzSub"></p></div></div>
+      <p class="read" id="tzRead"></p>
+      <div class="facts">
+        <div class="fact"><small>Haab' date</small><b id="haab">—</b></div>
+        <div class="fact"><small>Long Count</small><b id="lc">—</b></div>
+        <div class="fact"><small>Day of 260</small><b id="tzDay">—</b></div>
+      </div>
+      <p class="note" style="margin-top:14px">Uses the GMT correlation (584283), the count still kept by K'iche' daykeepers in highland Guatemala.</p>
+    </article>
+    <article class="sys" style="--glow:rgba(128,104,244,.2)">
+      <p class="eyebrow">Dreamspell Galactic Signature</p>
+      <div class="sign-head"><div class="glyph" id="dsGlyph"></div><div><h2 class="sign-name" id="dsName">—</h2><p class="sign-sub" id="dsSub"></p></div></div>
+      <p class="read" id="dsRead"></p>
+      <div class="cross" id="dsCross"></div>
+      <p class="note" style="margin-top:14px">Dreamspell (José Argüelles, 1987) anchors to the Gregorian year and skips Feb 29, so it drifts from the traditional count.</p>
+    </article>
+  </section>
+
+  <section class="compare">
+    <h2>Why two answers?</h2>
+    <p>The traditional Tzolk'in has run unbroken for more than two thousand years and is still kept in Guatemala. Dreamspell is a 20th-century reinterpretation with its own colors, tones and "oracle" relationships. It's popular, but it doesn't line up with the ancient count.</p>
+    <p>Neither one is "wrong." Each is a different lens. Zephyr shows both and lets you notice which one rings true.</p>
+  </section>
+  <div class="today" id="todayStrip"></div>
+</main>
+
+<script>
+(() => {
+  'use strict';
+  const SIGNS = [
+    ['Imix','Crocodile','Primordial waters and beginnings. Nurturing, inventive and protective, Imix carries the instinct to create something from nothing.'],
+    ["Ik'",'Wind','Breath, voice and spirit. Quick-minded and expressive, Ik\' brings ideas in on the wind and needs room to move.'],
+    ["Ak'b'al",'Night','The dark house before dawn. Inward, intuitive and dreamy, Ak\'b\'al guards secrets and finds light in hidden places.'],
+    ["K'an",'Seed','Maize, ripening and abundance. Patient and generous, K\'an plants carefully and trusts the harvest.'],
+    ['Chikchan','Serpent','Life force and instinct. Magnetic and perceptive, Chikchan feels truth in the body before the mind catches up.'],
+    ['Kimi','Death','Transformation and the ancestors. Calm, wise and transitional, Kimi helps others let go and begin again.'],
+    ["Manik'",'Deer','Healing hands and steady grace. Devoted and sure-footed, Manik\' serves and protects with quiet strength.'],
+    ['Lamat','Star','Venus, harmony and plenty. Charming and multiplying, Lamat makes beauty grow wherever it settles.'],
+    ['Muluk','Water','Offering, emotion and flow. Feeling deeply, Muluk purifies, forgives and moves with the tides.'],
+    ['Ok','Dog','Loyalty and the heart\'s guide. Faithful and playful, Ok walks beside others and leads them home.'],
+    ['Chuwen','Monkey','The artisan and trickster. Creative, funny and clever, Chuwen weaves time, art and play together.'],
+    ["Eb'",'Road','The human path. Social and grounded, Eb\' walks the road of life and gathers wisdom from the journey.'],
+    ["B'en",'Reed','Pillar of the home and the sky. Upright and principled, B\'en builds structures that let others grow.'],
+    ['Ix','Jaguar','The jaguar shaman. Fierce, mysterious and earth-wise, Ix moves between worlds and protects sacred places.'],
+    ['Men','Eagle','Vision and aspiration. Far-seeing and ambitious, Men rises high to see the shape of things.'],
+    ["K'ib'",'Owl','Ancestral wisdom and forgiveness. Reflective and discerning, K\'ib\' learns from the past and clears old debts.'],
+    ["Kab'an",'Earth','Movement, thought and synchronicity. Earthy and wise, Kab\'an reads the signs and stays in step with the world.'],
+    ["Etz'nab'",'Flint','The mirror-blade of truth. Sharp and honest, Etz\'nab\' cuts away illusion and makes clear decisions.'],
+    ['Kawak','Storm','Thunder, rain and renewal. Healing and community-minded, Kawak clears the air and brings growth.'],
+    ['Ajaw','Sun','The lord and the flower. Radiant and whole, Ajaw shines, completes cycles and leads by example.']
+  ];
+  const NUMBERS = ['','Unity and initiation','Duality and balance','Movement and rhythm','Stability and form','Center and empowerment','Flow and response','Reflection and attunement','Harmony and integrity','Patience and completion','Manifestation','Release and resolution','Understanding and community','Transcendence and ascension'];
+  const HAAB = ['Pop',"Wo'",'Sip',"Sotz'",'Sek','Xul',"Yaxk'in",'Mol',"Ch'en",'Yax',"Sak'",'Keh','Mak',"K'ank'in",'Muwan','Pax',"K'ayab","Kumk'u","Wayeb'"];
+
+  const SEALS = ['Dragon','Wind','Night','Seed','Serpent','Worldbridger','Hand','Star','Moon','Dog','Monkey','Human','Skywalker','Wizard','Eagle','Warrior','Earth','Mirror','Storm','Sun'];
+  const SEAL_READ = [
+    'Birth and nurturance. You hold space for new life and new ideas.',
+    'Spirit and communication. Your words carry breath and inspiration.',
+    'Dreams and abundance. You find riches in the inner world.',
+    'Awareness and flowering. You know when to plant and when to bloom.',
+    'Life force and survival. You trust the wisdom of the body.',
+    'Equality and opportunity. You build bridges and help others cross.',
+    'Knowing and accomplishment. You heal by doing and understanding.',
+    'Beauty and elegance. You bring art and harmony into form.',
+    'Purification and flow. You feel deeply and keep things moving.',
+    'Love and loyalty. Your heart leads, and others follow it.',
+    'Play and magic. You keep illusion light and spirit young.',
+    'Free will and wisdom. You choose your path consciously.',
+    'Exploration and wakefulness. You travel between earth and sky.',
+    'Timelessness and receptivity. You work by listening.',
+    'Vision and mind. You see patterns from a great height.',
+    'Intelligence and fearlessness. You question and press forward.',
+    'Navigation and synchronicity. You follow the earth\'s signals.',
+    'Reflection and order. You show people what is true.',
+    'Catalysis and energy. You shake things loose so they can renew.',
+    'Enlightenment and life. You radiate and complete the cycle.'
+  ];
+  const TONES = ['','Magnetic','Lunar','Electric','Self-Existing','Overtone','Rhythmic','Resonant','Galactic','Solar','Planetary','Spectral','Crystal','Cosmic'];
+  const TONE_READ = ['','purpose','challenge','service','form','radiance','equality','attunement','integrity','intention','manifestation','liberation','cooperation','presence'];
+  const COLORS = [['Red','#e2553e'],['White','#e9e4d8'],['Blue','#3a8fd6'],['Yellow','#f2c14e']];
+
+  const mod = (a,n) => ((a % n) + n) % n;
+  function jdn(y,m,d){ const a=Math.floor((14-m)/12), yy=y+4800-a, mm=m+12*a-3;
+    return d+Math.floor((153*mm+2)/5)+365*yy+Math.floor(yy/4)-Math.floor(yy/100)+Math.floor(yy/400)-32045; }
+
+  function traditional(y,m,d){
+    const days = jdn(y,m,d) - 584283;
+    const number = mod(days+3,13)+1, sign = mod(days+19,20);
+    const h = mod(days+348,365);
+    const lcParts=[]; let r=days; [144000,7200,360,20,1].forEach(u=>{ lcParts.push(Math.floor(r/u)); r=mod(r,u); });
+    // position in 260 (1 Imix = 1)
+    let pos=0; for(let k=1;k<=260;k++){ if(mod(k-1,13)+1===number && mod(k-1,20)===sign){ pos=k; break; } }
+    return {number, sign, haabDay:h%20, haabMonth:Math.floor(h/20), lc:lcParts.join('.'), pos};
+  }
+
+  function noLeapIndex(y,m,d){ const cum=[0,31,59,90,120,151,181,212,243,273,304,334]; if(m===2&&d===29) d=28; return y*365+cum[m-1]+d; }
+  function dreamspell(y,m,d){
+    const kin = mod(33 + noLeapIndex(y,m,d) - noLeapIndex(1987,7,26), 260) + 1;
+    return kinInfo(kin);
+  }
+  function kinInfo(kin){
+    const seal = mod(kin-1,20)+1, tone = mod(kin-1,13)+1;
+    return {kin, seal, tone, color: COLORS[mod(seal-1,4)]};
+  }
+  const s20 = s => mod(s-1,20)+1;
+  function oracle(seal,tone){
+    const off = [0,0,12,4,16,8,0,12,4,16,8,0,12,4][tone];
+    return { guide:s20(seal+off), analog:s20(19-seal), antipode:s20(seal+10), occult:s20(21-seal), occultTone:14-tone };
+  }
+
+  // Maya bar-and-dot numeral, drawn as SVG.
+  function numeral(n, color){
+    const bars=Math.floor(n/5), dots=n%5, w=90; let y=10, out='';
+    if(dots){ const gap=17, start=w/2-(dots-1)*gap/2; for(let i=0;i<dots;i++) out+=`<circle cx="${start+i*gap}" cy="${y+6}" r="6.5" fill="${color}"/>`; y+=22; }
+    for(let i=0;i<bars;i++){ out+=`<rect x="8" y="${y}" width="${w-16}" height="12" rx="6" fill="${color}"/>`; y+=19; }
+    return `<svg viewBox="0 0 ${w} ${Math.max(y,40)}" role="img" aria-label="Maya numeral ${n}">${out}</svg>`;
+  }
+  function glyphBox(n, label, color){
+    return numeral(n,color) + `<div style="font-family:Georgia,serif;font-size:.95rem;color:${color};margin-top:6px;text-align:center;line-height:1.1">${label}</div>`;
+  }
+
+  const $ = id => document.getElementById(id);
+  function sealLabel(s){ const c=COLORS[mod(s-1,4)]; return `<span class="seal-chip" style="background:${c[1]}"></span>${c[0]} ${SEALS[s-1]}`; }
+
+  function render(dateStr){
+    const [y,m,d] = dateStr.split('-').map(Number);
+    const t = traditional(y,m,d), sg = SIGNS[t.sign];
+    $('tzGlyph').innerHTML = glyphBox(t.number, sg[0], '#7fe0bd');
+    $('tzName').textContent = `${t.number} ${sg[0]}`;
+    $('tzSub').textContent = `${t.number} ${sg[1]} · ${NUMBERS[t.number]}`;
+    $('tzRead').textContent = sg[2] + ` Its number, ${t.number}, adds a note of ${NUMBERS[t.number].toLowerCase()}.`;
+    $('haab').textContent = `${t.haabDay} ${HAAB[t.haabMonth]}`;
+    $('lc').textContent = t.lc;
+    $('tzDay').textContent = `${t.pos} of 260`;
+
+    const ds = dreamspell(y,m,d), o = oracle(ds.seal, ds.tone);
+    const name = `${ds.color[0]} ${TONES[ds.tone]} ${SEALS[ds.seal-1]}`;
+    $('dsGlyph').innerHTML = glyphBox(ds.tone, SEALS[ds.seal-1], ds.color[1]);
+    $('dsName').textContent = name;
+    $('dsSub').textContent = `Kin ${ds.kin} · Tone ${ds.tone} (${TONES[ds.tone]})`;
+    $('dsRead').textContent = `${SEAL_READ[ds.seal-1]} The ${TONES[ds.tone]} tone points this toward ${TONE_READ[ds.tone]}.`;
+    $('dsCross').innerHTML =
+      `<div class="c-guide"><small>Guide</small>${sealLabel(o.guide)}</div>`+
+      `<div class="c-anti"><small>Challenge</small>${sealLabel(o.antipode)}</div>`+
+      `<div class="c-center"><small>You</small>${sealLabel(ds.seal)}</div>`+
+      `<div class="c-analog"><small>Support</small>${sealLabel(o.analog)}</div>`+
+      `<div class="c-occult"><small>Hidden</small>${sealLabel(o.occult)}</div>`;
+    try{ history.replaceState(null,'',`?date=${dateStr}`); }catch(e){}
+  }
+
+  function iso(dt){ return `${dt.getFullYear()}-${String(dt.getMonth()+1).padStart(2,'0')}-${String(dt.getDate()).padStart(2,'0')}`; }
+  const today = iso(new Date());
+  (function todayStrip(){
+    const [y,m,d]=today.split('-').map(Number), t=traditional(y,m,d), ds=dreamspell(y,m,d);
+    $('todayStrip').innerHTML = `<span>Today in the Tzolk'in: <b>${t.number} ${SIGNS[t.sign][0]}</b> (${SIGNS[t.sign][1]})</span><span>Today in Dreamspell: <b>Kin ${ds.kin}</b>, ${ds.color[0]} ${TONES[ds.tone]} ${SEALS[ds.seal-1]}</span>`;
+  })();
+
+  $('mayaForm').addEventListener('submit', e => { e.preventDefault(); if($('birth').value) render($('birth').value); });
+  $('todayBtn').addEventListener('click', () => { $('birth').value = today; render(today); });
+  const q = new URLSearchParams(location.search).get('date');
+  const start = (q && /^\d{4}-\d{2}-\d{2}$/.test(q)) ? q : today;
+  $('birth').value = start; render(start);
+  window.__maya = {traditional, dreamspell, oracle};
+})();
+</script>
+</body>
+</html>

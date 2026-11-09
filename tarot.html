@@ -1,0 +1,237 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#050914">
+<script src="/analytics.js"></script>
+<title>Free Tarot Reading: Three Card &amp; Celtic Cross | Zephyr Oracle</title>
+<meta name="description" content="Draw a free tarot reading with Zephyr's psychedelic 78-card deck. Choose a Three Card or Celtic Cross spread, flip each card, and read upright or reversed meanings.">
+<meta name="robots" content="index,follow,max-image-preview:large">
+<link rel="canonical" href="https://www.zephyr.guru/tarot.html">
+<link rel="icon" href="/zephyr-logo.svg" type="image/svg+xml"><link rel="apple-touch-icon" href="/apple-touch-icon.png"><link rel="manifest" href="/site.webmanifest">
+<meta property="og:type" content="website"><meta property="og:site_name" content="Zephyr">
+<meta property="og:title" content="Free Tarot Reading | Zephyr Oracle">
+<meta property="og:description" content="Shuffle, cut and flip your cards: Three Card and Celtic Cross spreads with a psychedelic Zephyr deck.">
+<meta property="og:url" content="https://www.zephyr.guru/tarot.html"><meta property="og:image" content="https://www.zephyr.guru/zephyr-social-card.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="stylesheet" href="/learn.css">
+<style>
+  .oracle-hero{padding:48px 0 18px;max-width:860px}
+  .oracle-hero h1{font-family:Georgia,serif;font-size:clamp(2.6rem,6vw,4.8rem);font-weight:500;line-height:.98;letter-spacing:-.035em;margin:14px 0 18px}
+  .site-nav a.active{color:var(--gold)}
+  .controls{display:grid;grid-template-columns:1.4fr 1fr;gap:18px;padding:22px;border:1px solid var(--line);border-radius:20px;background:rgba(11,22,48,.7);margin:18px 0 28px}
+  .controls label{display:grid;gap:7px;font-size:.74rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  .controls textarea,.controls select{font:inherit;font-size:1rem;letter-spacing:0;text-transform:none;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:11px 13px}
+  .controls textarea{resize:vertical;min-height:84px}
+  .spread-picks{display:grid;gap:10px}
+  .seg{display:flex;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .seg button{flex:1;font:inherit;font-size:.92rem;font-weight:750;padding:11px 8px;border:0;background:transparent;color:var(--muted);cursor:pointer;text-transform:none;letter-spacing:0}
+  .seg button.on{background:rgba(239,196,102,.16);color:var(--gold)}
+  .row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;grid-column:1/-1}
+  .toggle{display:flex!important;grid-auto-flow:column;align-items:center;gap:8px!important;text-transform:none!important;letter-spacing:0!important;font-size:.92rem!important;font-weight:600!important;cursor:pointer}
+  .toggle input{width:18px;height:18px;accent-color:#e6b85d}
+  .btn-gold{font:inherit;font-weight:800;border:0;border-radius:12px;padding:13px 24px;background:linear-gradient(135deg,#ffe8a3,#e6b85d 45%,#b47a2c);color:#1b1206;cursor:pointer}
+  .btn-quiet{font:inherit;font-weight:700;border:1px solid var(--line);border-radius:12px;padding:12px 18px;background:transparent;color:var(--muted);cursor:pointer}
+  .btn-quiet:disabled{opacity:.4;cursor:default}
+  .spacer{flex:1}
+
+  .table{position:relative;margin:0 auto 18px;padding:28px 16px;border-radius:28px;background:radial-gradient(ellipse at 50% 40%,rgba(128,104,244,.16),transparent 65%),radial-gradient(ellipse at 50% 120%,rgba(239,196,102,.08),transparent 60%);min-height:200px}
+  .question-echo{text-align:center;font-family:Georgia,serif;font-style:italic;color:#e8d9b4;font-size:1.15rem;margin:0 0 18px;min-height:1.4em}
+  .layout{position:relative;margin:0 auto}
+  .layout.three{display:flex;justify-content:center;gap:clamp(12px,3vw,34px);max-width:720px}
+  .layout.three .slot{position:relative;width:min(200px,29vw)}
+  .layout.celtic{width:min(660px,100%);aspect-ratio:600/730}
+  .layout.celtic .slot{position:absolute;width:16.667%}
+  .slot .pos-label{display:block;text-align:center;font-size:.7rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-top:8px;line-height:1.25}
+  .layout.celtic .slot .pos-label{font-size:.6rem;margin-top:4px}
+  .layout.celtic .slot.crossing .pos-label{display:none}
+  .card{position:relative;width:100%;aspect-ratio:3/5;perspective:1200px;cursor:pointer;border:0;padding:0;background:none;display:block}
+  .card .inner{position:absolute;inset:0;transition:transform .8s cubic-bezier(.2,.7,.2,1);transform-style:preserve-3d}
+  .card.flipped .inner{transform:rotateY(180deg)}
+  .card .side{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:7%/4.2%;overflow:hidden;box-shadow:0 10px 26px rgba(0,0,0,.45)}
+  .card .front{transform:rotateY(180deg)}
+  .card .front.rev svg,.card .front.rev img{transform:rotate(180deg)}
+  .card svg{width:100%;height:100%;display:block}
+  .card:focus-visible{outline:3px solid var(--gold);outline-offset:4px;border-radius:10px}
+  .card.dealt{animation:deal .55s cubic-bezier(.2,.8,.2,1) both}
+  @keyframes deal{from{opacity:0;transform:translateY(-40px) scale(.9)}to{opacity:1;transform:none}}
+  .slot.crossing{transform:rotate(90deg)}
+  .slot.crossing{z-index:2}
+  .celtic-key{display:none}@media(max-width:600px){.celtic-key:not([hidden]){display:block;font-size:.8rem;line-height:1.7}}
+  .hint{text-align:center;color:#8493ae;font-size:.88rem;margin:14px 0 0}
+
+  .reading{display:grid;gap:14px;margin:10px 0 50px}
+  .reading-item{display:grid;grid-template-columns:86px 1fr;gap:18px;align-items:start;padding:16px;border:1px solid var(--line);border-radius:16px;background:rgba(11,22,48,.6)}
+  .reading-item .thumb{width:86px;aspect-ratio:3/5;border-radius:6px;overflow:hidden}
+  .reading-item .thumb svg,.reading-item .thumb img{width:100%;height:100%;display:block}
+  .reading-item .thumb.rev svg,.reading-item .thumb.rev img{transform:rotate(180deg)}
+  .reading-item small{display:block;color:var(--gold);font-size:.7rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+  .reading-item h3{font-family:Georgia,serif;font-weight:500;font-size:1.35rem;margin:4px 0 4px}
+  .reading-item .kw{color:#9fb0cc;font-size:.88rem;margin:0 0 8px}
+  .reading-item p{margin:0;color:#c9d2e3}
+  .badge{display:inline-block;margin-left:8px;padding:2px 8px;border-radius:999px;font-size:.66rem;font-weight:800;letter-spacing:.08em;vertical-align:middle;background:rgba(240,118,135,.16);color:#f6a3b0}
+  .summary-actions{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin:0 0 20px}
+  .lightbox{position:fixed;inset:0;z-index:20;display:none;place-items:center;background:rgba(3,5,12,.86);padding:20px}
+  .lightbox.show{display:grid}
+  .lightbox .big{width:min(380px,82vw);aspect-ratio:3/5;border-radius:18px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+  .lightbox .big svg,.lightbox .big img{width:100%;height:100%;display:block}
+  .lightbox .big.rev svg,.lightbox .big.rev img{transform:rotate(180deg)}
+  .disclaimer{color:#7d8aa5;font-size:.82rem;text-align:center;margin:0 0 40px}
+  @media(max-width:760px){.controls{grid-template-columns:1fr}.site-nav{gap:14px}.site-nav a{font-size:.82rem}.reading-item{grid-template-columns:64px 1fr;gap:14px}.reading-item .thumb{width:64px}}
+  @media(max-width:600px){.layout.celtic{width:calc(100% - 16px)}.layout.celtic .slot .pos-label .pl-text{display:none}.layout.celtic .slot .pos-label{position:absolute;top:-7px;left:-7px;z-index:3;width:20px;height:20px;margin:0;border-radius:50%;display:grid;place-items:center;background:#e6b85d;color:#1b1206;font-size:.66rem;box-shadow:0 2px 6px rgba(0,0,0,.5)}.layout.celtic .slot.crossing .pos-label{display:grid;transform:rotate(-90deg);top:auto;left:auto;bottom:-7px;left:-7px}}
+  @media(max-width:520px){.site-nav a.hide-sm{display:none}.table{padding:20px 4px}}
+  @media(prefers-reduced-motion:reduce){.card .inner{transition:none}.card.dealt{animation:none}}
+</style>
+</head>
+<body>
+<header class="shell site-head"><a class="brand" href="/"><img src="/zephyr-logo.svg" alt="">ZEPHYR</a>
+  <nav class="site-nav"><a class="hide-sm" href="/">Solar Harmony</a><a href="/natal-chart.html">Natal</a><a href="/mayan.html">Mayan</a><a class="active" href="/tarot.html">Tarot</a></nav></header>
+<main class="shell">
+  <section class="oracle-hero">
+    <p class="eyebrow">Oracle · Zephyr Tarot</p>
+    <h1>Ask, shuffle, turn the cards.</h1>
+    <p class="dek">Hold a question in mind, or just ask for what you need to hear. Choose a spread, deal, and flip each card when you're ready.</p>
+  </section>
+
+  <section class="controls" aria-label="Reading options">
+    <label>Your question (optional)<textarea id="question" maxlength="240" placeholder="What do I need to know about…"></textarea></label>
+    <div class="spread-picks">
+      <label>Spread</label>
+      <div class="seg" role="group" aria-label="Spread"><button type="button" class="on" data-spread="three">Three Card</button><button type="button" data-spread="celtic">Celtic Cross</button></div>
+      <label id="variantWrap">Three Card focus
+        <select id="variant">
+          <option value="ppf">Past · Present · Future</option>
+          <option value="sao">Situation · Action · Outcome</option>
+          <option value="mbs">Mind · Body · Spirit</option>
+          <option value="yt">You · Them · The Connection</option>
+        </select></label>
+    </div>
+    <div class="row">
+      <label class="toggle"><input type="checkbox" id="reversals" checked> Allow reversed cards</label>
+      <span class="spacer"></span>
+      <button class="btn-quiet" type="button" id="revealAll" disabled>Reveal all</button>
+      <button class="btn-gold" type="button" id="deal">Shuffle &amp; deal</button>
+    </div>
+  </section>
+
+  <section class="table" aria-live="polite">
+    <p class="question-echo" id="echo"></p>
+    <div class="layout three" id="layout"></div>
+    <p class="hint celtic-key" id="celticKey" hidden></p>
+    <p class="hint" id="hint">Your cards will appear here.</p>
+  </section>
+
+  <div class="summary-actions" id="summaryActions" hidden><button class="btn-quiet" type="button" id="copy">Copy reading</button><button class="btn-quiet" type="button" id="again">New reading</button></div>
+  <section class="reading" id="reading"></section>
+  <p class="disclaimer">Tarot is a tool for reflection, not prediction or professional advice.</p>
+</main>
+<div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Card detail"><div class="big" id="bigCard"></div></div>
+
+<script src="/tarot-deck.js?v=20261108"></script>
+<script>
+(() => {
+  'use strict';
+  const T = window.ZephyrTarot;
+  const $ = id => document.getElementById(id);
+  const SPREADS = {
+    ppf: ['Past','Present','Future'],
+    sao: ['Situation','Action','Outcome'],
+    mbs: ['Mind','Body','Spirit'],
+    yt:  ['You','Them','The Connection'],
+    celtic: [
+      ['The Present','The heart of the matter right now.'],
+      ['The Challenge','What crosses you: the obstacle or tension.'],
+      ['Foundation','The root beneath the situation.'],
+      ['Recent Past','What is passing away.'],
+      ['Potential','The best that can come of this.'],
+      ['Near Future','What is approaching next.'],
+      ['Yourself','Your attitude and part in it.'],
+      ['Environment','People and forces around you.'],
+      ['Hopes & Fears','What you long for or dread.'],
+      ['Outcome','Where this is heading if nothing changes.']
+    ]
+  };
+  // Celtic Cross positions as % of a 600×730 frame (card = 100×167)
+  const CELTIC_POS = [[200,365],[200,365],[200,550],[50,365],[200,180],[350,365],[520,640],[520,457],[520,273],[520,90]];
+
+  let spread = 'three', drawn = [];
+
+  function shuffle(n) {
+    const deck = T.CARDS.slice(), rnd = new Uint32Array(deck.length * 2); crypto.getRandomValues(rnd);
+    for (let i = deck.length - 1; i > 0; i--) { const j = rnd[i] % (i + 1); [deck[i], deck[j]] = [deck[j], deck[i]]; }
+    const allowRev = $('reversals').checked;
+    return deck.slice(0, n).map((c, i) => ({ card: c, reversed: allowRev && (rnd[deck.length + i] % 100) < 35, revealed: false }));
+  }
+  function positions() {
+    return spread === 'celtic' ? SPREADS.celtic.map(p => p[0]) : SPREADS[$('variant').value];
+  }
+
+  function deal() {
+    const pos = positions();
+    drawn = shuffle(pos.length);
+    const q = $('question').value.trim();
+    $('echo').textContent = q ? `“${q}”` : '';
+    const L = $('layout'); L.className = 'layout ' + (spread === 'celtic' ? 'celtic' : 'three'); L.innerHTML = '';
+    drawn.forEach((d, i) => {
+      const slot = document.createElement('div'); slot.className = 'slot' + (spread === 'celtic' && i === 1 ? ' crossing' : '');
+      if (spread === 'celtic') { const [x, y] = CELTIC_POS[i]; slot.style.left = `${(x - 50) / 6}%`; slot.style.top = `${(y - 83.5) / 7.3}%`; }
+      slot.innerHTML = `<button class="card dealt" type="button" style="animation-delay:${i * 90}ms" aria-label="${pos[i]}: face-down card. Press to reveal."><div class="inner"><div class="side back">${T.backSVG()}</div><div class="side front${d.reversed ? ' rev' : ''}"></div></div></button><span class="pos-label"><b>${i + 1}</b><span class="pl-text">. ${pos[i]}</span></span>`;
+      const btn = slot.querySelector('.card');
+      btn.addEventListener('click', () => d.revealed ? openBig(d) : reveal(i));
+      L.appendChild(slot);
+    });
+    $('hint').textContent = 'Tap each card to turn it over. Tap again to enlarge.';
+    $('revealAll').disabled = false; $('reading').innerHTML = ''; $('summaryActions').hidden = true;
+    $('deal').textContent = 'Shuffle again';
+    $('celticKey').hidden = spread !== 'celtic';
+    if (spread === 'celtic') $('celticKey').innerHTML = pos.map((p, i) => `<b>${i + 1}</b> ${p}`).join(' · ');
+  }
+
+  function reveal(i) {
+    const d = drawn[i]; if (d.revealed) return; d.revealed = true;
+    const btn = $('layout').children[i].querySelector('.card');
+    btn.querySelector('.front').innerHTML = T.face(d.card);
+    requestAnimationFrame(() => btn.classList.add('flipped'));
+    btn.setAttribute('aria-label', `${positions()[i]}: ${d.card.name}${d.reversed ? ', reversed' : ''}. Press to enlarge.`);
+    renderReading();
+  }
+
+  function renderReading() {
+    const pos = positions();
+    const items = drawn.map((d, i) => ({ d, i })).filter(x => x.d.revealed);
+    $('reading').innerHTML = items.map(({ d, i }) => {
+      const c = d.card, desc = spread === 'celtic' ? SPREADS.celtic[i][1] : '';
+      const suitLine = c.arcana === 'minor' ? ` In ${T.SUITS[c.suit].domain}.` : ' A Major Arcana card: a significant life theme.';
+      return `<article class="reading-item"><div class="thumb${d.reversed ? ' rev' : ''}">${T.face(c)}</div><div>
+        <small>${i + 1}. ${pos[i]}</small><h3>${c.name}${d.reversed ? '<span class="badge">REVERSED</span>' : ''}</h3>
+        <p class="kw">${d.reversed ? c.reversed : c.upright}</p>
+        <p>${desc ? `<em>${desc}</em> ` : ''}${d.reversed ? `Reversed, this card points to ${c.reversed}. Its energy is blocked, delayed or turned inward. ` : ''}${c.meaning}${suitLine}</p></div></article>`;
+    }).join('');
+    const done = drawn.length && drawn.every(d => d.revealed);
+    $('summaryActions').hidden = !done; $('revealAll').disabled = done;
+    if (done) $('hint').textContent = 'Your reading is complete. Tap any card to see it larger.';
+  }
+
+  function openBig(d) { const b = $('bigCard'); b.className = 'big' + (d.reversed ? ' rev' : ''); b.innerHTML = T.face(d.card); $('lightbox').classList.add('show'); }
+  $('lightbox').addEventListener('click', () => $('lightbox').classList.remove('show'));
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') $('lightbox').classList.remove('show'); });
+
+  document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('.seg button').forEach(x => x.classList.toggle('on', x === b));
+    spread = b.dataset.spread; $('variantWrap').style.display = spread === 'three' ? '' : 'none';
+  }));
+  $('deal').addEventListener('click', deal);
+  if (location.hash === '#celtic') document.querySelector('[data-spread=celtic]').click();
+  $('again').addEventListener('click', () => { deal(); $('layout').scrollIntoView({ behavior: 'smooth', block: 'center' }); });
+  $('revealAll').addEventListener('click', () => drawn.forEach((_, i) => setTimeout(() => reveal(i), i * 140)));
+  $('copy').addEventListener('click', () => {
+    const pos = positions(), q = $('question').value.trim();
+    const text = `Zephyr Tarot · ${spread === 'celtic' ? 'Celtic Cross' : 'Three Card'}${q ? `\nQuestion: ${q}` : ''}\n\n` +
+      drawn.map((d, i) => `${i + 1}. ${pos[i]}: ${d.card.name}${d.reversed ? ' (reversed)' : ''} — ${d.reversed ? d.card.reversed : d.card.upright}`).join('\n') + '\n\nhttps://www.zephyr.guru/tarot.html';
+    navigator.clipboard.writeText(text).then(() => { $('copy').textContent = 'Copied!'; setTimeout(() => $('copy').textContent = 'Copy reading', 1600); }).catch(() => {});
+  });
+})();
+</script>
+</body>
+</html>
