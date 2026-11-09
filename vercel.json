@@ -1,0 +1,6 @@
+{
+  "functions": {
+    "api/interpret-tarot.js": { "maxDuration": 60 },
+    "api/interpret-chart.js": { "maxDuration": 60 }
+  }
+}
