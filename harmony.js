@@ -64,13 +64,13 @@
     Pisces:[['M13 9 C22 14 22 34 13 39',1],['M35 9 C26 14 26 34 35 39',1],['M12 24 L36 24',1]]
   };
 
-  function drawSignIcon(NS, parent, name, x, y, size, opacity) {
+  function drawSignIcon(NS, parent, name, x, y, size, opacity, strokeWidth) {
     const g=document.createElementNS(NS,'g');
     g.setAttribute('transform',`translate(${x-size/2} ${y-size/2}) scale(${size/48})`);
     g.setAttribute('opacity',opacity);
     g.setAttribute('fill','none');
-    g.setAttribute('stroke','url(#goldGrad)');
-    g.setAttribute('stroke-width','2.15');
+    g.setAttribute('stroke','url(#glyphGold)');
+    g.setAttribute('stroke-width', strokeWidth||'2.3');
     g.setAttribute('stroke-linecap','round');
     g.setAttribute('stroke-linejoin','round');
     g.setAttribute('filter','url(#goldGlow)');
@@ -409,6 +409,7 @@
       <radialGradient id="bgGrad"><stop offset="0" stop-color="#172044"/><stop offset=".56" stop-color="#0b1430"/><stop offset="1" stop-color="#050814"/></radialGradient>
       <radialGradient id="astroGlow"><stop offset="0" stop-color="#17295f" stop-opacity=".62"/><stop offset="1" stop-color="#050814" stop-opacity="0"/></radialGradient>
       <linearGradient id="goldGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff0a7"/><stop offset=".38" stop-color="#e6b85d"/><stop offset="1" stop-color="#9c6422"/></linearGradient>
+      <linearGradient id="glyphGold" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="48" y2="48"><stop offset="0" stop-color="#fff0a7"/><stop offset=".38" stop-color="#e6b85d"/><stop offset="1" stop-color="#9c6422"/></linearGradient>
       <filter id="glow"><feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
       <filter id="goldGlow"><feGaussianBlur stdDeviation="2.4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>`;
     wheel.appendChild(defs);
@@ -432,13 +433,35 @@
     const sun=document.createElementNS(NS,'circle');sun.setAttribute('cx',380);sun.setAttribute('cy',380);sun.setAttribute('r',10);sun.setAttribute('fill','url(#goldGrad)');sun.setAttribute('filter','url(#goldGlow)');ornament.appendChild(sun);
     wheel.appendChild(ornament);
 
-    // Deterministic star field—pure SVG, so the wheel stays crisp at any size.
-    if (layerOn('stars')) for(let i=0;i<118;i++){
-      const a=((i*137.508)%360), r=72+((i*47)%270), [x,y]=polar(380,380,r,a);
-      const star=document.createElementNS(NS,'circle');
-      star.setAttribute('cx',x); star.setAttribute('cy',y); star.setAttribute('r',i%17===0?1.8:(i%5===0?1.15:.65));
-      star.setAttribute('fill',i%7===0?'rgba(255,226,163,.86)':'rgba(205,225,255,.66)');
-      wheel.appendChild(star);
+    // Deterministic but natural-looking star field: seeded PRNG, area-uniform
+    // placement, power-law brightness, and a faint diagonal "milky way" band.
+    if (layerOn('stars')) {
+      let seed=0x5eed1987;
+      const rand=()=>{ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; };
+      const gauss=()=>{ let u=0,v=0; while(!u)u=rand(); while(!v)v=rand(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); };
+      const R1=78, R2=266;
+      const tints=['#dbe6ff','#e9efff','#fff4dc','#ffe2a8','#cfdcff','#ffffff'];
+      const addStar=(x,y)=>{
+        const dx=x-380, dy=y-380, d=Math.hypot(dx,dy);
+        if(d<R1||d>R2) return false;
+        const m=Math.pow(rand(),3.2);               // most stars faint, a few bright
+        const star=document.createElementNS(NS,'circle');
+        star.setAttribute('cx',x.toFixed(1)); star.setAttribute('cy',y.toFixed(1));
+        star.setAttribute('r',(0.35+m*1.6).toFixed(2));
+        star.setAttribute('fill',tints[Math.floor(rand()*tints.length)]);
+        star.setAttribute('opacity',(0.28+m*0.67+rand()*0.08).toFixed(2));
+        if(m>0.55) star.setAttribute('filter','url(#glow)');
+        wheel.appendChild(star); return true;
+      };
+      // Scattered field
+      for(let n=0;n<150;){ const a=rand()*360, r=Math.sqrt(rand()*(R2*R2-R1*R1)+R1*R1); const [x,y]=polar(380,380,r,a); if(addStar(x,y)) n++; }
+      // Faint band of denser, dimmer stars
+      const band=-28*Math.PI/180, bx=Math.cos(band), by=Math.sin(band);
+      for(let n=0,tries=0;n<90&&tries<600;tries++){
+        const t=(rand()*2-1)*R2, off=gauss()*22;
+        const x=380+bx*t-by*off, y=380+by*t+bx*off;
+        if(addStar(x,y)) n++;
+      }
     }
 
     const signRanges=[
@@ -447,6 +470,7 @@
       ['Virgo',236,266],['Libra',267,296],['Scorpio',297,326],['Sagittarius',327,355],['Capricorn',356,365.2422]
     ];
 
+    const activeSigns=new Set(data.map(p=>p.sign).filter(Boolean));
     signRanges.forEach(([name,startDay,endDay],idx)=>{
       const a0=(startDay-1)/YEAR*360, a1=endDay/YEAR*360;
       const meta=SIGN_META[name];
@@ -457,24 +481,40 @@
       sector.setAttribute('stroke','rgba(240,202,123,.32)'); sector.setAttribute('stroke-width','1');
       wheel.appendChild(sector);
 
-      // Capricorn is split by New Year; label it once on the December portion.
+      const zOn=layerOn('zodiac');
+      // Highlight the sun signs of the people on the wheel; quiet the rest.
+      const active=activeSigns.has(name);
+      if(active && zOn){
+        const glow=document.createElementNS(NS,'path');
+        glow.setAttribute('d',arcPath(380,380,270,349,a0,a1));
+        glow.setAttribute('fill','rgba(255,226,150,.10)');
+        glow.setAttribute('stroke','rgba(255,226,150,.55)'); glow.setAttribute('stroke-width','1.2');
+        glow.setAttribute('opacity',state.astroOpacity);
+        wheel.appendChild(glow);
+      }
+
+      // Capricorn is split by New Year; label it once, centered on its full span.
       if(name==='Capricorn' && startDay===1) return;
-      const mid=(a0+a1)/2;
-      const [gx,gy]=polar(380,380,304,mid);
-      drawSignIcon(NS, wheel, name, gx, gy, 42, layerOn('zodiac') ? state.astroOpacity : 0);
+      const mid=name==='Capricorn' ? (a0+360+19/YEAR*360)/2 % 360 : (a0+a1)/2;
+      const base=zOn ? state.astroOpacity : 0;
+      const op=activeSigns.size && !active ? base*0.55 : base;
+      // Keep text upright: rotate tangentially, flipping on the lower half.
+      const tangent=(mid>90 && mid<270) ? mid+180 : mid;
+      const curvedText=(r, txt, attrs)=>{
+        const [tx,ty]=polar(380,380,r,mid);
+        const t=document.createElementNS(NS,'text');
+        t.setAttribute('x',tx); t.setAttribute('y',ty);
+        t.setAttribute('transform',`rotate(${tangent} ${tx} ${ty})`);
+        t.setAttribute('text-anchor','middle'); t.setAttribute('dominant-baseline','central');
+        Object.entries(attrs).forEach(([k,v])=>t.setAttribute(k,v));
+        t.textContent=txt; wheel.appendChild(t); return t;
+      };
 
-      const [nx,ny]=polar(380,380,334,mid);
-      const nameText=document.createElementNS(NS,'text');
-      nameText.setAttribute('x',nx); nameText.setAttribute('y',ny); nameText.setAttribute('fill','#f3d58f'); nameText.setAttribute('opacity', layerOn('zodiac') ? state.astroOpacity : 0);
-      nameText.setAttribute('font-size','10.5'); nameText.setAttribute('font-weight','800'); nameText.setAttribute('letter-spacing','1.1');
-      nameText.setAttribute('text-anchor','middle'); nameText.setAttribute('dominant-baseline','middle');
-      nameText.textContent=name.toUpperCase(); wheel.appendChild(nameText);
+      const [gx,gy]=polar(380,380,306,mid);
+      drawSignIcon(NS, wheel, name, gx, gy, active ? 36 : 32, op, active ? '2.6' : '2.3');
 
-      const [dx,dy]=polar(380,380,319,mid);
-      const dates=document.createElementNS(NS,'text');
-      dates.setAttribute('x',dx); dates.setAttribute('y',dy); dates.setAttribute('fill','rgba(230,218,190,.72)'); dates.setAttribute('opacity', layerOn('zodiac') ? state.astroOpacity : 0);
-      dates.setAttribute('font-size','7.5'); dates.setAttribute('text-anchor','middle'); dates.setAttribute('dominant-baseline','middle');
-      dates.textContent=meta.dates.replace(' – ','–'); wheel.appendChild(dates);
+      curvedText(335, name.toUpperCase(), {fill:'#f3d58f', opacity:op, 'font-size':'10', 'font-weight':'800', 'letter-spacing':'1.6'});
+      curvedText(281, meta.dates.replace(' – ','–'), {fill:'rgba(236,224,196,.78)', opacity:op, 'font-size':'8', 'font-weight':'600', 'letter-spacing':'.3'});
     });
 
     // Month ticks make the zodiac sit visibly behind the exact calendar positions.
