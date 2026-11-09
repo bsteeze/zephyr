@@ -77,6 +77,55 @@
   .lightbox .big{width:min(380px,82vw);aspect-ratio:3/5;border-radius:18px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.6)}
   .lightbox .big svg,.lightbox .big img{width:100%;height:100%;display:block}
   .lightbox .big.rev svg,.lightbox .big.rev img{transform:rotate(180deg)}
+  .ai-reading{margin:6px 0 34px;padding:clamp(22px,4vw,40px);border:1px solid rgba(239,196,102,.32);border-radius:24px;background:radial-gradient(circle at 85% 0%,rgba(128,104,244,.18),transparent 45%),linear-gradient(180deg,rgba(23,32,68,.9),rgba(8,15,32,.9))}
+  .ai-reading .eyebrow{margin-bottom:10px}
+  .ai-reading h2{font-family:Georgia,serif;font-weight:500;font-size:clamp(1.9rem,4vw,2.8rem);line-height:1.05;margin:0 0 16px}
+  .ai-reading h3{font-family:Georgia,serif;font-weight:500;font-size:1.3rem;margin:0 0 8px}
+  .ai-reading p{color:#d3daea;margin:0 0 12px}
+  .ai-opening p{font-family:Georgia,serif;font-size:1.12rem;color:#efe3c4}
+  .ai-cards{display:grid;gap:14px;margin:22px 0}
+  .ai-card{display:grid;grid-template-columns:72px 1fr;gap:16px;padding:16px;border:1px solid var(--line);border-radius:16px;background:rgba(5,9,20,.35)}
+  .ai-card .thumb{width:72px;aspect-ratio:3/5;border-radius:6px;overflow:hidden}
+  .ai-card .thumb svg,.ai-card .thumb img{width:100%;height:100%;display:block}
+  .ai-card .thumb.rev svg,.ai-card .thumb.rev img{transform:rotate(180deg)}
+  .ai-card small{display:block;color:var(--gold);font-size:.68rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;margin-bottom:2px}
+  .ai-block{margin-top:22px;padding-top:20px;border-top:1px solid var(--line)}
+  .ai-block ul{margin:0;padding-left:20px;color:#d3daea}.ai-block li{margin:8px 0}
+  .ai-story{padding:24px;border:1px solid rgba(239,196,102,.28);border-radius:18px;background:rgba(239,196,102,.05)}.ai-story h3{font-size:1.6rem;margin-bottom:12px}.ai-story p:not(.eyebrow){font-family:Georgia,serif;font-size:1.08rem;line-height:1.75;color:#efe6cf}.ai-story .story-meaning{font-family:inherit;font-size:.95rem;color:#aeb9cf;border-top:1px solid var(--line);padding-top:12px;margin-top:6px}
+  .ai-closing p{font-family:Georgia,serif;font-style:italic;color:#efe3c4}
+  .ai-status{display:flex;align-items:center;gap:14px;color:#cdd6ea;font-family:Georgia,serif;font-size:1.1rem}
+  .ai-status .orb{width:28px;height:28px;border-radius:50%;background:radial-gradient(circle,#fff2b0,#e6b85d 50%,transparent 70%);animation:pulse 1.4s ease-in-out infinite}
+  @keyframes pulse{50%{transform:scale(1.35);opacity:.6}}
+  .ai-error{color:#f6a3b0}
+  @media(max-width:760px){.ai-card{grid-template-columns:56px 1fr}.ai-card .thumb{width:56px}}
+  .toggle[hidden],.btn-quiet[hidden]{display:none!important}
+  .manual-note{color:#9fb0cc;font-size:.9rem}
+  .card.empty{border:2px dashed rgba(239,196,102,.45);border-radius:7%/4.2%;background:rgba(239,196,102,.04);display:grid;place-items:center;color:var(--gold);font-weight:800;font-size:.85rem;text-align:center;line-height:1.3;padding:8px}
+  .card.empty:hover{background:rgba(239,196,102,.1)}
+  .card.empty span{display:block;font-size:1.8rem;line-height:1;margin-bottom:4px}
+  .layout.celtic .card.empty{font-size:.62rem}.layout.celtic .card.empty span{font-size:1.2rem}
+  .card.chosen .side{transform:none!important}
+  .picker{position:fixed;inset:0;z-index:30;display:grid;place-items:center;background:rgba(3,5,12,.82);padding:16px}
+  .picker[hidden]{display:none}
+  .picker-panel{width:min(760px,100%);max-height:min(88vh,860px);display:flex;flex-direction:column;border:1px solid var(--line);border-radius:22px;background:#0b1630;box-shadow:0 30px 80px rgba(0,0,0,.6);overflow:hidden}
+  .picker-head{display:flex;justify-content:space-between;align-items:start;gap:12px;padding:18px 20px 8px}
+  .picker-head small{color:var(--gold);font-size:.7rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+  .picker-head h2{font-family:Georgia,serif;font-weight:500;font-size:1.5rem;margin:2px 0 0}
+  .picker-x{font:inherit;font-size:1.8rem;line-height:1;border:0;background:none;color:var(--muted);cursor:pointer;padding:0 4px}
+  .picker-tools{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:6px 20px}
+  .picker-tools input[type=search]{flex:1;min-width:200px;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+  .picker-filters{display:flex;flex-wrap:wrap;gap:6px;padding:6px 20px 10px}
+  .picker-filters button{font:inherit;font-size:.82rem;font-weight:700;border:1px solid var(--line);border-radius:999px;padding:6px 12px;background:transparent;color:var(--muted);cursor:pointer}
+  .picker-filters button.on{background:rgba(239,196,102,.16);border-color:rgba(239,196,102,.5);color:var(--gold)}
+  .picker-grid{overflow:auto;padding:4px 20px 14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px}
+  .picker-grid h4{grid-column:1/-1;margin:10px 0 2px;color:var(--gold);font-size:.72rem;letter-spacing:.16em;text-transform:uppercase}
+  .pick{display:flex;align-items:center;gap:8px;text-align:left;font:inherit;font-size:.9rem;font-weight:650;color:var(--ink);border:1px solid var(--line);border-radius:12px;padding:9px 10px;background:rgba(255,255,255,.03);cursor:pointer}
+  .pick:hover{border-color:rgba(239,196,102,.6);background:rgba(239,196,102,.08)}
+  .pick i{flex:none;width:26px;height:26px;border-radius:8px;display:grid;place-items:center;font-style:normal;font-size:.8rem;font-weight:800;color:#1b1206}
+  .pick[disabled]{opacity:.32;cursor:not-allowed}
+  .pick.current{border-color:var(--gold)}
+  .picker-foot{display:flex;justify-content:flex-end;padding:10px 20px 16px;border-top:1px solid var(--line)}
+  @media(max-width:520px){.picker{padding:0;place-items:end stretch}.picker-panel{max-height:92vh;border-radius:22px 22px 0 0}.picker-grid{grid-template-columns:1fr 1fr}}
   .disclaimer{color:#7d8aa5;font-size:.82rem;text-align:center;margin:0 0 40px}
   @media(max-width:760px){.controls{grid-template-columns:1fr}.site-nav{gap:14px}.site-nav a{font-size:.82rem}.reading-item{grid-template-columns:64px 1fr;gap:14px}.reading-item .thumb{width:64px}}
   @media(max-width:600px){.layout.celtic{width:calc(100% - 16px)}.layout.celtic .slot .pos-label .pl-text{display:none}.layout.celtic .slot .pos-label{position:absolute;top:-7px;left:-7px;z-index:3;width:20px;height:20px;margin:0;border-radius:50%;display:grid;place-items:center;background:#e6b85d;color:#1b1206;font-size:.66rem;box-shadow:0 2px 6px rgba(0,0,0,.5)}.layout.celtic .slot.crossing .pos-label{display:grid;transform:rotate(-90deg);top:auto;left:auto;bottom:-7px;left:-7px}}
@@ -91,12 +140,14 @@
   <section class="oracle-hero">
     <p class="eyebrow">Oracle · Zephyr Tarot</p>
     <h1>Ask, shuffle, turn the cards.</h1>
-    <p class="dek">Hold a question in mind, or just ask for what you need to hear. Choose a spread, deal, and flip each card when you're ready.</p>
+    <p class="dek">Hold a question in mind, or just ask for what you need to hear. Let Zephyr deal, or read your own physical deck: choose "I drew my own" and enter the cards you laid down.</p>
   </section>
 
   <section class="controls" aria-label="Reading options">
     <label>Your question (optional)<textarea id="question" maxlength="240" placeholder="What do I need to know about…"></textarea></label>
     <div class="spread-picks">
+      <label>Cards</label>
+      <div class="seg" role="group" aria-label="How cards are chosen"><button type="button" class="on" data-mode="draw">Draw for me</button><button type="button" data-mode="manual">I drew my own</button></div>
       <label>Spread</label>
       <div class="seg" role="group" aria-label="Spread"><button type="button" class="on" data-spread="three">Three Card</button><button type="button" data-spread="celtic">Celtic Cross</button></div>
       <label id="variantWrap">Three Card focus
@@ -108,7 +159,7 @@
         </select></label>
     </div>
     <div class="row">
-      <label class="toggle"><input type="checkbox" id="reversals" checked> Allow reversed cards</label>
+      <label class="toggle" id="reversalsWrap"><input type="checkbox" id="reversals" checked> Allow reversed cards</label><span class="manual-note" id="manualNote" hidden>Lay out your physical cards, then tap each position to enter the card you drew.</span>
       <span class="spacer"></span>
       <button class="btn-quiet" type="button" id="revealAll" disabled>Reveal all</button>
       <button class="btn-gold" type="button" id="deal">Shuffle &amp; deal</button>
@@ -122,10 +173,23 @@
     <p class="hint" id="hint">Your cards will appear here.</p>
   </section>
 
-  <div class="summary-actions" id="summaryActions" hidden><button class="btn-quiet" type="button" id="copy">Copy reading</button><button class="btn-quiet" type="button" id="again">New reading</button></div>
+  <div class="summary-actions" id="summaryActions" hidden><button class="btn-gold" type="button" id="interpret">✦ Interpret my reading</button><button class="btn-quiet" type="button" id="copy">Copy reading</button><button class="btn-quiet" type="button" id="again">New reading</button></div>
+  <section class="ai-reading" id="aiReading" aria-live="polite" hidden></section>
   <section class="reading" id="reading"></section>
   <p class="disclaimer">Tarot is a tool for reflection, not prediction or professional advice.</p>
 </main>
+<div class="picker" id="picker" role="dialog" aria-modal="true" aria-labelledby="pickerTitle" hidden>
+  <div class="picker-panel">
+    <div class="picker-head"><div><small id="pickerPos"></small><h2 id="pickerTitle">Choose the card you drew</h2></div><button class="picker-x" type="button" id="pickerClose" aria-label="Close">×</button></div>
+    <div class="picker-tools">
+      <input type="search" id="pickerSearch" placeholder="Search: queen, cups, tower, 7…" autocomplete="off">
+      <label class="toggle"><input type="checkbox" id="pickerRev"> Reversed (upside down)</label>
+    </div>
+    <div class="picker-filters" id="pickerFilters"><button type="button" class="on" data-f="all">All</button><button type="button" data-f="major">Major</button><button type="button" data-f="wands">Wands</button><button type="button" data-f="cups">Cups</button><button type="button" data-f="swords">Swords</button><button type="button" data-f="pentacles">Pentacles</button></div>
+    <div class="picker-grid" id="pickerGrid"></div>
+    <div class="picker-foot"><button class="btn-quiet" type="button" id="pickerClear">Clear this position</button></div>
+  </div>
+</div>
 <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Card detail"><div class="big" id="bigCard"></div></div>
 
 <script src="/tarot-deck.js?v=20261108"></script>
@@ -155,7 +219,7 @@
   // Celtic Cross positions as % of a 600×730 frame (card = 100×167)
   const CELTIC_POS = [[200,365],[200,365],[200,550],[50,365],[200,180],[350,365],[520,640],[520,457],[520,273],[520,90]];
 
-  let spread = 'three', drawn = [];
+  let spread = 'three', drawn = [], mode = 'draw', pickIndex = 0;
 
   function shuffle(n) {
     const deck = T.CARDS.slice(), rnd = new Uint32Array(deck.length * 2); crypto.getRandomValues(rnd);
@@ -183,6 +247,7 @@
     });
     $('hint').textContent = 'Tap each card to turn it over. Tap again to enlarge.';
     $('revealAll').disabled = false; $('reading').innerHTML = ''; $('summaryActions').hidden = true;
+    $('aiReading').hidden = true; $('aiReading').innerHTML = ''; $('interpret').disabled = false; $('interpret').textContent = '✦ Interpret my reading';
     $('deal').textContent = 'Shuffle again';
     $('celticKey').hidden = spread !== 'celtic';
     if (spread === 'celtic') $('celticKey').innerHTML = pos.map((p, i) => `<b>${i + 1}</b> ${p}`).join(' · ');
@@ -210,25 +275,154 @@
     }).join('');
     const done = drawn.length && drawn.every(d => d.revealed);
     $('summaryActions').hidden = !done; $('revealAll').disabled = done;
-    if (done) $('hint').textContent = 'Your reading is complete. Tap any card to see it larger.';
+    if (done) $('hint').textContent = mode === 'manual' ? 'All cards entered. Tap a card to change it.' : 'Your reading is complete. Tap any card to see it larger.';
   }
 
   function openBig(d) { const b = $('bigCard'); b.className = 'big' + (d.reversed ? ' rev' : ''); b.innerHTML = T.face(d.card); $('lightbox').classList.add('show'); }
   $('lightbox').addEventListener('click', () => $('lightbox').classList.remove('show'));
   document.addEventListener('keydown', e => { if (e.key === 'Escape') $('lightbox').classList.remove('show'); });
 
-  document.querySelectorAll('.seg button').forEach(b => b.addEventListener('click', () => {
-    document.querySelectorAll('.seg button').forEach(x => x.classList.toggle('on', x === b));
+  document.querySelectorAll('[data-spread]').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('[data-spread]').forEach(x => x.classList.toggle('on', x === b));
     spread = b.dataset.spread; $('variantWrap').style.display = spread === 'three' ? '' : 'none';
   }));
-  $('deal').addEventListener('click', deal);
+
+  // ---------- Manual mode: enter cards drawn from a physical deck ----------
+  const SUIT_ICON = {major:['★','#f2c14e'], wands:['W','#f6a03a'], cups:['C','#7fb6d9'], swords:['S','#c9cfe0'], pentacles:['P','#8bc34a']};
+  function slotEl(i) { return $('layout').children[i]; }
+  function setupManual() {
+    const pos = positions();
+    drawn = pos.map(() => ({ card: null, reversed: false, revealed: false }));
+    const q = $('question').value.trim(); $('echo').textContent = q ? `“${q}”` : '';
+    const L = $('layout'); L.className = 'layout ' + (spread === 'celtic' ? 'celtic' : 'three'); L.innerHTML = '';
+    pos.forEach((p, i) => {
+      const slot = document.createElement('div'); slot.className = 'slot' + (spread === 'celtic' && i === 1 ? ' crossing' : '');
+      if (spread === 'celtic') { const [x, y] = CELTIC_POS[i]; slot.style.left = `${(x - 50) / 6}%`; slot.style.top = `${(y - 83.5) / 7.3}%`; }
+      slot.innerHTML = `<button class="card empty" type="button" aria-label="${p}: choose a card"><div><span>+</span>${spread === 'celtic' ? '' : 'Choose card'}</div></button><span class="pos-label"><b>${i + 1}</b><span class="pl-text">. ${p}</span></span>`;
+      slot.querySelector('.card').addEventListener('click', () => openPicker(i));
+      L.appendChild(slot);
+    });
+    $('hint').textContent = 'Tap each position and pick the card you drew.';
+    $('reading').innerHTML = ''; $('summaryActions').hidden = true;
+    $('aiReading').hidden = true; $('aiReading').innerHTML = ''; $('interpret').disabled = false; $('interpret').textContent = '✦ Interpret my reading';
+    $('celticKey').hidden = spread !== 'celtic';
+    if (spread === 'celtic') $('celticKey').innerHTML = pos.map((p, i) => `<b>${i + 1}</b> ${p}`).join(' · ');
+  }
+  function placeCard(i, card, reversed) {
+    drawn[i] = { card, reversed, revealed: !!card };
+    const slot = slotEl(i), pos = positions()[i];
+    const btn = document.createElement('button'); btn.type = 'button';
+    if (card) {
+      btn.className = 'card chosen'; btn.setAttribute('aria-label', `${pos}: ${card.name}${reversed ? ', reversed' : ''}. Press to change.`);
+      btn.innerHTML = `<div class="inner"><div class="side front${reversed ? ' rev' : ''}">${T.face(card)}</div></div>`;
+    } else {
+      btn.className = 'card empty'; btn.setAttribute('aria-label', `${pos}: choose a card`);
+      btn.innerHTML = `<div><span>+</span>${spread === 'celtic' ? '' : 'Choose card'}</div>`;
+    }
+    btn.addEventListener('click', () => openPicker(i));
+    slot.replaceChild(btn, slot.querySelector('.card'));
+    $('aiReading').hidden = true; $('interpret').disabled = false; $('interpret').textContent = '✦ Interpret my reading';
+    renderReading();
+    if (!drawn.every(d => d.revealed)) $('hint').textContent = 'Tap each position and pick the card you drew.';
+  }
+  let pickFilter = 'all';
+  function renderPicker() {
+    const q = $('pickerSearch').value.trim().toLowerCase();
+    const used = new Set(drawn.filter((d, j) => d.card && j !== pickIndex).map(d => d.card.id));
+    const current = drawn[pickIndex] && drawn[pickIndex].card ? drawn[pickIndex].card.id : '';
+    const groups = [['major','Major Arcana'],['wands','Wands'],['cups','Cups'],['swords','Swords'],['pentacles','Pentacles']];
+    let html = '';
+    groups.forEach(([g, label]) => {
+      if (pickFilter !== 'all' && pickFilter !== g) return;
+      const list = T.CARDS.filter(c => (c.arcana === 'major' ? 'major' : c.suit) === g && (!q || c.name.toLowerCase().includes(q) || (c.arcana === 'major' && String(c.num) === q) || (c.rank && String(c.rank) === q)));
+      if (!list.length) return;
+      html += `<h4>${label}</h4>` + list.map(c => { const [ic, col] = SUIT_ICON[g]; const tag = c.arcana === 'major' ? c.num : (c.rank <= 10 ? c.rank : ['P','Kn','Q','K'][c.rank - 11]);
+        return `<button type="button" class="pick${c.id === current ? ' current' : ''}" data-id="${c.id}"${used.has(c.id) ? ' disabled title="Already in this spread"' : ''}><i style="background:${col}">${tag}</i>${c.name}</button>`; }).join('');
+    });
+    $('pickerGrid').innerHTML = html || '<p style="color:#8493ae;grid-column:1/-1">No cards match that search.</p>';
+  }
+  function openPicker(i) {
+    pickIndex = i;
+    $('pickerPos').textContent = `Position ${i + 1} · ${positions()[i]}`;
+    $('pickerRev').checked = !!(drawn[i] && drawn[i].reversed);
+    pickFilter = 'all'; $('pickerFilters').querySelectorAll('button').forEach(x => x.classList.toggle('on', x.dataset.f === 'all'));
+    $('pickerSearch').value = ''; renderPicker();
+    $('picker').hidden = false; setTimeout(() => $('pickerSearch').focus(), 30);
+  }
+  function closePicker() { $('picker').hidden = true; }
+  $('pickerGrid').addEventListener('click', e => {
+    const b = e.target.closest('.pick'); if (!b || b.disabled) return;
+    const card = T.CARDS.find(c => c.id === b.dataset.id);
+    placeCard(pickIndex, card, $('pickerRev').checked);
+    const next = drawn.findIndex(d => !d.revealed);
+    if (next >= 0) openPicker(next); else { closePicker(); $('reading').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+  });
+  $('pickerSearch').addEventListener('input', renderPicker);
+  $('pickerSearch').addEventListener('keydown', e => { if (e.key === 'Enter') { const first = $('pickerGrid').querySelector('.pick:not([disabled])'); if (first) first.click(); } });
+  $('pickerFilters').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; pickFilter = b.dataset.f; $('pickerFilters').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); renderPicker(); });
+  $('pickerClose').addEventListener('click', closePicker);
+  $('pickerClear').addEventListener('click', () => { placeCard(pickIndex, null, false); closePicker(); });
+  $('picker').addEventListener('click', e => { if (e.target === $('picker')) closePicker(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('picker').hidden) closePicker(); });
+
+  function setMode(m) {
+    mode = m;
+    document.querySelectorAll('[data-mode]').forEach(x => x.classList.toggle('on', x.dataset.mode === m));
+    const manual = m === 'manual';
+    $('reversalsWrap').hidden = manual; $('manualNote').hidden = !manual; $('revealAll').hidden = manual;
+    $('deal').textContent = manual ? 'Start over' : 'Shuffle & deal';
+    if (manual) setupManual(); else { $('layout').innerHTML = ''; drawn = []; $('reading').innerHTML = ''; $('summaryActions').hidden = true; $('aiReading').hidden = true; $('hint').textContent = 'Your cards will appear here.'; $('celticKey').hidden = true; }
+  }
+  document.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
+  document.querySelectorAll('[data-spread]').forEach(b => b.addEventListener('click', () => { if (mode === 'manual') setupManual(); }));
+  $('variant').addEventListener('change', () => { if (mode === 'manual') setupManual(); });
+  $('deal').addEventListener('click', () => mode === 'manual' ? setupManual() : deal());
   if (location.hash === '#celtic') document.querySelector('[data-spread=celtic]').click();
-  $('again').addEventListener('click', () => { deal(); $('layout').scrollIntoView({ behavior: 'smooth', block: 'center' }); });
+  if (location.hash === '#manual') setMode('manual');
+  $('again').addEventListener('click', () => { mode === 'manual' ? setupManual() : deal(); $('layout').scrollIntoView({ behavior: 'smooth', block: 'center' }); });
   $('revealAll').addEventListener('click', () => drawn.forEach((_, i) => setTimeout(() => reveal(i), i * 140)));
+
+  // ---- AI interpretation (api/interpret-tarot.js) ----
+  const esc = t => String(t).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  const prose = t => String(t).split(/\n\s*\n/).filter(Boolean).map(p => `<p>${esc(p.trim())}</p>`).join('');
+  const LOADING = ['Shuffling the deeper meanings…','Reading the cards in conversation…','Listening for the story in your spread…'];
+  $('interpret').addEventListener('click', async () => {
+    const box = $('aiReading'), btn = $('interpret');
+    btn.disabled = true; btn.textContent = 'Reading…';
+    box.hidden = false; let li = 0;
+    box.innerHTML = `<div class="ai-status"><span class="orb"></span><span id="aiMsg">${LOADING[0]}</span></div>`;
+    const tick = setInterval(() => { const m = $('aiMsg'); if (m) m.textContent = LOADING[++li % LOADING.length]; }, 2600);
+    box.scrollIntoView({behavior:'smooth', block:'start'});
+    try {
+      const res = await fetch('/api/interpret-tarot', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({
+        spread: spread === 'celtic' ? 'celtic' : $('variant').value,
+        question: $('question').value.trim(),
+        cards: drawn.map(d => ({id:d.card.id, reversed:d.reversed}))
+      })});
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok || !data.reading) throw new Error(data.error || 'The interpretation could not be completed.');
+      renderAI(data.reading);
+      btn.textContent = '✦ Interpreted';
+    } catch (err) {
+      box.innerHTML = `<p class="ai-error">${esc(err.message)} Your card meanings are still shown below.</p>`;
+      btn.disabled = false; btn.textContent = '✦ Try again';
+    } finally { clearInterval(tick); }
+  });
+  function renderAI(r) {
+    const byIndex = drawn;
+    $('aiReading').innerHTML = `<p class="eyebrow">Your Zephyr Reading</p><h2>${esc(r.title)}</h2>
+      <div class="ai-opening">${prose(r.opening)}</div>
+      <div class="ai-cards">${r.cards.map(c => { const d = byIndex[c.position_index]; return `<article class="ai-card"><div class="thumb${d && d.reversed ? ' rev' : ''}">${d ? T.face(d.card) : ''}</div><div><small>${c.position_index + 1}. ${esc(c.position)} · ${esc(c.card)}${c.orientation === 'reversed' ? ' (reversed)' : ''}</small><h3>${esc(c.headline)}</h3>${prose(c.reading)}</div></article>`; }).join('')}</div>
+      <div class="ai-block ai-story"><p class="eyebrow">A story told by your cards</p><h3>${esc(r.story_title)}</h3>${prose(r.story)}<p class="story-meaning">${esc(r.story_meaning)}</p></div>
+      <div class="ai-block"><h3>Try this week</h3><ul>${r.advice.map(a => `<li>${esc(a)}</li>`).join('')}</ul></div>
+      <div class="ai-block"><h3>Questions to sit with</h3><ul>${r.reflection_questions.map(q => `<li>${esc(q)}</li>`).join('')}</ul></div>
+      <div class="ai-block ai-closing">${prose(r.closing)}</div>`;
+    window.__lastAIReading = r;
+  }
   $('copy').addEventListener('click', () => {
     const pos = positions(), q = $('question').value.trim();
     const text = `Zephyr Tarot · ${spread === 'celtic' ? 'Celtic Cross' : 'Three Card'}${q ? `\nQuestion: ${q}` : ''}\n\n` +
-      drawn.map((d, i) => `${i + 1}. ${pos[i]}: ${d.card.name}${d.reversed ? ' (reversed)' : ''} — ${d.reversed ? d.card.reversed : d.card.upright}`).join('\n') + '\n\nhttps://www.zephyr.guru/tarot.html';
+      drawn.map((d, i) => `${i + 1}. ${pos[i]}: ${d.card.name}${d.reversed ? ' (reversed)' : ''} — ${d.reversed ? d.card.reversed : d.card.upright}`).join('\n') + (window.__lastAIReading && !$('aiReading').hidden ? `\n\n${window.__lastAIReading.story_title}\n\n${window.__lastAIReading.story}` : '') + '\n\nhttps://www.zephyr.guru/tarot.html';
     navigator.clipboard.writeText(text).then(() => { $('copy').textContent = 'Copied!'; setTimeout(() => $('copy').textContent = 'Copy reading', 1600); }).catch(() => {});
   });
 })();
