@@ -16,3 +16,7 @@ license notices are available at:
 The calculation engine runs locally in the visitor's browser. Zephyr does not
 send birth details to an astrology API. City lookup, when requested by the
 visitor, uses the Open-Meteo geocoding service to resolve coordinates.
+
+## jsPDF 2.5.1
+
+`jspdf.umd.min.js` is jsPDF by James Hall, yWorks GmbH and contributors, used under the MIT License. https://github.com/parallax/jsPDF

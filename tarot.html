@@ -136,6 +136,16 @@
   @media(max-width:600px){.layout.celtic{width:calc(100% - 16px)}.layout.celtic .slot .pos-label .pl-text{display:none}.layout.celtic .slot .pos-label{position:absolute;top:-7px;left:-7px;z-index:3;width:20px;height:20px;margin:0;border-radius:50%;display:grid;place-items:center;background:#e6b85d;color:#1b1206;font-size:.66rem;box-shadow:0 2px 6px rgba(0,0,0,.5)}.layout.celtic .slot.crossing .pos-label{display:grid;transform:rotate(-90deg);top:auto;left:auto;bottom:-7px;left:-7px}}
   @media(max-width:520px){.site-nav a.hide-sm{display:none}.table{padding:20px 4px}}
   @media(prefers-reduced-motion:reduce){.card .inner{transition:none}.card.dealt{animation:none}}
+  @media print{
+    :root{color-scheme:light;--bg:#fff;--panel:#fff;--panel2:#fff;--line:#d9dde5;--gold:#9a6f22;--ink:#1d2433;--muted:#5d6678}
+    html,body{background:#fff!important;color:#1d2433}
+    *{box-shadow:none!important;text-shadow:none!important;animation:none!important;transition:none!important}
+    .site-nav,.controls,.summary-actions,.hint,.picker,.lightbox,.btn-gold,.btn-quiet,.ai-status{display:none!important}
+    main section,article,.ai-block,.corr,.ai-card,.reading-item{background:#fff!important;border-color:#d9dde5!important;break-inside:avoid}
+    .card .inner,.card .front,.card.flipped .inner{transform:none!important}
+    .card .back{display:none!important}.card .side{backface-visibility:visible!important;-webkit-backface-visibility:visible!important}
+    h1,h2,h3,p,dd,li,small{color:#1d2433!important}.eyebrow,.corr dt{color:#9a6f22!important}
+  }
 </style>
 </head>
 <body>
@@ -178,7 +188,7 @@
     <p class="hint" id="hint">Your cards will appear here.</p>
   </section>
 
-  <div class="summary-actions" id="summaryActions" hidden><button class="btn-gold" type="button" id="interpret">✦ Interpret my reading</button><button class="btn-quiet" type="button" id="copy">Copy reading</button><button class="btn-quiet" type="button" id="again">New reading</button></div>
+  <div class="summary-actions" id="summaryActions" hidden><button class="btn-gold" type="button" id="interpret">✦ Interpret my reading</button><button class="btn-quiet" type="button" id="copy">Copy reading</button><button class="btn-quiet" type="button" id="savePdf">Save as PDF</button><button class="btn-quiet" type="button" id="again">New reading</button></div>
   <section class="ai-reading" id="aiReading" aria-live="polite" hidden></section>
   <section class="reading" id="reading"></section>
   <p class="disclaimer">Tarot is a tool for reflection, not prediction or professional advice.</p>
@@ -199,6 +209,7 @@
 
 <script src="/tarot-deck.js?v=20261108"></script>
 <script src="/tarot-correspondences.js?v=20261108"></script>
+<script src="/tarot-pdf.js?v=20261108"></script>
 <script>
 (() => {
   'use strict';
@@ -431,11 +442,45 @@
       <div class="ai-block ai-closing">${prose(r.closing)}</div>`;
     window.__lastAIReading = r;
   }
+  $('savePdf').addEventListener('click', async () => {
+    const b = $('savePdf'); if (!window.ZephyrTarotPDF) return;
+    b.disabled = true; b.textContent = 'Preparing PDF…';
+    try {
+      const pos = positions();
+      await window.ZephyrTarotPDF.download({
+        spread: spread === 'celtic' ? 'celtic' : 'three',
+        positions: pos.map((p, i) => ({ name: p, desc: spread === 'celtic' ? SPREADS.celtic[i][1] : '' })),
+        celticPos: CELTIC_POS,
+        question: $('question').value.trim(),
+        cards: drawn.map(d => ({ card: d.card, reversed: d.reversed })),
+        ai: !$('aiReading').hidden && window.__lastAIReading && $('aiReading').querySelector('.ai-card') ? window.__lastAIReading : null
+      });
+      b.textContent = 'Save as PDF';
+    } catch (err) { console.error(err); b.textContent = 'PDF failed · try again'; }
+    finally { b.disabled = false; }
+  });
   $('copy').addEventListener('click', () => {
-    const pos = positions(), q = $('question').value.trim();
-    const text = `Zephyr Tarot · ${spread === 'celtic' ? 'Celtic Cross' : 'Three Card'}${q ? `\nQuestion: ${q}` : ''}\n\n` +
-      drawn.map((d, i) => `${i + 1}. ${pos[i]}: ${d.card.name}${d.reversed ? ' (reversed)' : ''} — ${d.reversed ? d.card.reversed : d.card.upright}`).join('\n') + (window.__lastAIReading && !$('aiReading').hidden ? `\n\n${window.__lastAIReading.story_title}\n\n${window.__lastAIReading.story}` : '') + '\n\nhttps://www.zephyr.guru/tarot.html';
-    navigator.clipboard.writeText(text).then(() => { $('copy').textContent = 'Copied!'; setTimeout(() => $('copy').textContent = 'Copy reading', 1600); }).catch(() => {});
+    const pos = positions(), q = $('question').value.trim(), r = window.__lastAIReading;
+    const ai = r && !$('aiReading').hidden && $('aiReading').querySelector('.ai-card') ? r : null;
+    const byIndex = {}; if (ai) ai.cards.forEach(c => { byIndex[c.position_index] = c; });
+    const rule = '\n\n— — —\n\n', out = [];
+    out.push(`ZEPHYR TAROT · ${spread === 'celtic' ? 'Celtic Cross' : 'Three Card'} · ${new Date().toLocaleDateString('en-US', {month:'long', day:'numeric', year:'numeric'})}`);
+    if (q) out.push(`Question: “${q}”`);
+    if (ai) out.push(`${ai.title}\n\n${ai.opening}`);
+    out.push('THE CARDS\n\n' + drawn.map((d, i) => {
+      const c = d.card, a = byIndex[i];
+      let t = `${i + 1}. ${pos[i]}: ${c.name}${d.reversed ? ' (reversed)' : ''}\n${d.reversed ? c.reversed : c.upright}`;
+      t += a ? `\n\n${a.headline}\n${a.reading}` : `\n${d.reversed ? `Reversed, this card points to ${c.reversed}. ` : ''}${c.meaning}`;
+      return t;
+    }).join('\n\n'));
+    if (ai) {
+      out.push(`A STORY TOLD BY YOUR CARDS\n\n${ai.story_title}\n\n${ai.story}\n\n${ai.story_meaning}`);
+      out.push('TRY THIS WEEK\n' + ai.advice.map(x => `• ${x}`).join('\n'));
+      out.push('QUESTIONS TO SIT WITH\n' + ai.reflection_questions.map((x, n) => `${n + 1}. ${x}`).join('\n'));
+      out.push(ai.closing);
+    }
+    out.push('https://www.zephyr.guru/tarot.html');
+    navigator.clipboard.writeText(out.join(rule)).then(() => { $('copy').textContent = 'Copied!'; setTimeout(() => $('copy').textContent = 'Copy reading', 1600); }).catch(() => {});
   });
 })();
 </script>
