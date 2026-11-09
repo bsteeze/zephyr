@@ -71,6 +71,7 @@
   .mcross .pos p{margin:8px 0 0;color:#c9d2e3;font-size:.86rem;line-height:1.5}
   .mcross .center{border-color:rgba(239,196,102,.6);background:rgba(239,196,102,.08)}
   .p-conception{grid-column:2;grid-row:1}.p-right{grid-column:1;grid-row:2}.p-center{grid-column:2;grid-row:2}.p-left{grid-column:3;grid-row:2}.p-destiny{grid-column:2;grid-row:3}
+  .maya-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
   .ai-out{margin-top:18px}
   .ai-out h3{font-family:Georgia,serif;font-weight:500;font-size:1.35rem;margin:22px 0 6px}
   .ai-out p,.ai-out li{color:#d3dae8;line-height:1.7}
@@ -152,7 +153,7 @@
     <p class="eyebrow">Zephyr Reading</p>
     <h2>Your full Mayan reading</h2>
     <p class="dek2">Weave your day sign, number, Maya Cross and Dreamspell signature into one personal story.</p>
-    <button class="btn-gold" type="button" id="mayaAI">✦ Write my full reading</button>
+    <div class="maya-actions"><button class="btn-gold" type="button" id="mayaAI">✦ Write my full reading</button><button class="btn-quiet" type="button" id="copyReading">Copy reading</button><button class="btn-quiet" type="button" id="pdfReading">Save as PDF</button></div>
     <div class="ai-out" id="mayaAIOut" aria-live="polite"></div>
   </section>
 
@@ -183,6 +184,7 @@
 </main>
 
 <script src="/maya-core.js?v=20261108"></script>
+<script src="/maya-pdf.js?v=20261108"></script>
 <script>
 (() => {
   'use strict';
@@ -330,7 +332,7 @@
   const prose = t => String(t || '').split(/\n\s*\n/).filter(Boolean).map(p => `<p>${esc(p.trim())}</p>`).join('');
   const N = Z.NAMES, P = Z.PROFILES;
   const label = d => `${d.number} ${N[d.sign][1]}`;
-  let current = null;
+  let current = null, aiReading = null, aiCompat = null;
 
   function renderDeep(dateStr) {
     const c = Z.chartFor(dateStr); if (!c) return;
@@ -353,7 +355,7 @@
       const d = c.cross[pos.key];
       return `<div class="pos p-${pos.key}${pos.key === 'center' ? ' center' : ''}"><small>${esc(pos.label)}</small><b>${esc(label(d))}</b><span>${esc(N[d.sign][2])} · ${esc(N[d.sign][0])}</span><p>${esc(pos.meaning)} ${esc(firstSentence(P[d.sign].essence))}</p></div>`;
     }).join('');
-    $('mayaAIOut').innerHTML = ''; $('mayaAI').disabled = false; $('mayaAI').textContent = '✦ Write my full reading';
+    aiReading = null; $('mayaAIOut').innerHTML = ''; $('mayaAI').disabled = false; $('mayaAI').textContent = '✦ Write my full reading';
     if (!$('cDateA').value || $('cDateA').dataset.auto === '1') { $('cDateA').value = dateStr; $('cDateA').dataset.auto = '1'; }
   }
   const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
@@ -382,10 +384,49 @@
     if (!current) return;
     const r = await callAI({ mode: 'reading', date: current.date }, $('mayaAIOut'), $('mayaAI'), '', ['Counting the days…', 'Reading your cross…', 'Listening to your nawal…']);
     if (!r) return;
+    aiReading = r;
     $('mayaAIOut').innerHTML = `<h3 class="ai-title">${esc(r.title)}</h3>${prose(r.opening)}` +
       r.sections.map(s => `<h3>${esc(s.heading)}</h3>${prose(s.body)}`).join('') +
       `<h3>Try this</h3><ul>${r.advice.map(a => `<li>${esc(a)}</li>`).join('')}</ul>${prose(r.closing)}`;
   });
+
+
+  // ---- Copy & PDF ----
+  const nm = d => `${d.number} ${N[d.sign][1]} (${N[d.sign][2]})`;
+  function copyText(text, btn, idle) {
+    navigator.clipboard.writeText(text).then(() => { btn.textContent = 'Copied!'; setTimeout(() => btn.textContent = idle, 1600); })
+      .catch(() => { btn.textContent = 'Copy failed'; setTimeout(() => btn.textContent = idle, 1600); });
+  }
+  async function makePDF(fn, btn) {
+    if (!window.ZephyrMayaPDF) return;
+    const idle = 'Save as PDF'; btn.disabled = true; btn.textContent = 'Preparing PDF…';
+    try { await fn(); btn.textContent = idle; } catch (e) { console.error(e); btn.textContent = 'PDF failed · try again'; } finally { btn.disabled = false; }
+  }
+  const SEP = '\n\n— — —\n\n';
+  function readingText() {
+    const c = current, t = c.trad, p = P[t.sign], dir = Z.DIRECTIONS[t.sign % 4], lvl = Z.intensity(t.number), o = c.ds.oracle, out = [];
+    out.push(`ZEPHYR · MAYAN BIRTH READING · ${c.date}`);
+    out.push(`${nm(t)} · Yucatec ${N[t.sign][0]} · ${dir.dir} (${dir.color}) · number ${t.number}, ${lvl}\nHaab' ${t.haabDay} ${Z.HAAB[t.haabMonth]} · Long Count ${t.lc} · Day ${t.pos} of 260`);
+    if (aiReading) out.push(`${aiReading.title}\n\n${aiReading.opening}\n\n` + aiReading.sections.map(s => `${s.heading.toUpperCase()}\n${s.body}`).join('\n\n') + `\n\nTRY THIS\n${aiReading.advice.map(a => `• ${a}`).join('\n')}\n\n${aiReading.closing}`);
+    out.push(`YOUR DAY SIGN\nEssence: ${p.essence}\nGifts: ${p.gifts}\nShadow: ${p.shadow}\nLove & friendship: ${p.love}\nWork & purpose: ${p.work}\nThe number ${t.number}: ${Z.NUMBERS[t.number][1]} ${Z.INTENSITY_TEXT[lvl]}\nTraditionally a good day for ${p.day}`);
+    out.push('YOUR MAYA CROSS\n' + Z.CROSS_POSITIONS.map(pos => `${pos.label}: ${nm(c.cross[pos.key])}`).join('\n'));
+    out.push(`DREAMSPELL\nKin ${c.ds.kin}, ${c.ds.color} ${Z.TONES[c.ds.tone]} ${Z.SEALS[c.ds.seal - 1]} · Guide ${Z.SEALS[o.guide - 1]} · Support ${Z.SEALS[o.analog - 1]} · Challenge ${Z.SEALS[o.antipode - 1]} · Hidden ${Z.SEALS[o.occult - 1]}`);
+    out.push(`https://www.zephyr.guru/mayan.html?date=${c.date}`);
+    return out.join(SEP);
+  }
+  function compatText() {
+    const L = lastCompat, nA = L.nameA || 'Person one', nB = L.nameB || 'Person two';
+    const r = Z.compatibility(L.dateA, L.dateB, L.nameA || 'You', L.nameB || 'they'), out = [];
+    out.push(`ZEPHYR · MAYAN COMPATIBILITY\n${nA}: ${nm(r.a.trad)} (${L.dateA})\n${nB}: ${nm(r.b.trad)} (${L.dateB})`);
+    out.push(r.verdicts.map(v => `${TAG[v.rating]} ${v.label}: ${v.reasons.length ? v.reasons.join(', ') : v.reason}`).join('\n'));
+    if (aiCompat) out.push(`${aiCompat.title}\n\n${aiCompat.summary}\n\n` + ['love', 'friendship', 'business'].map(d => `${TAG[aiCompat.ratings[d]].toUpperCase()} ${d.toUpperCase()}: ${aiCompat[d].headline}\n${aiCompat[d].body}`).join('\n\n') +
+      `\n\nWHERE YOU SHINE\n${aiCompat.strengths.map(x => `• ${x}`).join('\n')}\n\nWHERE YOU RUB\n${aiCompat.friction.map(x => `• ${x}`).join('\n')}\n\nTRY THIS TOGETHER\n${aiCompat.advice.map(x => `• ${x}`).join('\n')}\n\n${aiCompat.closing}`);
+    out.push('THE CONNECTIONS\n' + r.signals.map(s => `${s.title} (${s.system}): ${s.text}`).join('\n'));
+    out.push('https://www.zephyr.guru/mayan.html');
+    return out.join(SEP);
+  }
+  $('copyReading').addEventListener('click', () => current && copyText(readingText(), $('copyReading'), 'Copy reading'));
+  $('pdfReading').addEventListener('click', () => current && makePDF(() => window.ZephyrMayaPDF.reading({ date: current.date, ai: aiReading }), $('pdfReading')));
 
   // ---- Compatibility ----
   const TAG = { best: 'Best for', good: 'Good for', work: 'Takes work in' };
@@ -396,6 +437,7 @@
     const nameA = $('cNameA').value.trim(), nameB = $('cNameB').value.trim();
     const r = Z.compatibility($('cDateA').value, $('cDateB').value, nameA || 'You', nameB || 'they');
     if (!r) { $('compatOut').innerHTML = '<p class="ai-error">Please enter two valid birthdays.</p>'; return; }
+    aiCompat = null;
     lastCompat = { dateA: $('cDateA').value, dateB: $('cDateB').value, nameA, nameB };
     const dA = nameA || 'Person one', dB = nameB || 'Person two';
     const order = { best: 0, good: 1, work: 2 };
@@ -407,10 +449,11 @@
       <div class="verdicts">${verdicts.map(v => `<div class="verdict ${v.rating}"><span class="tag">${TAG[v.rating]}</span><div><h4>${v.label}</h4><p>${esc(v.reason)}${v.reasons.length > 1 ? ` · also ${esc(v.reasons.slice(1, 3).join(', ').toLowerCase())}` : ''}</p></div></div>`).join('')}</div>
       <div class="signals"><div><h4>Traditional count</h4>${list(sig('traditional'))}</div><div><h4>Dreamspell</h4>${list(sig('dreamspell'))}</div></div>
       <p class="note" style="margin-top:14px;max-width:760px">There is no ancient compatibility chart. Zephyr builds these ratings from traditional relationships between days (direction, number strength, each other's Maya Cross) and Dreamspell's oracle partners, plus each sign's natural leanings.</p>
-      <div style="margin-top:18px"><button class="btn-gold" type="button" id="compatAI">✦ Write our full comparison</button><div class="ai-out" id="compatAIOut" aria-live="polite"></div></div>`;
+      <div style="margin-top:18px"><div class="maya-actions"><button class="btn-gold" type="button" id="compatAI">✦ Write our full comparison</button><button class="btn-quiet" type="button" id="copyCompat">Copy comparison</button><button class="btn-quiet" type="button" id="pdfCompat">Save as PDF</button></div><div class="ai-out" id="compatAIOut" aria-live="polite"></div></div>`;
     $('compatAI').addEventListener('click', async () => {
       const res = await callAI({ mode: 'compat', ...lastCompat }, $('compatAIOut'), $('compatAI'), '', ['Comparing your days…', 'Reading both crosses…', 'Finding where you fit…']);
       if (!res) return;
+      aiCompat = res;
       const block = (d, v) => `<h3>${TAG[res.ratings[d]]} ${Z.DOMAIN_LABEL[d].toLowerCase()} · ${esc(v.headline)}</h3>${prose(v.body)}`;
       $('compatAIOut').innerHTML = `<h3 class="ai-title">${esc(res.title)}</h3>${prose(res.summary)}` +
         ['love', 'friendship', 'business'].sort((x, y) => order[res.ratings[x]] - order[res.ratings[y]]).map(d => block(d, res[d])).join('') +
@@ -418,6 +461,8 @@
         `<h3>Where you rub</h3><ul>${res.friction.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` +
         `<h3>Try this together</h3><ul>${res.advice.map(x => `<li>${esc(x)}</li>`).join('')}</ul>${prose(res.closing)}`;
     });
+    $('copyCompat').addEventListener('click', () => copyText(compatText(), $('copyCompat'), 'Copy comparison'));
+    $('pdfCompat').addEventListener('click', () => makePDF(() => window.ZephyrMayaPDF.compat({ ...lastCompat, ai: aiCompat }), $('pdfCompat')));
     $('compatOut').scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
