@@ -53,6 +53,53 @@
   .site-nav a.active{color:var(--gold)}
   @media(max-width:860px){.systems{grid-template-columns:1fr}.facts{grid-template-columns:repeat(2,1fr)}.site-nav{gap:14px}.site-nav a{font-size:.82rem}}
   @media(max-width:520px){.sign-head{flex-direction:column;align-items:flex-start}.sys{padding:22px}.site-nav a.hide-sm{display:none}}
+  .deep{margin-top:22px;padding-top:20px;border-top:1px solid var(--line)}
+  .deep .kiche{color:var(--muted);font-size:.9rem;margin:0 0 12px}
+  .dir-chip{display:inline-flex;align-items:center;gap:7px;padding:4px 11px;border:1px solid var(--line);border-radius:999px;font-size:.78rem;color:#dfe5f2;margin:0 6px 6px 0}
+  .dir-chip i{width:10px;height:10px;border-radius:50%;display:inline-block;border:1px solid rgba(255,255,255,.35)}
+  .deep dl{display:grid;gap:12px;margin:14px 0 0}
+  .deep dt{color:var(--gold);font-size:.68rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+  .deep dd{margin:3px 0 0;color:#c9d2e3;line-height:1.6}
+  .band{margin:0 0 28px;padding:28px;border:1px solid var(--line);border-radius:22px;background:linear-gradient(180deg,rgba(15,29,59,.75),rgba(8,15,32,.75))}
+  .band h2{font-family:Georgia,serif;font-weight:500;font-size:clamp(1.6rem,3vw,2.1rem);margin:6px 0 8px}
+  .band > p.dek2{color:#c2cbdb;margin:0 0 18px;max-width:760px}
+  .mcross{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;max-width:760px}
+  .mcross .pos{padding:14px;border:1px solid var(--line);border-radius:16px;background:rgba(5,9,20,.45);text-align:left}
+  .mcross .pos small{display:block;color:var(--gold);font-size:.64rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+  .mcross .pos b{display:block;font-family:Georgia,serif;font-size:1.25rem;font-weight:500;margin:4px 0 2px}
+  .mcross .pos span{display:block;color:var(--muted);font-size:.8rem}
+  .mcross .pos p{margin:8px 0 0;color:#c9d2e3;font-size:.86rem;line-height:1.5}
+  .mcross .center{border-color:rgba(239,196,102,.6);background:rgba(239,196,102,.08)}
+  .p-conception{grid-column:2;grid-row:1}.p-right{grid-column:1;grid-row:2}.p-center{grid-column:2;grid-row:2}.p-left{grid-column:3;grid-row:2}.p-destiny{grid-column:2;grid-row:3}
+  .ai-out{margin-top:18px}
+  .ai-out h3{font-family:Georgia,serif;font-weight:500;font-size:1.35rem;margin:22px 0 6px}
+  .ai-out p,.ai-out li{color:#d3dae8;line-height:1.7}
+  .ai-out .ai-title{font-family:Georgia,serif;font-size:clamp(1.6rem,3vw,2.2rem);font-weight:500;margin:4px 0 10px}
+  .ai-status{display:flex;align-items:center;gap:12px;color:var(--muted)}
+  .ai-status .orb{width:14px;height:14px;border-radius:50%;background:var(--gold);animation:pulse 1.4s ease-in-out infinite}
+  @keyframes pulse{50%{opacity:.3;transform:scale(.7)}}
+  .ai-error{color:#f4a3a3}.ai-detail{color:#8493ae;font-size:.82rem}
+  .compat-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;max-width:760px}
+  .compat-form fieldset{border:1px solid var(--line);border-radius:16px;padding:14px 16px;margin:0;display:grid;gap:10px}
+  .compat-form legend{color:var(--gold);font-size:.7rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;padding:0 6px}
+  .compat-form label{display:grid;gap:5px;font-size:.72rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .compat-form input{font:inherit;font-size:1rem;letter-spacing:0;text-transform:none;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:10px 12px;color-scheme:dark}
+  .compat-actions{grid-column:1/-1;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+  .pair{display:flex;flex-wrap:wrap;align-items:center;gap:14px;margin:22px 0 14px;font-family:Georgia,serif;font-size:1.45rem}
+  .pair .plus{color:var(--gold)}
+  .pair small{display:block;font-family:Inter,system-ui,sans-serif;font-size:.78rem;color:var(--muted)}
+  .verdicts{display:grid;gap:10px;max-width:760px}
+  .verdict{display:grid;grid-template-columns:150px 1fr;gap:14px;align-items:start;padding:14px 16px;border:1px solid var(--line);border-radius:16px;background:rgba(5,9,20,.45)}
+  .verdict .tag{font-size:.7rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;padding:5px 10px;border-radius:999px;justify-self:start}
+  .verdict.best .tag{background:rgba(102,214,173,.18);color:#7fe0bd;border:1px solid rgba(102,214,173,.4)}
+  .verdict.good .tag{background:rgba(239,196,102,.14);color:var(--gold);border:1px solid rgba(239,196,102,.35)}
+  .verdict.work .tag{background:rgba(240,118,135,.14);color:#f4a0ad;border:1px solid rgba(240,118,135,.35)}
+  .verdict h4{margin:0;font-size:1.05rem}.verdict p{margin:3px 0 0;color:#c9d2e3;font-size:.9rem}
+  .signals{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:20px;max-width:760px}
+  .signals h4{margin:0 0 8px;color:var(--gold);font-size:.7rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+  .signals ul{margin:0;padding-left:18px}.signals li{color:#c9d2e3;font-size:.88rem;margin-bottom:8px}.signals li b{color:var(--ink)}
+  @media(max-width:700px){.compat-form,.signals{grid-template-columns:1fr}.verdict{grid-template-columns:1fr}.mcross{grid-template-columns:1fr 1fr}.p-conception{grid-column:1/-1}.p-center{grid-column:1/-1;grid-row:2}.p-right{grid-column:1;grid-row:3}.p-left{grid-column:2;grid-row:3}.p-destiny{grid-column:1/-1;grid-row:4}.band{padding:22px}}
+  @media print{:root{--bg:#fff;--panel:#fff;--line:#d9dde5;--ink:#1d2433;--muted:#5d6678;--gold:#9a6f22}html,body{background:#fff!important;color:#1d2433}.sys,.band,.compare,.fact,.mcross .pos,.verdict,.cross div{background:#fff!important;box-shadow:none}.site-nav,.date-form,.compat-form,.today,button{display:none!important}p,dd,li,h1,h2,h3,h4,b{color:#1d2433!important}}
 </style>
 </head>
 <body>
@@ -68,7 +115,7 @@
       <button class="btn-gold" type="submit">Reveal my signs</button>
       <button class="btn-quiet" type="button" id="todayBtn">Use today</button>
     </form>
-    <p class="note">Calculated in your browser. Nothing is sent or stored.</p>
+    <p class="note">Calculated in your browser. Nothing is sent or stored unless you ask for a written AI reading.</p>
   </section>
 
   <section class="systems" id="results" aria-live="polite">
@@ -76,6 +123,7 @@
       <p class="eyebrow">Traditional Tzolk'in</p>
       <div class="sign-head"><div class="glyph" id="tzGlyph"></div><div><h2 class="sign-name" id="tzName">—</h2><p class="sign-sub" id="tzSub"></p></div></div>
       <p class="read" id="tzRead"></p>
+      <div class="deep" id="tzDeep"></div>
       <div class="facts">
         <div class="fact"><small>Haab' date</small><b id="haab">—</b></div>
         <div class="fact"><small>Long Count</small><b id="lc">—</b></div>
@@ -92,6 +140,40 @@
     </article>
   </section>
 
+  <section class="band" id="crossBand">
+    <p class="eyebrow">Traditional · Your Maya Cross</p>
+    <h2>The five days that shape you</h2>
+    <p class="dek2">Daykeepers read a birth as a cross of five days: your birth sign at the center, the day of your roots eight days before, your destiny eight days after, and two helper days at your sides. Each keeps its own number.</p>
+    <div class="mcross" id="mcross"></div>
+    <p class="note" style="margin-top:14px">A practitioners' reading from the living K'iche' tradition (conception −8 days, destiny +8, sides −6 and +6). Daykeepers differ on the finer points, especially the sides.</p>
+  </section>
+
+  <section class="band" id="aiBand">
+    <p class="eyebrow">Zephyr Reading</p>
+    <h2>Your full Mayan reading</h2>
+    <p class="dek2">Weave your day sign, number, Maya Cross and Dreamspell signature into one personal story.</p>
+    <button class="btn-gold" type="button" id="mayaAI">✦ Write my full reading</button>
+    <div class="ai-out" id="mayaAIOut" aria-live="polite"></div>
+  </section>
+
+  <section class="band" id="compatBand">
+    <p class="eyebrow">Compatibility · Two birthdays</p>
+    <h2>How do your days fit together?</h2>
+    <p class="dek2">Compare two people in love, friendship and business. Zephyr reads the relationships between your signs in both the traditional count and Dreamspell.</p>
+    <form class="compat-form" id="compatForm">
+      <fieldset><legend>Person one</legend>
+        <label>Name (optional)<input type="text" id="cNameA" maxlength="30" placeholder="You"></label>
+        <label>Birthday<input type="date" id="cDateA" required min="1600-01-01" max="2200-12-31"></label>
+      </fieldset>
+      <fieldset><legend>Person two</legend>
+        <label>Name (optional)<input type="text" id="cNameB" maxlength="30" placeholder="Them"></label>
+        <label>Birthday<input type="date" id="cDateB" required min="1600-01-01" max="2200-12-31"></label>
+      </fieldset>
+      <div class="compat-actions"><button class="btn-gold" type="submit">Compare</button><span class="note">Calculated in your browser.</span></div>
+    </form>
+    <div id="compatOut" aria-live="polite"></div>
+  </section>
+
   <section class="compare">
     <h2>Why two answers?</h2>
     <p>The traditional Tzolk'in has run unbroken for more than two thousand years and is still kept in Guatemala. Dreamspell is a 20th-century reinterpretation with its own colors, tones and "oracle" relationships. It's popular, but it doesn't line up with the ancient count.</p>
@@ -100,6 +182,7 @@
   <div class="today" id="todayStrip"></div>
 </main>
 
+<script src="/maya-core.js?v=20261108"></script>
 <script>
 (() => {
   'use strict';
@@ -237,6 +320,110 @@
   const start = (q && /^\d{4}-\d{2}-\d{2}$/.test(q)) ? q : today;
   $('birth').value = start; render(start);
   window.__maya = {traditional, dreamspell, oracle};
+})();
+</script>
+<script>
+(() => {
+  'use strict';
+  const Z = window.ZephyrMaya, $ = id => document.getElementById(id);
+  const esc = t => String(t == null ? '' : t).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const prose = t => String(t || '').split(/\n\s*\n/).filter(Boolean).map(p => `<p>${esc(p.trim())}</p>`).join('');
+  const N = Z.NAMES, P = Z.PROFILES;
+  const label = d => `${d.number} ${N[d.sign][1]}`;
+  let current = null;
+
+  function renderDeep(dateStr) {
+    const c = Z.chartFor(dateStr); if (!c) return;
+    current = c;
+    const t = c.trad, p = P[t.sign], dir = Z.DIRECTIONS[t.sign % 4], lvl = Z.intensity(t.number);
+    $('tzDeep').innerHTML = `
+      <p class="kiche">K'iche' name <b>${esc(N[t.sign][1])}</b> · Yucatec ${esc(N[t.sign][0])} · ${esc(N[t.sign][2])}</p>
+      <span class="dir-chip"><i style="background:${dir.hex}"></i>${dir.dir} · ${dir.color}</span><span class="dir-chip">Number ${t.number} · ${lvl}</span><span class="dir-chip">Trecena of ${esc(N[t.trecena][1])}</span>
+      <dl>
+        <div><dt>Essence</dt><dd>${esc(p.essence)}</dd></div>
+        <div><dt>Gifts</dt><dd>${esc(p.gifts)}</dd></div>
+        <div><dt>Shadow</dt><dd>${esc(p.shadow)}</dd></div>
+        <div><dt>Love &amp; friendship</dt><dd>${esc(p.love)}</dd></div>
+        <div><dt>Work &amp; purpose</dt><dd>${esc(p.work)}</dd></div>
+        <div><dt>The number ${t.number}: ${esc(Z.NUMBERS[t.number][0].toLowerCase())}</dt><dd>${esc(Z.NUMBERS[t.number][1])} ${esc(Z.INTENSITY_TEXT[lvl])}</dd></div>
+        <div><dt>The ${dir.dir}</dt><dd>${esc(N[t.sign][1])} belongs to the ${dir.dir} and the color ${dir.color.toLowerCase()}: ${esc(dir.theme)}.</dd></div>
+        <div><dt>Traditionally a good day for</dt><dd>${esc(cap(p.day))}</dd></div>
+      </dl>`;
+    $('mcross').innerHTML = Z.CROSS_POSITIONS.map(pos => {
+      const d = c.cross[pos.key];
+      return `<div class="pos p-${pos.key}${pos.key === 'center' ? ' center' : ''}"><small>${esc(pos.label)}</small><b>${esc(label(d))}</b><span>${esc(N[d.sign][2])} · ${esc(N[d.sign][0])}</span><p>${esc(pos.meaning)} ${esc(firstSentence(P[d.sign].essence))}</p></div>`;
+    }).join('');
+    $('mayaAIOut').innerHTML = ''; $('mayaAI').disabled = false; $('mayaAI').textContent = '✦ Write my full reading';
+    if (!$('cDateA').value || $('cDateA').dataset.auto === '1') { $('cDateA').value = dateStr; $('cDateA').dataset.auto = '1'; }
+  }
+  const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+  const firstSentence = s => (String(s).match(/^.*?[.!?](\s|$)/) || [s])[0].trim();
+
+  // ---- AI helpers ----
+  async function callAI(payload, box, btn, idleText, msgs) {
+    btn.disabled = true; btn.textContent = 'Writing…';
+    let i = 0; box.innerHTML = `<div class="ai-status"><span class="orb"></span><span class="m">${msgs[0]}</span></div>`;
+    const tick = setInterval(() => { const m = box.querySelector('.m'); if (m) m.textContent = msgs[++i % msgs.length]; }, 2600);
+    try {
+      const res = await fetch('/api/interpret-maya', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const data = await res.json().catch(() => null);
+      if (!data) throw Object.assign(new Error(res.status === 504 ? 'The reader ran out of time on the server.' : 'The reading could not be completed.'), { detail: `HTTP ${res.status}` });
+      if (!res.ok || !data.result) throw Object.assign(new Error(data.error || 'The reading could not be completed.'), { detail: data.detail || `HTTP ${res.status}` });
+      btn.textContent = '✦ Written';
+      return data.result;
+    } catch (err) {
+      box.innerHTML = `<p class="ai-error">${esc(err.message)}</p>${err.detail ? `<p class="ai-detail">Details: ${esc(err.detail)}</p>` : ''}`;
+      btn.disabled = false; btn.textContent = '✦ Try again';
+      return null;
+    } finally { clearInterval(tick); }
+  }
+
+  $('mayaAI').addEventListener('click', async () => {
+    if (!current) return;
+    const r = await callAI({ mode: 'reading', date: current.date }, $('mayaAIOut'), $('mayaAI'), '', ['Counting the days…', 'Reading your cross…', 'Listening to your nawal…']);
+    if (!r) return;
+    $('mayaAIOut').innerHTML = `<h3 class="ai-title">${esc(r.title)}</h3>${prose(r.opening)}` +
+      r.sections.map(s => `<h3>${esc(s.heading)}</h3>${prose(s.body)}`).join('') +
+      `<h3>Try this</h3><ul>${r.advice.map(a => `<li>${esc(a)}</li>`).join('')}</ul>${prose(r.closing)}`;
+  });
+
+  // ---- Compatibility ----
+  const TAG = { best: 'Best for', good: 'Good for', work: 'Takes work in' };
+  let lastCompat = null;
+  $('cDateA').addEventListener('input', () => { $('cDateA').dataset.auto = '0'; });
+  $('compatForm').addEventListener('submit', e => {
+    e.preventDefault();
+    const nameA = $('cNameA').value.trim(), nameB = $('cNameB').value.trim();
+    const r = Z.compatibility($('cDateA').value, $('cDateB').value, nameA || 'You', nameB || 'they');
+    if (!r) { $('compatOut').innerHTML = '<p class="ai-error">Please enter two valid birthdays.</p>'; return; }
+    lastCompat = { dateA: $('cDateA').value, dateB: $('cDateB').value, nameA, nameB };
+    const dA = nameA || 'Person one', dB = nameB || 'Person two';
+    const order = { best: 0, good: 1, work: 2 };
+    const verdicts = r.verdicts.slice().sort((x, y) => order[x.rating] - order[y.rating]);
+    const sig = sys => r.signals.filter(s => s.system === sys);
+    const list = arr => arr.length ? `<ul>${arr.map(s => `<li><b>${esc(s.title)}.</b> ${esc(s.text)}</li>`).join('')}</ul>` : '<p class="note">No special relationship in this system, so each sign’s natural leanings carry more weight.</p>';
+    $('compatOut').innerHTML = `
+      <div class="pair"><div>${esc(label(r.a.trad))}<small>${esc(dA)} · ${esc(N[r.a.trad.sign][2])} · Kin ${r.a.ds.kin}</small></div><span class="plus">+</span><div>${esc(label(r.b.trad))}<small>${esc(dB)} · ${esc(N[r.b.trad.sign][2])} · Kin ${r.b.ds.kin}</small></div></div>
+      <div class="verdicts">${verdicts.map(v => `<div class="verdict ${v.rating}"><span class="tag">${TAG[v.rating]}</span><div><h4>${v.label}</h4><p>${esc(v.reason)}${v.reasons.length > 1 ? ` · also ${esc(v.reasons.slice(1, 3).join(', ').toLowerCase())}` : ''}</p></div></div>`).join('')}</div>
+      <div class="signals"><div><h4>Traditional count</h4>${list(sig('traditional'))}</div><div><h4>Dreamspell</h4>${list(sig('dreamspell'))}</div></div>
+      <p class="note" style="margin-top:14px;max-width:760px">There is no ancient compatibility chart. Zephyr builds these ratings from traditional relationships between days (direction, number strength, each other's Maya Cross) and Dreamspell's oracle partners, plus each sign's natural leanings.</p>
+      <div style="margin-top:18px"><button class="btn-gold" type="button" id="compatAI">✦ Write our full comparison</button><div class="ai-out" id="compatAIOut" aria-live="polite"></div></div>`;
+    $('compatAI').addEventListener('click', async () => {
+      const res = await callAI({ mode: 'compat', ...lastCompat }, $('compatAIOut'), $('compatAI'), '', ['Comparing your days…', 'Reading both crosses…', 'Finding where you fit…']);
+      if (!res) return;
+      const block = (d, v) => `<h3>${TAG[res.ratings[d]]} ${Z.DOMAIN_LABEL[d].toLowerCase()} · ${esc(v.headline)}</h3>${prose(v.body)}`;
+      $('compatAIOut').innerHTML = `<h3 class="ai-title">${esc(res.title)}</h3>${prose(res.summary)}` +
+        ['love', 'friendship', 'business'].sort((x, y) => order[res.ratings[x]] - order[res.ratings[y]]).map(d => block(d, res[d])).join('') +
+        `<h3>Where you shine</h3><ul>${res.strengths.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` +
+        `<h3>Where you rub</h3><ul>${res.friction.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` +
+        `<h3>Try this together</h3><ul>${res.advice.map(x => `<li>${esc(x)}</li>`).join('')}</ul>${prose(res.closing)}`;
+    });
+    $('compatOut').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  $('mayaForm').addEventListener('submit', () => { if ($('birth').value) renderDeep($('birth').value); });
+  $('todayBtn').addEventListener('click', () => renderDeep($('birth').value));
+  renderDeep($('birth').value);
 })();
 </script>
 </body>
